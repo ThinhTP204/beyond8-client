@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Vidstack Player Base Styles */
+@import '@vidstack/react/player/styles/base.css';
 
 @layer base {
   :root {

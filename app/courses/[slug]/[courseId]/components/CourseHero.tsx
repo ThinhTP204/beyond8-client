@@ -1,0 +1,178 @@
+'use client'
+
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import {
+  Star,
+  Users,
+  Clock,
+  BookOpen,
+  Calendar,
+  Share2,
+  Heart
+} from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import SafeImage from '@/components/ui/SafeImage'
+import { formatNumber } from '@/lib/utils/formatCurrency'
+import type { CourseDetail } from '@/lib/data/mockCourseDetail'
+import { formatImageUrl } from '@/lib/utils/formatImageUrl'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+
+interface CourseHeroProps {
+  course: CourseDetail
+}
+
+export default function CourseHero({ course }: CourseHeroProps) {
+  const params = useParams()
+  // Ensure we have params before constructing URL, fallback to '#' if not
+  const profileUrl = params?.slug && params?.courseId 
+    ? `/courses/${params.slug}/${params.courseId}/instructor/${course.instructor.id}` 
+    : '#'
+
+  const levelColors: Record<string, string> = {
+    Beginner: 'bg-green-500/10 text-green-500 border-green-500/20',
+    Intermediate: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+    Advanced: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
+    Expert: 'bg-red-500/10 text-red-500 border-red-500/20',
+  }
+
+  const levelText: Record<string, string> = {
+    Beginner: 'Cơ bản',
+    Intermediate: 'Trung bình',
+    Advanced: 'Nâng cao',
+    Expert: 'Chuyên gia',
+  }
+
+  const levelColor = levelColors[course.level] || 'bg-white/10 text-white border-white/20'
+
+  return (
+    <div className="relative w-full overflow-hidden bg-brand-dark min-h-[500px] flex items-center">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0 z-0">
+        <SafeImage
+          src={course.thumbnailUrl}
+          alt={course.title}
+          fill
+          className="object-cover opacity-100 scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-dark via-brand-dark/95 to-brand-dark/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent" />
+      </div>
+
+      <div className="container relative z-10 mx-auto px-4 py-12 md:py-16">
+        <div className="max-w-3xl space-y-6">
+          {/* Breadcrumb / Category */}
+          <div className="flex items-center gap-3 text-sm font-medium text-brand-pink/90">
+            <span className="uppercase tracking-wider">Khóa học</span>
+            <span>/</span>
+            <span className="uppercase tracking-wider text-white/80">{course.category}</span>
+          </div>
+
+          {/* Title and Badges */}
+          <div className="space-y-4">
+            <Badge className={`${levelColor} backdrop-blur-sm`} variant="outline">
+              {levelText[course.level] || course.level}
+            </Badge>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight">
+              {course.title}
+            </h1>
+            <p className="text-lg md:text-xl text-white/80 line-clamp-2 max-w-2xl leading-relaxed">
+              {course.shortDescription || course.description}
+            </p>
+          </div>
+
+          {/* Stats & Info */}
+          <div className="flex flex-wrap items-center gap-y-4 gap-x-8 text-white/90">
+            <div className="flex items-center gap-2">
+              <span className="bg-yellow-500/20 p-1.5 rounded-lg">
+                 <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+              </span>
+              <div>
+                <div className="font-bold flex items-center gap-1">
+                  {course.rating}
+                  <span className="text-xs text-white/50 font-normal">/ 5.0</span>
+                </div>
+                <div className="text-xs text-white/60">Đánh giá</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="bg-blue-500/20 p-1.5 rounded-lg">
+                <Users className="w-5 h-5 text-blue-400" />
+              </span>
+              <div>
+                <div className="font-bold">{formatNumber(course.students)}</div>
+                <div className="text-xs text-white/60">Học viên</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+               <span className="bg-purple-500/20 p-1.5 rounded-lg">
+                <Clock className="w-5 h-5 text-purple-400" />
+              </span>
+              <div>
+                 <div className="font-bold">{course.duration}</div>
+                 <div className="text-xs text-white/60">Thời lượng</div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+               <span className="bg-pink-500/20 p-1.5 rounded-lg">
+                <Calendar className="w-5 h-5 text-pink-400" />
+              </span>
+              <div>
+                 <div className="font-bold">Cập nhật</div>
+                 <div className="text-xs text-white/60">Th11 2025</div> 
+                 {/* Note: updatedAt isn't in mock data, using static or prop if available in future */}
+              </div>
+            </div>
+             
+             {course.language && (
+                <div className="flex items-center gap-2">
+                   <span className="bg-orange-500/20 p-1.5 rounded-lg">
+                     <BookOpen className="w-5 h-5 text-orange-400" />
+                   </span>
+                   <div>
+                     <div className="font-bold">{course.language}</div>
+                     <div className="text-xs text-white/60">Ngôn ngữ</div>
+                   </div>
+                </div>
+             )}
+          </div>
+
+          {/* Instructor Mini Preview */}
+          <div className="flex items-center gap-4 pt-4 border-t border-white/10">
+             <div className="flex items-center gap-3">
+                <Link href={profileUrl}>
+                   <Avatar className="h-10 w-10 ring-2 ring-brand-purple/50 cursor-pointer hover:ring-brand-pink transition-all">
+                      <AvatarImage src={formatImageUrl(course.instructor.avatarUrl)} />
+                      <AvatarFallback>{course.instructor.fullName.charAt(0)}</AvatarFallback>
+                   </Avatar>
+                </Link>
+                <div>
+                   <div className="text-xs text-white/50">Được tạo bởi</div>
+                   <Link href={profileUrl}>
+                      <div className="text-sm font-semibold text-white hover:text-brand-pink cursor-pointer transition-colors">
+                         {course.instructor.fullName}
+                      </div>
+                   </Link>
+                </div>
+             </div>
+             
+             <div className="flex-1" />
+
+             <div className="flex gap-2">
+                <Button variant="outline" size="icon" className="h-9 w-9 bg-white/5 border-white/10 hover:bg-white/10 text-white hover:text-brand-pink transition-colors">
+                   <Heart className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-9 w-9 bg-white/5 border-white/10 hover:bg-white/10 text-white hover:text-brand-pink transition-colors">
+                   <Share2 className="w-4 h-4" />
+                </Button>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

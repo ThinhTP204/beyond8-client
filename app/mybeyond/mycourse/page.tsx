@@ -18,10 +18,13 @@ import {
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 
+import Link from "next/link";
+
 const mockCourses = [
   {
     id: 1,
     title: "React & Next.js - Complete Guide",
+    slug: "react-nextjs-complete-guide",
     thumbnail: "/bg-web.jpg",
     progress: 65,
     status: "in-progress",
@@ -35,6 +38,7 @@ const mockCourses = [
   {
     id: 2,
     title: "Node.js Backend Development",
+    slug: "nodejs-backend-development",
     thumbnail: "/bg-web.jpg",
     progress: 100,
     status: "completed",
@@ -48,6 +52,7 @@ const mockCourses = [
   {
     id: 3,
     title: "UI/UX Design Fundamentals",
+    slug: "ui-ux-design-fundamentals",
     thumbnail: "/bg-web.jpg",
     progress: 30,
     status: "in-progress",
@@ -201,12 +206,14 @@ export default function MyCoursePage() {
                     </div>
 
                     {/* Action Button */}
-                    <Button className="w-full gap-2" size="sm">
-                      <Play className="w-4 h-4" />
-                      {course.status === "completed"
-                        ? "Học lại"
-                        : "Tiếp tục học"}
-                    </Button>
+                    <Link href={`/courses/${course.slug}/${course.id}`} className="block w-full">
+                      <Button className="w-full gap-2" size="sm">
+                        <Play className="w-4 h-4" />
+                        {course.status === "completed"
+                          ? "Học lại"
+                          : "Tiếp tục học"}
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </Card>

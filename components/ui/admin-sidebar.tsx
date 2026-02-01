@@ -41,7 +41,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { cn } from '@/lib/utils';
 import { formatImageUrl } from '@/lib/utils/formatImageUrl';
 import { useNotificationStatus } from "@/hooks/useNotification";
-import { NotificationPanel } from "../widget/notification-panel";
+import { AdminNotificationPanel } from '../widget/admin-notification-panel';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
@@ -405,7 +405,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
           </div>
         </div>
       </div>
-      <NotificationPanel open={isNotificationOpen} onOpenChange={setIsNotificationOpen} />
+      <AdminNotificationPanel open={isNotificationOpen} onOpenChange={setIsNotificationOpen} />
     </aside>
   );
 }

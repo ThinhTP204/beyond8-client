@@ -13,9 +13,13 @@ function Model() {
   );
 }
 
-export default function ModelViewer() {
+interface ModelViewerProps {
+  isMobile?: boolean;
+}
+
+export default function ModelViewer({ isMobile = false }: ModelViewerProps) {
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ fov: 90, position: [0, 0, 18], rotation: [0, Math.PI / 2,0 ] }}>
+    <Canvas shadows={!isMobile} dpr={isMobile ? 1 : [1, 2]} camera={{ fov: 90, position: [0, 0, 18], rotation: [0, Math.PI / 2,0 ] }}>
       <Suspense fallback={null}>
         <Stage environment="city" intensity={1}>
           <Model />
