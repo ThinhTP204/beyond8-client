@@ -21,7 +21,7 @@ export default function OrderSummary({ course }: OrderSummaryProps) {
 
   return (
     <div className="space-y-6">
-      <Card className="sticky top-20 overflow-hidden border-brand-magenta/20 shadow-xl shadow-brand-magenta/5 backdrop-blur-xl bg-white/80 dark:bg-black/80">
+      <Card className="overflow-hidden border-brand-magenta/20 shadow-xl shadow-brand-magenta/5 backdrop-blur-xl bg-white/80 dark:bg-black/80">
         <div className="h-1.5 bg-gradient-to-r from-brand-magenta via-pink-500 to-orange-500" />
         <CardHeader className="pb-4">
            <div className="flex justify-between items-center">
