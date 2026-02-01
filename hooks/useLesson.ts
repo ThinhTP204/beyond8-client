@@ -1,4 +1,3 @@
-import { err } from './../.agent/skills/typescript-expert/references/utility-types';
 import { CreateLessonRequest, fetchLession } from "@/lib/api/services/fetchLesson";
 import { ApiError } from "@/types/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

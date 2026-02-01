@@ -54,7 +54,8 @@ export function middleware(request: NextRequest) {
     "/register",
     "/reset-password",
     "/forgot-password",
-    "/supscription"
+    "/supscription",
+    "/courses" // Includes /courses and /courses/[slug]/[courseId]
   ];
 
   // Static files and XML sitemaps should always be accessible
@@ -74,7 +75,7 @@ export function middleware(request: NextRequest) {
 
   // If user is NOT authenticated
   if (!token || userRoles.length === 0) {
-    // Allow access to public routes only
+    // Allow access to public routes (includes /courses and /courses/[slug]/[courseId])
     if (isPublicRoute) {
       return NextResponse.next();
     }

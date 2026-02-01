@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useInstructorNotification, useMarkReadAll, useDeleteNotification, useDeleteAllNotifications } from "@/hooks/useNotification";
+import { useNotification, useMarkAllReadStudent, useDeleteNotification, useDeleteAllNotifications } from "@/hooks/useNotification";
 import { notificationService, NotificationChannel, NotificationStatus } from "@/lib/api/services/fetchNotification";
 import type { NotificationItem } from "@/lib/api/services/fetchNotification";
 import { formatDistanceToNow, isToday } from "date-fns";
@@ -224,7 +224,7 @@ const GroupedNotifications = ({ list, onDelete, isLoading, observerRef, isFetchi
   );
 };
 
-export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function StudentNotificationPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [activeTab, setActiveTab] = useState("all");
   const [loadingTab, setLoadingTab] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -251,27 +251,32 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     return base;
   }, [activeTab]); 
 
-  // Removed useNotificationStatus call as per user request to use ONLY useInstructorNotification
-  
   const { 
-    data: instructorData, 
-    isLoading: loadingInstructor 
-  } = useInstructorNotification(params, { enabled: open });
+    notifications: studentNotifications,
+    isLoading: loadingNotifications
+  } = useNotification(params, { enabled: open });
   
-  const isLoadingInitial = loadingInstructor;
+  const isLoadingInitial = loadingNotifications;
+
+  // Calculate unread count from loaded notifications
+  const realUnreadCount = useMemo(() => {
+    if (currentPage === 1) {
+      return (studentNotifications || []).filter(n => !n.readAt && n.isRead !== true).length;
+    } else {
+      return allNotifications.filter(n => !n.readAt && n.isRead !== true).length;
+    }
+  }, [studentNotifications, allNotifications, currentPage]);
 
   useEffect(() => {
     if (!open) return;
     if (currentPage > 1) return; 
 
-    // With flat array, we determine hasMore based on whether we got a full page of items
-    // This assumes if we get less than pageSize items, we are at the end.
-    if (instructorData && Array.isArray(instructorData)) {
-      setHasMore(instructorData.length >= (params.pageSize || 10));
+    if (studentNotifications && Array.isArray(studentNotifications)) {
+      setHasMore(studentNotifications.length >= (params.pageSize || 10));
     } else {
-       setHasMore(false);
+      setHasMore(false);
     }
-  }, [instructorData, open, currentPage, params.pageSize]);
+  }, [studentNotifications, open, currentPage, params.pageSize]);
 
 
   const handleLoadMore = useCallback(async () => {
@@ -291,14 +296,14 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
           isRead: activeTab === "unread" ? false : undefined
       };
 
-      const response = await notificationService.getInstructorNotifications(currentParams);
+      const response = await notificationService.getStudentNotifications(currentParams);
 
       if (response.isSuccess && response.data && Array.isArray(response.data)) {
           const newItems = response.data;
           
           if (newItems.length > 0) {
               if (currentPage === 1) {
-                  const firstPageData = (Array.isArray(instructorData) ? instructorData : []);
+                  const firstPageData = (Array.isArray(studentNotifications) ? studentNotifications : []);
                   
                   const existingIds = new Set(firstPageData.map(n => n.id));
                   const uniqueNew = newItems.filter(n => !existingIds.has(n.id));
@@ -325,7 +330,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, hasMore, open, currentPage, activeTab, instructorData]);
+  }, [isLoadingMore, hasMore, open, currentPage, activeTab, studentNotifications]);
 
   const sentinelRef = useCallback((node: HTMLDivElement | null) => {
     if (node) {
@@ -388,20 +393,18 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
   const notifications = useMemo(() => {
     if (currentPage === 1) {
-      // Ensure instructorData is an array before sorting
-      return (Array.isArray(instructorData) ? instructorData : []).slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      // Ensure studentNotifications is an array before sorting
+      return (Array.isArray(studentNotifications) ? studentNotifications : []).slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else {
       return allNotifications;
     }
-  }, [currentPage, instructorData, allNotifications]);
+  }, [currentPage, studentNotifications, allNotifications]);
 
   const mapToNotification = (item: NotificationItem): Notification => {
     const created = new Date(item.createdAt);
     const dateType: "today" | "earlier" = isToday(created) ? "today" : "earlier";
     
     let type: NotificationType = "message";
-    // Map status/channels to simpler types if needed
-    // "Pending" -> "warning" etc. logic preserved
     if (item.status === "Pending") type = "warning";
     if (item.status === "Failed") type = "system";
 
@@ -419,15 +422,8 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
 
   const notificationList = notifications.map(mapToNotification);
 
-  // Calculate realUnreadCount from the loaded notifications logic
-  // Note: This is client-side counting of visibility loaded items, 
-  // not strict server-side total count as API response doesn't provide it currently.
-  const realUnreadCount = useMemo(() => {
-    // Count unread from the mapped notification list
-    return notificationList.filter(n => !n.read).length;
-  }, [notificationList]);
 
-  const markAllReadMutation = useMarkReadAll();
+  const markAllReadMutation = useMarkAllReadStudent();
   const deleteMutation = useDeleteNotification();
   const deleteAllMutation = useDeleteAllNotifications();
 

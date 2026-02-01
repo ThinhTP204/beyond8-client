@@ -32,19 +32,19 @@ export default function HeroSection() {
   return (
     <div className="relative w-full min-h-[calc(100vh-4rem)] overflow-hidden bg-[#0a0a0f]">
       {/* Dynamic Background */}
-      <AnimatedGrid />
+      <AnimatedGrid isMobile={isMobile} />
       
       {/* Dark Overlay for Depth - Reduced opacity to let grid show through */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0f]/20 to-[#0a0a0f] pointer-events-none" />
 
       {/* Content */}
-      <div className="relative w-full mx-auto z-10 flex flex-col md:flex-row items-center justify-between h-full max-w-[1500px] gap-8 md:gap-12 py-12 md:py-0">
+      <div className="relative w-full mx-auto z-10 flex flex-col md:flex-row items-center justify-between h-full max-w-[1500px] gap-8 md:gap-12 py-12 md:py-0 px-4 md:px-8">
         
         {/* Left: Text Content */}
         <div className="w-full md:w-1/2 flex flex-col justify-center items-start">
           {/* Animated Badge */}
           <motion.div
-            className="inline-flex items-center gap-2 pr-4 pl-1 py-1 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.3)] mb-8"
+            className="inline-flex items-center gap-2 pr-4 pl-1 py-1 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.3)] mb-6 md:mb-8 max-w-full"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -54,18 +54,18 @@ export default function HeroSection() {
               backdropFilter: "blur(10px)",
             }}
           >
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 shadow-md">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 shadow-md shrink-0">
               <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse shadow-[0_0_8px_white]" />
               <span className="text-white text-[10px] font-bold uppercase tracking-wider">Mới</span>
             </div>
             
-            <span className="text-white text-sm font-medium tracking-wide drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">
+            <span className="text-white text-sm font-medium tracking-wide drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] truncate">
               {displayedText}
             </span>
           </motion.div>
 
           {/* Main Title */}
-          <h1 className="text-white text-5xl sm:text-5xl md:text-5xl lg:text-7xl font-bold mb-6 leading-tight tracking-tight drop-shadow-2xl">
+          <h1 className="text-white text-3xl sm:text-5xl md:text-5xl lg:text-7xl font-bold mb-6 leading-tight tracking-tight drop-shadow-2xl">
             Học Hết Sức
             <br /> 
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-500 drop-shadow-[0_0_35px_rgba(168,85,247,0.5)] animate-pulse-slow">
@@ -100,7 +100,7 @@ export default function HeroSection() {
         {/* Right: 3D Model */}
         <div className="w-full md:w-1/2 flex items-center justify-center h-[50vh] md:h-[80vh]">
            <div className="w-full h-full relative cursor-move drop-shadow-[0_0_60px_rgba(168,85,247,0.25)]">
-              <ModelViewer />
+              <ModelViewer isMobile={isMobile} />
            </div>
         </div>
 
