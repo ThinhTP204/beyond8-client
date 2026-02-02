@@ -10,6 +10,7 @@ import {
   CourseUpdateRequest,
   PublicCourseParams,
   PublicCourseResponse,
+  SearchCourseParams,
   fetchCourse,
 } from "@/lib/api/services/fetchCourse";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -63,6 +64,53 @@ export function useGetCourses(filterParams?: PublicCourseParams) {
       hasPreviousPage: data.metadata?.hasPreviousPage ?? false,
     }),
     placeholderData: keepPreviousData,
+  });
+
+  return {
+    courses: data?.courses ?? [],
+    count: data?.count ?? 0,
+    page: data?.page ?? 1,
+    pageSize: data?.pageSize ?? 10,
+    totalPages: data?.totalPages ?? 0,
+    hasNextPage: data?.hasNextPage ?? false,
+    hasPreviousPage: data?.hasPreviousPage ?? false,
+    isLoading,
+    refetch,
+    isFetching,
+    isError,
+  };
+}
+
+// Search public courses using /api/v1/courses/search
+export function useSearchCourses(filterParams?: SearchCourseParams) {
+  const { data, isLoading, refetch, isFetching, isError } = useQuery<
+    PublicCourseResponse,
+    Error,
+    {
+      courses: Course[];
+      count: number;
+      page: number;
+      pageSize: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    }
+  >({
+    queryKey: ["courses", "search", filterParams],
+    queryFn: () => fetchCourse.searchCourses(filterParams),
+    select: (data) => ({
+      courses: data.data,
+      // metadata của /search có thể null, nên dùng optional chaining & default
+      count: data.metadata?.totalItems ?? data.data.length ?? 0,
+      page: data.metadata?.pageNumber ?? 1,
+      pageSize: data.metadata?.pageSize ?? (filterParams?.pageSize ?? 10),
+      totalPages: data.metadata?.totalPages ?? 1,
+      hasNextPage: data.metadata?.hasNextPage ?? false,
+      hasPreviousPage: data.metadata?.hasPreviousPage ?? false,
+    }),
+    placeholderData: keepPreviousData,
+    // Chỉ gọi API khi có keyword search
+    enabled: !!filterParams?.keyword && filterParams.keyword.trim().length > 0,
   });
 
   return {

@@ -21,26 +21,25 @@ import {
 } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
 import { Slider } from "@/components/ui/slider"
-import { CourseLevel, CourseStatus } from "@/lib/api/services/fetchCourse"
+import { CourseLevel } from "@/lib/api/services/fetchCourse"
 
 const SUGGESTED_LANGUAGES = [
     "Tiếng Việt", "English", "日本語", "한국어", "简体中文", "繁體中文",
     "Français", "Deutsch", "Español", "Português", "Italiano", "Русский"
 ]
 
-interface CourseFilterSheetProps {
+interface StudentCourseFilterSheetProps {
     activeFilterCount?: number
 }
 
-export function CourseFilterSheet({ activeFilterCount = 0 }: CourseFilterSheetProps) {
+export function StudentCourseFilterSheet({ activeFilterCount = 0 }: StudentCourseFilterSheetProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
     const [open, setOpen] = useState(false)
     const [isClosing, setIsClosing] = useState(false)
 
-    // Local state for filters
+    // Local state for filters (student view)
     const [level, setLevel] = useState<string>(searchParams.get("level") || "All")
-    const [status, setStatus] = useState<string>(searchParams.get("status") || "All")
     const [minRating, setMinRating] = useState<string>(searchParams.get("minRating") || "all")
     const [language, setLanguage] = useState<string>(searchParams.get("language") || "")
     const [pageSize, setPageSize] = useState<string>(searchParams.get("pageSize") || "8")
@@ -58,9 +57,6 @@ export function CourseFilterSheet({ activeFilterCount = 0 }: CourseFilterSheetPr
     useEffect(() => {
         const newLevel = searchParams.get("level") || "All"
         if (level !== newLevel) setLevel(newLevel)
-
-        const newStatus = searchParams.get("status") || "All"
-        if (status !== newStatus) setStatus(newStatus)
 
         const newMinRating = searchParams.get("minRating") || "all"
         if (minRating !== newMinRating) setMinRating(newMinRating)
@@ -104,9 +100,6 @@ export function CourseFilterSheet({ activeFilterCount = 0 }: CourseFilterSheetPr
         if (level && level !== "All") params.set("level", level)
         else if (level === "All") params.set("level", "All")
 
-        if (status && status !== "All") params.set("status", status)
-        else params.delete("status")
-
         // Price
         if (priceRange[0] > 0) params.set("minPrice", priceRange[0].toString())
         else params.delete("minPrice")
@@ -133,7 +126,6 @@ export function CourseFilterSheet({ activeFilterCount = 0 }: CourseFilterSheetPr
 
     const handleReset = () => {
         setLevel("All")
-        setStatus("All")
         setMinRating("all")
         setLanguage("")
         setPageSize("8")
@@ -360,32 +352,6 @@ export function CourseFilterSheet({ activeFilterCount = 0 }: CourseFilterSheetPr
                                                             size="sm"
                                                             onClick={() => setLevel(item.value)}
                                                             className={`rounded-full ${level === item.value ? "bg-black text-white hover:bg-black/90" : "hover:bg-gray-100 text-black border-gray-200 hover:text-black"}`}
-                                                        >
-                                                            {item.label}
-                                                        </Button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <Separator />
-                                            <div className="grid gap-3">
-                                                <Label htmlFor="status" className="text-base semi-bold">Trạng thái</Label>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {[
-                                                        { label: "Tất cả", value: "All" },
-                                                        { label: "Nháp", value: CourseStatus.Draft },
-                                                        { label: "Chờ duyệt", value: CourseStatus.PendingApproval },
-                                                        { label: "Đã duyệt", value: CourseStatus.Approved },
-                                                        { label: "Bị từ chối", value: CourseStatus.Rejected },
-                                                        { label: "Đã xuất bản", value: CourseStatus.Published },
-                                                        { label: "Lưu trữ", value: CourseStatus.Archived },
-                                                        { label: "Tạm ngưng", value: CourseStatus.Suspended },
-                                                    ].map((item) => (
-                                                        <Button
-                                                            key={item.value}
-                                                            variant={status === item.value ? "default" : "outline"}
-                                                            size="sm"
-                                                            onClick={() => setStatus(item.value)}
-                                                            className={`rounded-full ${status === item.value ? "bg-black text-white hover:bg-black/90" : "hover:bg-gray-100 text-black border-gray-200 hover:text-black"}`}
                                                         >
                                                             {item.label}
                                                         </Button>

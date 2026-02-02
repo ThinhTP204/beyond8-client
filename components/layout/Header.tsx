@@ -34,6 +34,9 @@ import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import gsap from "gsap";
 import { AnimatePresence, motion } from "framer-motion";
 import { StudentNotificationPanel } from "../widget/student-notification-panel";
+import { useSearchCourses } from "@/hooks/useCourse";
+import { useDebounce } from "@/hooks/useDebounce";
+import SafeImage from "../ui/SafeImage";
 
 const CategoryMenu = ({
   Content,
@@ -131,6 +134,93 @@ const CategoryMenu = ({
         )}
       </AnimatePresence>
     </motion.div>
+  );
+};
+
+// Search suggestions dropdown component
+const SearchSuggestions = ({
+  keyword,
+  isOpen,
+  onSelect,
+}: {
+  keyword: string;
+  isOpen: boolean;
+  onSelect: (keyword: string) => void;
+}) => {
+  const { courses, isLoading } = useSearchCourses(
+    {
+      keyword,
+      pageNumber: 1,
+      pageSize: 10,
+      isDescending: true,
+    }
+  );
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 8 }}
+          transition={{ duration: 0.15 }}
+          className="absolute left-0 right-0 top-full mt-2 bg-background border rounded-2xl shadow-xl z-50 max-h-[360px] overflow-hidden"
+        >
+          <div className="py-2">
+            {isLoading && (
+              <div className="px-4 py-3 text-sm text-muted-foreground">
+                Đang tìm kiếm khóa học...
+              </div>
+            )}
+
+            {!isLoading && courses.length === 0 && (
+              <div className="px-4 py-3 text-sm text-muted-foreground">
+                Không tìm thấy khóa học nào.
+              </div>
+            )}
+
+            {!isLoading && courses.length > 0 && (
+              <ul className="max-h-[320px] overflow-y-auto">
+                {courses.map((course) => (
+                  <li key={course.id}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        onSelect(course.title);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/70 transition-colors"
+                    >
+                      {/* Thumbnail */}
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                        <SafeImage
+                          src={formatImageUrl(course.thumbnailUrl) || "/bg-web.jpg"}
+                          alt={course.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+
+                      {/* Text info */}
+                      <div className="flex-1 flex flex-col items-start">
+                        <span className="text-sm font-medium line-clamp-1">
+                          {course.title}
+                        </span>
+                        <span className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          {course.instructorName} • {course.categoryName}
+                        </span>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
@@ -425,6 +515,7 @@ export function Header() {
   const { subscription } = useSubscription();
   const { status: notificationStatus } = useStudentNotificationStatus({ enabled: isAuthenticated });
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [selectedCategory, setSelectedCategory] = useState("Tất cả");
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(5000000);
@@ -434,6 +525,7 @@ export function Header() {
   const [isPriceOpen, setIsPriceOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { mutateLogout } = useLogout();
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const headerRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -701,8 +793,15 @@ export function Header() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Navigate to courses page with default params (no filters)
-    router.push(`/courses`);
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) {
+      params.set("search", searchQuery.trim());
+    }
+    // Theo yêu cầu: truyền mặc định pageSize, pageNumber, isDescending
+    params.set("pageNumber", "10");
+    params.set("pageSize", "1");
+    params.set("isDescending", "true");
+    router.push(`/courses?${params.toString()}`);
   };
 
   const handlePriceChange = (min: number, max: number) => {
@@ -744,13 +843,15 @@ export function Header() {
 
         {!isMobile && (
           <form onSubmit={handleSearch} className="flex justify-center" id="search-form" ref={searchFormRef}>
-            <div ref={searchContainerRef} className="relative flex items-center rounded-full bg-background overflow-hidden shadow-lg">
+            <div ref={searchContainerRef} className="relative flex items-center rounded-full bg-background shadow-lg overflow-visible">
               <div className="flex-1 flex items-center pl-4" id="search-input-section">
                 <Input
                   type="search"
                   placeholder="Tìm kiếm khóa học..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
                   className="text-sm border-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-0 bg-transparent"
                 />
               </div>
@@ -813,6 +914,20 @@ export function Header() {
                   <Search className="h-4 w-4 text-white" />
                 </button>
               </div>
+              {/* Search suggestions dropdown */}
+              <SearchSuggestions
+                keyword={debouncedSearch}
+                isOpen={isSearchFocused && !!debouncedSearch.trim()}
+                onSelect={(keyword) => {
+                  const params = new URLSearchParams();
+                  params.set("search", keyword);
+                  params.set("pageNumber", "10");
+                  params.set("pageSize", "1");
+                  params.set("isDescending", "true");
+                  router.push(`/courses?${params.toString()}`);
+                  setSearchQuery("");
+                }}
+              />
             </div>
           </form>
         )}

@@ -55,7 +55,7 @@ export function middleware(request: NextRequest) {
     "/reset-password",
     "/forgot-password",
     "/supscription",
-    "/courses" // Includes /courses and /courses/[slug]/[courseId]
+    "/courses"
   ];
 
   // Static files and XML sitemaps should always be accessible

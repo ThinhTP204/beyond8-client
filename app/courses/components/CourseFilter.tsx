@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useDebounce } from '@/hooks/useDebounce'
-import { CourseFilterSheet } from '@/components/widget/CourseFilterSheet'
+import { StudentCourseFilterSheet } from '@/components/widget/StudentCourseFilterSheet'
 import { useIsMobile } from '@/hooks/useMobile'
 import { useCategory } from '@/hooks/useCategory'
 import { Category } from '@/lib/api/services/fetchCategory'
@@ -267,8 +267,8 @@ export default function CourseFilter() {
             </Select>
           </div>
 
-          {/* Filter Sheet */}
-          <CourseFilterSheet activeFilterCount={activeFilterCount} />
+          {/* Filter Sheet (Student) */}
+          <StudentCourseFilterSheet activeFilterCount={activeFilterCount} />
         </div>
       </div>
     </div>
