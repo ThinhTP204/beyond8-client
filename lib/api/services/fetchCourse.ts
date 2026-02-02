@@ -124,6 +124,14 @@ export interface PublicCourseParams {
     isDescending?: boolean
 }
 
+// Params for search endpoint: /api/v1/courses/search
+export interface SearchCourseParams {
+    keyword?: string
+    pageNumber?: number
+    pageSize?: number
+    isDescending?: boolean
+}
+
 export interface PublicCourseResponse {
     isSuccess: boolean
     message: string
@@ -298,6 +306,16 @@ const convertPublicCourseParamsToQuery = (params?: PublicCourseParams): RequestP
     return query;
 }
 
+const convertSearchCourseParamsToQuery = (params?: SearchCourseParams): RequestParams => {
+    if (!params) return {};
+    const query: RequestParams = {};
+    if (params.keyword) query.keyword = params.keyword;
+    if (params.pageNumber) query.pageNumber = params.pageNumber;
+    if (params.pageSize) query.pageSize = params.pageSize;
+    if (params.isDescending !== undefined) query.isDescending = params.isDescending;
+    return query;
+}
+
 
 export const fetchCourse = {
     createNewCourse: async (course: CourseRequest): Promise<CourseResponse> => {
@@ -308,6 +326,13 @@ export const fetchCourse = {
     getCourses: async (filterParams?: PublicCourseParams): Promise<PublicCourseResponse> => {
         const params = convertPublicCourseParamsToQuery(filterParams);
         const response = await apiService.get<PublicCourseResponse>("api/v1/courses", params);
+        return response.data;
+    },
+
+    // Search courses by keyword with pagination and sort
+    searchCourses: async (filterParams?: SearchCourseParams): Promise<PublicCourseResponse> => {
+        const params = convertSearchCourseParamsToQuery(filterParams);
+        const response = await apiService.get<PublicCourseResponse>("api/v1/courses/search", params);
         return response.data;
     },
 
