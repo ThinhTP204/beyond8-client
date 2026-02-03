@@ -19,7 +19,8 @@ import { useIsMobile } from "@/hooks/useMobile";
 import Step1_Title from "./components/steps/Step1_Title";
 import Step2_Basics from "./components/steps/Step2_Basics";
 import Step3_Goals from "./components/steps/Step3_Goals";
-import Step5_MediaPricing from "./components/steps/Step5_MediaPricing";
+import Step4_MediaPricing from "./components/steps/Step4_MediaPricing";
+import Step5_Documents from "./components/steps/Step5_Documents";
 import ActionFooter from "./components/layout/ActionFooter";
 
 // Since we moved `create` to `action`, the relative imports might need adjustment
@@ -54,7 +55,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
   // Switch to step 1 when changing view mode
   const handleViewModeChange = (mode: "info" | "content") => {
     setViewMode(mode);
-    setCurrentStep(mode === "info" ? 1 : 4); // Reset step based on mode
+    setCurrentStep(mode === "info" ? 1 : 6); // Reset step based on mode
   };
 
   const [formData, setFormData] = useState(() => {
@@ -98,7 +99,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
   );
   const isMediaValid = formData.price >= 0 && !!formData.thumbnailUrl;
 
-  const sidebarValidity = [isInfoValid, isBasicsValid, isGoalsValid, true, isMediaValid]; 
+  const sidebarValidity = [isInfoValid, isBasicsValid, isGoalsValid, isMediaValid, true];
 
   const handleSave = async () => {
 
@@ -135,7 +136,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
   };
 
   const handleBack = () => {
-    if (currentStep === 5) {
+    if (currentStep === 4) {
       setCurrentStep(3);
     } else {
       setCurrentStep((prev) => Math.max(1, prev - 1));
@@ -144,9 +145,15 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
 
   const handleNext = () => {
     if (currentStep === 3) {
-      setCurrentStep(5);
+      setCurrentStep(4);
+    } else if (currentStep === 4) {
+      if (isEditMode) {
+        setCurrentStep(5);
+      } else {
+        // Last step: Switch to Content mode (Manage Course)
+        handleViewModeChange("content");
+      }
     } else if (currentStep === 5) {
-      // Last step: Switch to Content mode (Manage Course)
       handleViewModeChange("content");
     } else {
       setCurrentStep((prev) => Math.min(5, prev + 1));
@@ -155,8 +162,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
 
   const isCurrentStepValid = () => {
     // Indices are 0-based. Step 1 is index 0.
-    // sidebarValidity = [isInfoValid, isBasicsValid, isGoalsValid, true, isMediaValid]
-    // Step 1 (index 0), Step 2 (index 1), Step 3 (index 2), Step 5 (index 4)
+    // sidebarValidity = [isInfoValid, isBasicsValid, isGoalsValid, isMediaValid, true]
     return sidebarValidity[currentStep - 1];
   };
 
@@ -164,8 +170,8 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
     <>
       {viewMode === "content" && initialData?.id ? (
         // Two-panel layout for content mode
-        <TwoPanelLayout 
-          courseId={initialData.id} 
+        <TwoPanelLayout
+          courseId={initialData.id}
           onBackToInfo={() => handleViewModeChange("info")}
         />
       ) : (
@@ -231,12 +237,15 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
                               onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
                             />
                           )}
-                          {/* Note: Step 4 is now in Content mode */}
-                          {currentStep === 5 && (
-                            <Step5_MediaPricing
+                          {/* Note: Step 4 is now in Content mode DOES NOT APPLY ANYMORE */}
+                          {currentStep === 4 && (
+                            <Step4_MediaPricing
                               data={formData}
                               onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
                             />
+                          )}
+                          {currentStep === 5 && initialData?.id && (
+                            <Step5_Documents courseId={initialData.id} />
                           )}
                         </>
                       )}
@@ -251,7 +260,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
                 onBack={handleBack}
                 onNext={handleNext}
                 isFirstStep={currentStep === 1}
-                isLastStep={currentStep === 5}
+                isLastStep={isEditMode ? currentStep === 5 : currentStep === 4}
                 isValid={isCurrentStepValid()}
               />
             )}

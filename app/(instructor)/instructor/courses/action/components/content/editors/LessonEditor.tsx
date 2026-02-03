@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { ArrowLeft, Trash2, Video, FileText, ClipboardList, Upload, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Trash2, Video, FileText, ClipboardList, Upload, Image as ImageIcon, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HeaderPortal } from "./HeaderPortal";
 import { Progress } from "@/components/ui/progress";
@@ -14,11 +14,26 @@ import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 
 import { useUpdateLesson, useDeleteLesson, useActivationLesson } from "@/hooks/useLesson";
-import { useMediaVideoLesson } from "@/hooks/useMedia";
+import { useMediaDocumentCourse, useMediaVideoLesson } from "@/hooks/useMedia";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import SafeImage from "@/components/ui/SafeImage";
 import { Lesson, LessonType } from "@/lib/api/services/fetchLesson";
 import { useRouter } from "next/navigation";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
+import DocumentUploadDialog from "@/components/widget/DocumentUploadDialog";
+import {
+    useGetLessonDocument,
+    useCreateLessonDocument,
+    useDeleteLessonDocument,
+    useToggleDownloadLessonDocument
+} from "@/hooks/useLesson";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 export interface LessonEditorRef {
     hasUnsavedChanges: () => boolean;
@@ -57,10 +72,26 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
 
         const [isDeleteLessonDialogOpen, setIsDeleteLessonDialogOpen] = useState(false);
 
+        // Document specific
+        const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
+        const [documentFileToUpload, setDocumentFileToUpload] = useState<File | null>(null);
+        const [documentMetadata, setDocumentMetadata] = useState({
+            title: '',
+            description: '',
+            isDownloadable: true
+        });
+        const documentInputRef = React.useRef<HTMLInputElement>(null);
+
         // Hooks
         const { updateLesson, isPending: isUpdatingLesson } = useUpdateLesson(selectedSectionId);
         const { deleteLesson, isPending: isDeletingLesson } = useDeleteLesson(selectedSectionId);
         const { activationLesson } = useActivationLesson(selectedSectionId);
+
+        const { lessonDocuments, isLoading: isLoadingDocs, refetch: refetchDocs } = useGetLessonDocument(lessonId);
+        const { createLessonDocument, isPending: isCreatingDoc } = useCreateLessonDocument();
+        const { deleteLessonDocument } = useDeleteLessonDocument();
+        const { toggleDownloadLessonDocument } = useToggleDownloadLessonDocument();
+        const { uploadDocumentCourseAsync, isUploadingDocumentCourse } = useMediaDocumentCourse();
 
         const selectedLesson = lessons?.find((l) => l.id === lessonId);
 
@@ -298,6 +329,58 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
             await deleteLesson(lessonId);
             setIsDeleteLessonDialogOpen(false);
             onBack();
+        };
+
+        // Document Handlers
+        const handleDocumentFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            setDocumentFileToUpload(file);
+            setDocumentMetadata({
+                title: file.name,
+                description: '',
+                isDownloadable: true
+            });
+            setIsDocumentDialogOpen(true);
+
+            if (documentInputRef.current) {
+                documentInputRef.current.value = '';
+            }
+        };
+
+        const handleDocumentConfirmUpload = async () => {
+            if (!documentFileToUpload) return;
+
+            try {
+                const mediaFile = await uploadDocumentCourseAsync(documentFileToUpload);
+
+                if (mediaFile?.fileUrl) {
+                    await createLessonDocument({
+                        lessonId,
+                        lessonDocumentUrl: formatImageUrl(mediaFile.fileUrl) || '',
+                        title: documentMetadata.title,
+                        description: documentMetadata.description,
+                        isDownloadable: documentMetadata.isDownloadable,
+                        isIndexedInVectorDb: true
+                    });
+                    refetchDocs();
+                    setIsDocumentDialogOpen(false);
+                    setDocumentFileToUpload(null);
+                }
+            } catch (error) {
+                console.error('Failed to upload document:', error);
+            }
+        };
+
+        const handleDocumentDelete = async (id: string) => {
+            await deleteLessonDocument(id);
+            refetchDocs();
+        };
+
+        const handleDocumentToggle = async (id: string) => {
+            await toggleDownloadLessonDocument(id);
+            refetchDocs();
         };
 
         useImperativeHandle(ref, () => ({
@@ -584,6 +667,140 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                     </>
                                 )}
                             </div>
+
+                            {/* Lesson Documents Accordion */}
+                            <Accordion type="single" collapsible className="w-full">
+                                <AccordionItem value="documents" className="border rounded-xl px-6 bg-white overflow-hidden">
+                                    <AccordionTrigger className="hover:no-underline py-4">
+                                        <div className="flex items-center gap-2">
+                                            <FileText className="w-5 h-5 text-gray-500" />
+                                            <span className="text-lg font-semibold text-gray-900">Tài liệu bài học</span>
+                                            <span className="text-sm font-normal text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full ml-2">
+                                                {lessonDocuments?.length || 0}
+                                            </span>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="p-0 pb-6 pt-2">
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center bg-gray-50/50 p-4 rounded-lg border border-dashed border-gray-200">
+                                                <div className="text-sm text-muted-foreground">
+                                                    Tải lên tài liệu bổ trợ cho bài học này (PDF, Word, Excel...)
+                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-2 bg-white hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200 transition-all"
+                                                    onClick={() => documentInputRef.current?.click()}
+                                                    disabled={isUploadingDocumentCourse || isCreatingDoc}
+                                                >
+                                                    <Upload className="w-4 h-4" />
+                                                    {isUploadingDocumentCourse ? "Đang tải..." : "Thêm tài liệu"}
+                                                </Button>
+                                                <input
+                                                    ref={documentInputRef}
+                                                    type="file"
+                                                    className="hidden"
+                                                    onChange={handleDocumentFileSelect}
+                                                />
+                                            </div>
+
+                                            {/* Documents List */}
+                                            {isLoadingDocs ? (
+                                                <div className="flex justify-center py-4">
+                                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                                                </div>
+                                            ) : lessonDocuments && lessonDocuments.length > 0 ? (
+                                                <div className="grid gap-3">
+                                                    {lessonDocuments.map((doc) => (
+                                                        <div
+                                                            key={doc.id}
+                                                            className="flex items-center justify-between p-3 bg-white border rounded-lg hover:shadow-sm transition-all group"
+                                                        >
+                                                            <div className="flex items-center gap-4 overflow-hidden">
+                                                                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                                                                    <FileText className="w-5 h-5 text-blue-600" />
+                                                                </div>
+                                                                <div className="flex flex-col overflow-hidden">
+                                                                    <span className="font-medium truncate text-sm" title={doc.title}>{doc.title}</span>
+                                                                    {doc.description && (
+                                                                        <span className="text-xs text-gray-500 truncate" title={doc.description}>{doc.description}</span>
+                                                                    )}
+                                                                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
+                                                                        <span>{format(new Date(doc.createdAt), 'dd/MM/yyyy', { locale: vi })}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex items-center gap-4">
+                                                                {/* Status Badge */}
+                                                                <div className={`
+                                                                    flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border cursor-pointer transition-colors
+                                                                    ${doc.isDownloadable
+                                                                        ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                                                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                                                                    }
+                                                                `}
+                                                                    onClick={() => handleDocumentToggle(doc.id)}
+                                                                    title={doc.isDownloadable ? 'Click để tắt tải xuống' : 'Click để bật tải xuống'}
+                                                                >
+                                                                    <Switch
+                                                                        checked={doc.isDownloadable}
+                                                                        onCheckedChange={() => handleDocumentToggle(doc.id)}
+                                                                        id={`doc-toggle-${doc.id}`}
+                                                                        className="scale-[0.6] data-[state=checked]:bg-green-600 origin-center"
+                                                                    />
+                                                                    <Label htmlFor={`doc-toggle-${doc.id}`} className="cursor-pointer whitespace-nowrap">
+                                                                        {doc.isDownloadable ? 'Được tải' : 'Không tải'}
+                                                                    </Label>
+                                                                </div>
+
+                                                                <div className="h-4 w-px bg-gray-200 mx-1" />
+
+                                                                {/* Actions */}
+                                                                <div className="flex items-center gap-1">
+                                                                    <a
+                                                                        href={doc.lessonDocumentUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 hover:text-blue-600 transition-colors"
+                                                                        title="Xem trước"
+                                                                    >
+                                                                        <Eye className="w-4 h-4" />
+                                                                    </a>
+
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-7 w-7 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                                                                        onClick={() => handleDocumentDelete(doc.id)}
+                                                                        title="Xóa tài liệu"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-8">
+                                                    <p className="text-sm text-gray-500">Chưa có tài liệu nào được tải lên</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+
+                            <DocumentUploadDialog
+                                open={isDocumentDialogOpen}
+                                onOpenChange={setIsDocumentDialogOpen}
+                                metadata={documentMetadata}
+                                setMetadata={setDocumentMetadata}
+                                onConfirm={handleDocumentConfirmUpload}
+                                onCancel={() => setIsDocumentDialogOpen(false)}
+                                isLoading={isUploadingDocumentCourse || isCreatingDoc}
+                            />
 
                             {/* Content Area */}
                             <div className="mt-8 space-y-6">

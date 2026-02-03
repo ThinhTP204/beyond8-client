@@ -17,7 +17,7 @@ interface Step3MediaPricingProps {
     onChange: (data: Partial<Step3MediaPricingProps['data']>) => void
 }
 
-export default function Step3MediaPricing({ data, onChange }: Step3MediaPricingProps) {
+export default function Step4MediaPricing({ data, onChange }: Step3MediaPricingProps) {
     const { uploadAvatarAsync, isUploading } = useMedia()
     const fileInputRef = useRef<HTMLInputElement>(null)
 

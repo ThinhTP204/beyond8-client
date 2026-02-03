@@ -120,3 +120,55 @@ export function useMediaVideoLesson() {
   };
 }
 
+export function useMediaDocumentCourse() {
+  const queryClient = useQueryClient();
+
+  const uploadDocumentCourseMutation = useMutation({
+    mutationFn: async (file: File) => {
+      return await mediaService.uploadDocumentCourse(file);
+    },
+    onSuccess: (data: MediaFile) => {
+      toast.success("Upload tài liệu khóa học thành công!");
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      return data;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Upload tài liệu khóa học thất bại!");
+    },
+  });
+
+  return {
+    uploadDocumentCourse: uploadDocumentCourseMutation.mutate,
+    uploadDocumentCourseAsync: uploadDocumentCourseMutation.mutateAsync,
+    isUploadingDocumentCourse: uploadDocumentCourseMutation.isPending,
+    uploadDocumentCourseError: uploadDocumentCourseMutation.error,
+    uploadedDocumentCourse: uploadDocumentCourseMutation.data,
+  };
+}
+
+export function useMediaDocumentLesson() {
+  const queryClient = useQueryClient();
+
+  const uploadDocumentLessonMutation = useMutation({
+    mutationFn: async (file: File) => {
+      return await mediaService.uploadDocumentLesson(file);
+    },
+    onSuccess: (data: MediaFile) => {
+      toast.success("Upload tài liệu bài học thành công!");
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      return data;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Upload tài liệu bài học thất bại!");
+    },
+  });
+
+  return {
+    uploadDocumentLesson: uploadDocumentLessonMutation.mutate,
+    uploadDocumentLessonAsync: uploadDocumentLessonMutation.mutateAsync,
+    isUploadingDocumentLesson: uploadDocumentLessonMutation.isPending,
+    uploadDocumentLessonError: uploadDocumentLessonMutation.error,
+    uploadedDocumentLesson: uploadDocumentLessonMutation.data,
+  };
+}
+

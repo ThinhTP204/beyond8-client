@@ -9,7 +9,9 @@ import {
     LessonType,
     ActivalessonRequest,
     ReoderLessonInSectionRequest,
-    ReoderLessonOtherSectionRequest
+    ReoderLessonOtherSectionRequest,
+    CreateLessonDocumentRequest,
+    UpdateLessonDocumentRequest
 } from "@/lib/api/services/fetchLesson";
 import { ApiError } from "@/types/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -197,3 +199,100 @@ export function useReorderLessonOtherSection() {
         isPending
     };
 }
+
+export function useCreateLessonDocument() {
+    const queryClient = useQueryClient();
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: async (request: CreateLessonDocumentRequest) => {
+            return fetchLession.createLessonDocument(request);
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: ["lessons", variables.lessonId]
+            });
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Lỗi khi tạo tài liệu bài học!");
+        }
+    });
+    return {
+        createLessonDocument: mutateAsync,
+        isPending
+    };
+}
+
+export function useGetLessonDocument(lessonId: string) {
+    const { data, isLoading, isError, refetch } = useQuery({
+        queryKey: ["lesson-documents", lessonId],
+        queryFn: () => fetchLession.getLessonDocuments(lessonId),
+        select: (data) => data.data,
+    });
+    return {
+        lessonDocuments: data ?? [],
+        isLoading,
+        isError,
+        refetch
+    };
+}
+
+
+export function useUpdateLessonDocument() {
+    const queryClient = useQueryClient();
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: async ({ lessonId, ...request }: UpdateLessonDocumentRequest & { lessonId: string }) => {
+            return fetchLession.updateLessonDocument(lessonId, request);
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: ["lesson-documents", variables.lessonId]
+            });
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Lỗi khi cập nhật tài liệu bài học!");
+        }
+    });
+    return {
+        updateLessonDocument: mutateAsync,
+        isPending
+    };
+}
+
+export function useDeleteLessonDocument() {
+    const queryClient = useQueryClient();
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: (id: string) => fetchLession.deleteLessonDocument(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["lesson-documents"]
+            });
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Lỗi khi xóa tài liệu bài học!");
+        }
+    });
+    return {
+        deleteLessonDocument: mutateAsync,
+        isPending
+    };
+}
+
+export function useToggleDownloadLessonDocument() {
+    const queryClient = useQueryClient();
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: (id: string) => fetchLession.toggleDownloadLessonDocumnet(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["lesson-documents"]
+            });
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Lỗi khi thay đổi trạng thái tải xuống của tài liệu bài học!");
+        }
+    });
+    return {
+        toggleDownloadLessonDocument: mutateAsync,
+        isPending
+    };
+}
+
+

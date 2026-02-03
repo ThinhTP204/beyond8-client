@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
-import { User, BookOpen, Image as ImageIcon, LayoutList } from 'lucide-react'
+import React, { useState } from 'react'
+import { User, BookOpen, Image as ImageIcon, LayoutList, Paperclip } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -31,7 +31,7 @@ const infoSteps = [
         icon: LayoutList,
     },
     {
-        id: 5, // Skip 4
+        id: 4,
         title: 'Hình ảnh & Giá',
         icon: ImageIcon,
     },
@@ -39,7 +39,7 @@ const infoSteps = [
 
 const contentSteps = [
     {
-        id: 4,
+        id: 6,
         title: 'Nội dung khóa học',
         icon: BookOpen,
     },
@@ -52,11 +52,25 @@ export default function CourseActionSidebar({
     isEditMode = false,
     viewMode = 'info'
 }: CourseActionSidebarProps) {
-    const steps = viewMode === 'info' ? infoSteps : contentSteps
-    const [isCollapsed, setIsCollapsed] = React.useState(true)
+    const steps = React.useMemo(() => {
+        if (viewMode === 'info') {
+            const baseSteps = [...infoSteps]
+            // Add Document step if in edit mode
+            if (isEditMode) {
+                baseSteps.push({
+                    id: 5,
+                    title: 'Tài liệu khóa học',
+                    icon: Paperclip, // Reusing icon or pick a file icon if available
+                })
+            }
+            return baseSteps
+        }
+        return contentSteps
+    }, [viewMode, isEditMode])
+    const [isCollapsed, setIsCollapsed] = useState(false)
 
     const isAccessible = (stepId: number) => {
-        if (isEditMode) return true // Unlock all in edit mode
+        if (isEditMode) return true
         if (stepId === 1) return true
         for (let i = 0; i < stepId - 1; i++) {
             if (!stepsValidity[i]) return false

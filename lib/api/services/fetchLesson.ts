@@ -118,6 +118,50 @@ export interface ReoderLessonOtherSectionRequest {
     newOrderIndex: number;
 }
 
+export interface LessonDocument {
+    id: string;
+    lessonId: string;
+    title: string;
+    description: string | null;
+    lessonDocumentUrl: string;
+    isDownloadable: boolean;
+    downloadCount: number;
+    isIndexedInVectorDb: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateLessonDocumentRequest {
+    lessonId: string;
+    title: string;
+    description: string | null;
+    lessonDocumentUrl: string;
+    isDownloadable: boolean;
+    isIndexedInVectorDb: boolean;
+}
+
+export interface UpdateLessonDocumentRequest {
+    title?: string;
+    description?: string;
+    lessonDocumentUrl?: string;
+    isDownloadable?: boolean;
+    isIndexedInVectorDb?: boolean;
+}
+
+export interface LessonDocumentResponse {
+    isSuccess: boolean;
+    message: string;
+    data: LessonDocument[];
+    metadata: unknown;
+}
+
+export interface LessonDocumentResponse {
+    isSuccess: boolean;
+    message: string;
+    data: LessonDocument[];
+    metadata: unknown;
+}
+
 export interface LessonResponse {
     isSuccess: boolean;
     message: string;
@@ -178,6 +222,31 @@ export const fetchLession = {
 
     reorderLessonOtherSection: async (request: ReoderLessonOtherSectionRequest): Promise<LessonResponse> => {
         const response = await apiService.post<LessonResponse, ReoderLessonOtherSectionRequest>(`api/v1/lessons/move-lesson-to-section`, request);
+        return response.data;
+    },
+
+    createLessonDocument: async (request: CreateLessonDocumentRequest): Promise<LessonDocumentResponse> => {
+        const response = await apiService.post<LessonDocumentResponse, CreateLessonDocumentRequest>(`api/v1/lesson-documents`, request);
+        return response.data;
+    },
+
+    getLessonDocuments: async (lessonId: string): Promise<LessonDocumentResponse> => {
+        const response = await apiService.get<LessonDocumentResponse>(`api/v1/lesson-documents/lesson/${lessonId}`);
+        return response.data;
+    },
+
+    updateLessonDocument: async (id: string, request: UpdateLessonDocumentRequest): Promise<LessonDocumentResponse> => {
+        const response = await apiService.patch<LessonDocumentResponse, UpdateLessonDocumentRequest>(`api/v1/lesson-documents/${id}`, request);
+        return response.data;
+    },
+
+    deleteLessonDocument: async (id: string): Promise<LessonDocumentResponse> => {
+        const response = await apiService.delete<LessonDocumentResponse>(`api/v1/lesson-documents/${id}`);
+        return response.data;
+    },
+
+    toggleDownloadLessonDocumnet: async (id: string): Promise<LessonDocumentResponse> => {
+        const response = await apiService.patch<LessonDocumentResponse>(`api/v1/lesson-documents/${id}/toggle-downloadable`);
         return response.data;
     },
 }

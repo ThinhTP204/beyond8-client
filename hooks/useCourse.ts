@@ -2,15 +2,19 @@ import {
   Course,
   CourseDetail,
   CourseDetailResponse,
+  CourseDocument,
+  CourseDocumentResponse,
   CourseParams,
   CourseRequest,
   CourseResponse,
   CourseSummary,
   CourseSummaryResponse,
   CourseUpdateRequest,
+  CreateCourseDocumentRequest,
   PublicCourseParams,
   PublicCourseResponse,
   SearchCourseParams,
+  UpdateCourseDocumentRequest,
   fetchCourse,
 } from "@/lib/api/services/fetchCourse";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -240,3 +244,108 @@ export function useUpdateCourse() {
     isPending,
   };
 }
+
+export function useCreateCourseDocument() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (courseData: CreateCourseDocumentRequest) =>
+      fetchCourse.createCourseDocument(courseData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      toast.success("Thêm tài liệu khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi thêm tài liệu khóa học!");
+    },
+  });
+
+  return {
+    createCourseDocument: mutateAsync,
+    isPending,
+  };
+}
+
+export function useUpdateCourseDocument() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ id, courseData }: { id: string; courseData: Partial<UpdateCourseDocumentRequest> }) =>
+      fetchCourse.updateCourseDocument(id, courseData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      toast.success("Cập nhật tài liệu khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi cập nhật tài liệu khóa học!");
+    },
+  });
+
+  return {
+    updateCourse: mutateAsync,
+    isPending,
+  };
+}
+
+export function useGetCourseDocument(id: string) {
+  const { data, isLoading, isError, refetch } = useQuery<CourseDocumentResponse, Error, CourseDocument[]>({
+    queryKey: ["course", "document", id],
+    queryFn: () => fetchCourse.getCourseDocument(id),
+    select: (data) => data.data,
+    enabled: !!id,
+  });
+
+  return {
+    courseDocument: data,
+    isLoading,
+    isError,
+    refetch,
+  };
+}
+
+export function useDeleteCourseDocument() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ id }: { id: string }) =>
+      fetchCourse.deleteCourseDocument(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      toast.success("Xóa tài liệu khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi xóa tài liệu khóa học!");
+    },
+  });
+
+  return {
+    deleteCourseDocument: mutateAsync,
+    isPending,
+  };
+}
+
+export function useToggleDownloadCourseDocument() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ id }: { id: string }) =>
+      fetchCourse.toggleDownloadCourseDocument(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      toast.success("Cập nhật tài liệu khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi cập nhật tài liệu khóa học!");
+    },
+  });
+
+  return {
+    toggleDownloadCourseDocument: mutateAsync,
+    isPending,
+  };
+}
+

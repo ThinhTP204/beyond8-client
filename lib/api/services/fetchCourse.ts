@@ -257,6 +257,42 @@ export interface CourseDetail {
     sections: SectionDetail[]
 }
 
+
+export interface CourseDocument {
+    id: string
+    courseId: string
+    title: string
+    description: string | null
+    courseDocumentUrl: string
+    isDownloadable: boolean
+    downloadCount: number
+    isIndexedInVectorDb: boolean
+    createdAt: string
+    updatedAt: string | null
+}
+
+export interface CreateCourseDocumentRequest {
+    courseDocumentUrl: string
+    courseId: string
+    title: string
+    description: string | null
+    isDownloadable: boolean
+}
+
+export interface UpdateCourseDocumentRequest {
+    title?: string
+    description?: string | null
+    courseDocumentUrl?: string
+    isDownloadable?: boolean
+}
+
+export interface CourseDocumentResponse {
+    isSuccess: boolean
+    message: string
+    data: CourseDocument[]
+    metadata: Metadata | null
+}
+
 export interface CourseDetailResponse {
     isSuccess: boolean
     message: string
@@ -360,5 +396,31 @@ export const fetchCourse = {
     updateCourse: async (id: string, courseData: CourseUpdateRequest): Promise<CourseResponse> => {
         const response = await apiService.patch<CourseResponse>(`api/v1/courses/${id}/metadata`, courseData);
         return response.data;
-    }
+    },
+
+    createCourseDocument: async (courseDocument: CreateCourseDocumentRequest): Promise<CourseDocumentResponse> => {
+        const response = await apiService.post<CourseDocumentResponse>(`api/v1/course-documents`, courseDocument);
+        return response.data;
+    },
+
+    getCourseDocument: async (courseId: string): Promise<CourseDocumentResponse> => {
+        const response = await apiService.get<CourseDocumentResponse>(`api/v1/course-documents/course/${courseId}`);
+        return response.data;
+    },
+
+    updateCourseDocument: async (id: string, request: UpdateCourseDocumentRequest): Promise<CourseDocumentResponse> => {
+        const response = await apiService.patch<CourseDocumentResponse>(`api/v1/course-documents/${id}`, request);
+        return response.data;
+    },
+
+    deleteCourseDocument: async (id: string): Promise<CourseDocumentResponse> => {
+        const response = await apiService.delete<CourseDocumentResponse>(`api/v1/course-documents/${id}`);
+        return response.data;
+    },
+
+    toggleDownloadCourseDocument: async (id: string): Promise<CourseDocumentResponse> => {
+        const response = await apiService.patch<CourseDocumentResponse>(`api/v1/course-documents/${id}/toggle-downloadable`);
+        return response.data;
+    },
+
 }
