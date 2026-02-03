@@ -180,7 +180,7 @@ export function QuestionCard({
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="border-brand-magenta/20 bg-white/95 backdrop-blur-xl dark:bg-black/95">
+        <AlertDialogContent className="border-brand-magenta/20 bg-white/95 backdrop-blur-xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-bold bg-gradient-to-r from-brand-magenta to-brand-purple bg-clip-text text-transparent">
               Xác nhận xóa câu hỏi
