@@ -13,6 +13,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useBulkCreateQuestions, useGetQuestionTagsCount } from "@/hooks/useQuestion"
 import { CreateQuestionRequest, QuestionType, QuestionDifficulty, QuestionOption } from "@/lib/api/services/fetchQuestion"
 import { toast } from "sonner"
@@ -20,6 +27,7 @@ import { toast } from "sonner"
 interface CreateBulkQuestionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onCancel?: () => void
 }
 
 interface QuestionFormData {
@@ -33,7 +41,7 @@ interface QuestionFormData {
   points: number
 }
 
-export function CreateBulkQuestionDialog({ open, onOpenChange }: CreateBulkQuestionDialogProps) {
+export function CreateBulkQuestionDialog({ open, onOpenChange, onCancel }: CreateBulkQuestionDialogProps) {
   const [questions, setQuestions] = useState<QuestionFormData[]>([])
   const [globalTags, setGlobalTags] = useState<string[]>([])
   const [globalTagInput, setGlobalTagInput] = useState("")
@@ -477,15 +485,19 @@ export function CreateBulkQuestionDialog({ open, onOpenChange }: CreateBulkQuest
                                 <span className="text-xs text-muted-foreground">
                                   Câu hỏi #{questionIndex + 1}
                                 </span>
-                                <select
+                                <Select
                                   value={question.difficulty}
-                                  onChange={(e) => updateQuestion(question.id, "difficulty", e.target.value as QuestionDifficulty)}
-                                  className="ml-auto rounded-lg border border-brand-magenta/20 bg-white/80 px-2 py-1 text-xs dark:bg-black/80"
+                                  onValueChange={(value) => updateQuestion(question.id, "difficulty", value as QuestionDifficulty)}
                                 >
-                                  <option value={QuestionDifficulty.Easy}>Dễ</option>
-                                  <option value={QuestionDifficulty.Medium}>Trung bình</option>
-                                  <option value={QuestionDifficulty.Hard}>Khó</option>
-                                </select>
+                                  <SelectTrigger className="ml-auto h-8 w-[120px] rounded-lg border border-brand-magenta/20 bg-white/80 px-2 py-1 text-xs dark:bg-black/80">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value={QuestionDifficulty.Easy}>Dễ</SelectItem>
+                                    <SelectItem value={QuestionDifficulty.Medium}>Trung bình</SelectItem>
+                                    <SelectItem value={QuestionDifficulty.Hard}>Khó</SelectItem>
+                                  </SelectContent>
+                                </Select>
                                 <div className="flex items-center gap-2">
                                   <label className="text-xs text-muted-foreground">Điểm:</label>
                                   <Input
@@ -698,7 +710,10 @@ export function CreateBulkQuestionDialog({ open, onOpenChange }: CreateBulkQuest
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                onOpenChange(false)
+                onCancel?.()
+              }}
               disabled={isCreating}
               className="rounded-full border-brand-magenta/20"
             >

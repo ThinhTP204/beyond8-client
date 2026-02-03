@@ -25,9 +25,10 @@ interface QuestionOption {
 interface CreateQuestionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onCancel?: () => void
 }
 
-export function CreateQuestionDialog({ open, onOpenChange }: CreateQuestionDialogProps) {
+export function CreateQuestionDialog({ open, onOpenChange, onCancel }: CreateQuestionDialogProps) {
   const [content, setContent] = useState("")
   const [options, setOptions] = useState<QuestionOption[]>([
     { id: crypto.randomUUID(), text: "", isCorrect: false }
@@ -390,7 +391,10 @@ export function CreateQuestionDialog({ open, onOpenChange }: CreateQuestionDialo
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                onOpenChange(false)
+                onCancel?.()
+              }}
               disabled={isLoading}
               className="rounded-full border-brand-magenta/20"
             >

@@ -20,9 +20,10 @@ import { toast } from "sonner"
 interface CreateQuestionPDFDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onCancel?: () => void
 }
 
-export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPDFDialogProps) {
+export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: CreateQuestionPDFDialogProps) {
   const [step, setStep] = useState<1 | 2>(1)
   const [file, setFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -1387,7 +1388,10 @@ export function CreateQuestionPDFDialog({ open, onOpenChange }: CreateQuestionPD
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  onOpenChange(false)
+                  onCancel?.()
+                }}
                 disabled={isUploading || isImporting}
                 className="rounded-full border-brand-magenta/20"
               >

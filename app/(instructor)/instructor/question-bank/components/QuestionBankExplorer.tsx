@@ -272,14 +272,17 @@ export function QuestionBankExplorer() {
       <CreateQuestionDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
+        onCancel={() => setIsMethodDialogOpen(true)}
       />
       <CreateBulkQuestionDialog
         open={isBulkDialogOpen}
         onOpenChange={setIsBulkDialogOpen}
+        onCancel={() => setIsMethodDialogOpen(true)}
       />
       <CreateQuestionPDFDialog
         open={isPDFDialogOpen}
         onOpenChange={setIsPDFDialogOpen}
+        onCancel={() => setIsMethodDialogOpen(true)}
       />
     </div>
   )
