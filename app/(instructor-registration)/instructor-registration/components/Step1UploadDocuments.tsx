@@ -22,6 +22,7 @@ interface Step1Props {
     backFileId: string;
     frontClassifyResult?: { type_name: string; card_name: string; id_number: string | null; issue_date: string | null };
     backClassifyResult?: { type_name: string; card_name: string; id_number: string | null; issue_date: string | null };
+    frontEkycImg?: string | null;
   };
   onChange: (data: {
     facePhoto?: string;
@@ -31,6 +32,7 @@ interface Step1Props {
     backFileId: string;
     frontClassifyResult?: { type_name: string; card_name: string; id_number: string | null; issue_date: string | null };
     backClassifyResult?: { type_name: string; card_name: string; id_number: string | null; issue_date: string | null };
+    frontEkycImg?: string | null; // Added field for EKYC image hash
   }) => void;
 }
 
@@ -145,7 +147,8 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
           ...data,
           frontImg: result.fileUrl,
           frontFileId: result.fileId,
-          frontClassifyResult: result.classifyResult
+          frontClassifyResult: result.classifyResult,
+          frontEkycImg: result.ekycImg // Save EKYC image hash
         };
         onChange(updatedData);
       } else {
@@ -172,7 +175,7 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
 
   const handleRemove = (type: 'front' | 'back') => {
     if (type === 'front') {
-      onChange({ ...data, frontImg: "", frontFileId: "", frontClassifyResult: undefined });
+      onChange({ ...data, frontImg: "", frontFileId: "", frontClassifyResult: undefined, frontEkycImg: undefined });
       setFrontPreview("");
       // setFrontFile(null); // Removed setFrontFile
     } else {
@@ -184,18 +187,18 @@ export default function Step1UploadDocuments({ data, onChange }: Step1Props) {
   // Process Face Verification
   const processFaceVerification = useCallback(async (faceFile: File, previewSrc: string) => {
     try {
-      // Use data.frontImg directly
-      const currentFrontImg = data.frontImg;
+      // Use ekycImg from front upload result
+      const imgFrontHash = data.frontEkycImg;
 
-      if (!currentFrontImg) {
-        toast.error("Vui lòng tải lên lại mặt trước CCCD để thực hiện xác thực khuôn mặt.");
+      if (!imgFrontHash) {
+        toast.error("Không tìm thấy thông tin định danh từ ảnh mặt trước. Vui lòng tải lại ảnh CCCD.");
         return;
       }
 
       // Call API
       const result = await faceIdAsync({
         faceFile: faceFile,
-        imgFrontHash: formatImageUrl(currentFrontImg) || '' // Pass URL string
+        imgFrontHash: imgFrontHash // Pass EKYC image hash
       });
 
       if (result.isSuccess) {

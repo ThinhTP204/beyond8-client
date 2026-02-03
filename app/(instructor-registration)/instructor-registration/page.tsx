@@ -47,6 +47,7 @@ interface InstructorFormData {
     id_number: string | null;
     issue_date: string | null;
   };
+  frontEkycImg?: string | null;
   bio: string;
   headline: string;
   expertiseAreas: string[];
@@ -353,6 +354,7 @@ export default function InstructorRegistrationPage() {
                         backFileId: formData.backFileId,
                         frontClassifyResult: formData.frontClassifyResult,
                         backClassifyResult: formData.backClassifyResult,
+                        frontEkycImg: formData.frontEkycImg
                       }}
                       onChange={(data) => {
                         if (data.frontClassifyResult) {

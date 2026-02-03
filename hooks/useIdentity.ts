@@ -56,7 +56,9 @@ export function useFaceId() {
       return await identityService.faceId(faceFile, imgFrontHash);
     },
     onSuccess: (data) => {
-      toast.success("Face ID thành công!");
+      toast.success(data.message, {
+        description: data.data.result,
+      });
       queryClient.invalidateQueries({ queryKey: ["identity", data] });
     },
     onError: (error: Error) => {
