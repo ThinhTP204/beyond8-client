@@ -37,7 +37,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
   const [globalTagInput, setGlobalTagInput] = useState("")
   const [tagsApplied, setTagsApplied] = useState(false)
   const [tagInputs, setTagInputs] = useState<Record<string, string>>({})
-  
+
   const {
     generateQuestions,
     isLoading: isUploading,
@@ -154,7 +154,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
-    
+
     const droppedFile = e.dataTransfer.files[0]
     if (droppedFile && droppedFile.type === "application/pdf") {
       setFile(droppedFile)
@@ -210,7 +210,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
 
   const applyGlobalTagsToAll = () => {
     if (!questionsData || globalTags.length === 0) return
-    
+
     setQuestionsData({
       easy: questionsData.easy.map(q => ({
         ...q,
@@ -225,14 +225,14 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
         tags: [...new Set([...q.tags, ...globalTags])]
       }))
     })
-    
+
     toast.success("Đã áp dụng tags cho tất cả câu hỏi thành công!")
     setTagsApplied(true)
   }
 
   const handleImportQuestions = () => {
     if (!questionsData) return
-    
+
     // Clean and validate data before importing
     const cleanQuestions = {
       easy: questionsData.easy.map(q => ({
@@ -247,7 +247,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
         explanation: q.explanation?.trim() || null,
         tags: q.tags || []
       })).filter(q => q.content.trim() !== "" && q.options.length > 0), // Remove questions with empty content or no options
-      
+
       medium: questionsData.medium.map(q => ({
         ...q,
         content: q.content.trim(),
@@ -260,7 +260,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
         explanation: q.explanation?.trim() || null,
         tags: q.tags || []
       })).filter(q => q.content.trim() !== "" && q.options.length > 0), // Remove questions with empty content or no options
-      
+
       hard: questionsData.hard.map(q => ({
         ...q,
         content: q.content.trim(),
@@ -274,22 +274,22 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
         tags: q.tags || []
       })).filter(q => q.content.trim() !== "" && q.options.length > 0) // Remove questions with empty content or no options
     }
-    
+
     // Validate that all questions have at least one tag
     const allQuestions = [...cleanQuestions.easy, ...cleanQuestions.medium, ...cleanQuestions.hard]
     const hasEmptyTags = allQuestions.some(q => !q.tags || q.tags.length === 0)
-    
+
     if (hasEmptyTags) {
       return // Could show toast here if needed
     }
-    
+
     // Validate that all questions have at least one correct answer
     const hasNoCorrectAnswer = allQuestions.some(q => !q.options.some(opt => opt.isCorrect))
-    
+
     if (hasNoCorrectAnswer) {
       return // Could show toast here if needed
     }
-    
+
     importQuestions(cleanQuestions)
   }
 
@@ -301,7 +301,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
     if (!questionsData) return
     const currentQuestion = questionsData[difficulty][questionIndex]
     if (currentQuestion.tags.includes(tag)) return
-    
+
     const updated = { ...questionsData }
     const updatedQuestion = { ...updated[difficulty][questionIndex] }
     updatedQuestion.tags = [...updatedQuestion.tags, tag]
@@ -436,7 +436,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
 
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
-      <DialogContent 
+      <DialogContent
         key={open ? 'open' : 'closed'}
         className="max-w-4xl max-h-[90vh] overflow-hidden border-brand-magenta/20 bg-white/95 backdrop-blur-xl dark:bg-black/95 flex flex-col p-0"
       >
@@ -466,11 +466,10 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative overflow-hidden rounded-2xl border-2 border-dashed transition-all ${
-                    isDragging
+                  className={`relative overflow-hidden rounded-2xl border-2 border-dashed transition-all ${isDragging
                       ? "border-brand-magenta bg-brand-magenta/5"
                       : "border-brand-magenta/20 bg-white/50 dark:bg-black/50"
-                  }`}
+                    }`}
                 >
                   <div className="p-12">
                     {!file ? (
@@ -483,14 +482,14 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                         >
                           <Upload className="h-12 w-12 text-brand-magenta" />
                         </motion.div>
-                        
+
                         <h3 className="mb-2 text-lg font-semibold text-foreground">
                           Kéo thả file PDF vào đây
                         </h3>
                         <p className="mb-4 text-sm text-muted-foreground">
                           hoặc click để chọn file
                         </p>
-                        
+
                         <label htmlFor="pdf-upload">
                           <Button
                             type="button"
@@ -500,7 +499,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                             Chọn file PDF
                           </Button>
                         </label>
-                        
+
                         <input
                           id="pdf-upload"
                           type="file"
@@ -508,7 +507,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           onChange={handleFileSelect}
                           className="hidden"
                         />
-                        
+
                         <p className="mt-4 text-xs text-muted-foreground">
                           Chỉ hỗ trợ file PDF, tối đa 10MB
                         </p>
@@ -524,7 +523,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           <div className="rounded-lg bg-gradient-to-br from-brand-magenta/20 to-brand-purple/20 p-3">
                             <FileText className="h-8 w-8 text-brand-magenta" />
                           </div>
-                          
+
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-foreground truncate">
                               {file.name}
@@ -533,7 +532,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                               {(file.size / 1024 / 1024).toFixed(2)} MB
                             </p>
                           </div>
-                          
+
                           {!isUploading && (
                             <button
                               onClick={removeFile}
@@ -555,7 +554,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                 {uploadProgress}%
                               </span>
                             </div>
-                            
+
                             <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
                               <motion.div
                                 initial={{ width: 0 }}
@@ -602,7 +601,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           Tags chung cho tất cả câu hỏi
                         </h3>
                       </div>
-                      
+
                       {/* Tag Input */}
                       <div className="mb-4 flex gap-2">
                         <Input
@@ -644,11 +643,10 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                   }
                                 }}
                                 disabled={globalTags.includes(tagData.tag)}
-                                className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                                  globalTags.includes(tagData.tag)
+                                className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${globalTags.includes(tagData.tag)
                                     ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
                                     : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
-                                }`}
+                                  }`}
                               >
                                 <Tag className="mr-1 inline h-3 w-3" />
                                 {tagData.tag}
@@ -716,7 +714,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           const config = getDifficultyConfig("easy")
                           const questionKey = `easy-${index}`
                           const tagInput = tagInputs[questionKey] || ""
-                          
+
                           const setTagInput = (value: string) => {
                             setTagInputs({ ...tagInputs, [questionKey]: value })
                           }
@@ -735,7 +733,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                               className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 dark:from-black/90 dark:to-black/70"
                             >
                               <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${config.gradient}`} />
-                              
+
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 space-y-4">
                                   <div className="flex items-center gap-3">
@@ -758,7 +756,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                       className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
                                     />
                                   </div>
-                                  
+
                                   <div className="space-y-3">
                                     <label className="text-sm font-semibold text-foreground">
                                       Các lựa chọn <span className="text-red-500">*</span>
@@ -772,15 +770,14 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                           <button
                                             type="button"
                                             onClick={() => toggleCorrect("easy", index, optIndex)}
-                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${
-                                              option.isCorrect
+                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${option.isCorrect
                                                 ? "bg-green-500 text-white"
                                                 : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
-                                            }`}
+                                              }`}
                                           >
                                             <CheckCircle2 className="h-5 w-5" />
                                           </button>
-                                          
+
                                           <Input
                                             value={option.text}
                                             onChange={(e) => updateOption("easy", index, optIndex, "text", e.target.value)}
@@ -848,11 +845,10 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                                 }
                                               }}
                                               disabled={question.tags.includes(tagData.tag)}
-                                              className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                                                question.tags.includes(tagData.tag)
+                                              className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${question.tags.includes(tagData.tag)
                                                   ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
                                                   : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
-                                              }`}
+                                                }`}
                                             >
                                               <Tag className="mr-1 inline h-3 w-3" />
                                               {tagData.tag}
@@ -861,7 +857,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                         </div>
                                       </div>
                                     )}
-                                    
+
                                     {question.tags.length > 0 && (
                                       <div className="space-y-2">
                                         <p className="text-xs font-medium text-muted-foreground">Tags đã chọn:</p>
@@ -902,7 +898,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                     />
                                   </div>
                                 </div>
-                                
+
                                 <button
                                   type="button"
                                   onClick={() => removeQuestion("easy", index)}
@@ -933,7 +929,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           const config = getDifficultyConfig("medium")
                           const questionKey = `medium-${index}`
                           const tagInput = tagInputs[questionKey] || ""
-                          
+
                           const setTagInput = (value: string) => {
                             setTagInputs({ ...tagInputs, [questionKey]: value })
                           }
@@ -952,7 +948,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                               className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 dark:from-black/90 dark:to-black/70"
                             >
                               <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${config.gradient}`} />
-                              
+
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 space-y-4">
                                   <div className="flex items-center gap-3">
@@ -975,7 +971,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                       className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
                                     />
                                   </div>
-                                  
+
                                   <div className="space-y-3">
                                     <label className="text-sm font-semibold text-foreground">
                                       Các lựa chọn <span className="text-red-500">*</span>
@@ -989,15 +985,14 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                           <button
                                             type="button"
                                             onClick={() => toggleCorrect("medium", index, optIndex)}
-                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${
-                                              option.isCorrect
+                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${option.isCorrect
                                                 ? "bg-green-500 text-white"
                                                 : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
-                                            }`}
+                                              }`}
                                           >
                                             <CheckCircle2 className="h-5 w-5" />
                                           </button>
-                                          
+
                                           <Input
                                             value={option.text}
                                             onChange={(e) => updateOption("medium", index, optIndex, "text", e.target.value)}
@@ -1065,11 +1060,10 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                                 }
                                               }}
                                               disabled={question.tags.includes(tagData.tag)}
-                                              className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                                                question.tags.includes(tagData.tag)
+                                              className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${question.tags.includes(tagData.tag)
                                                   ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
                                                   : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
-                                              }`}
+                                                }`}
                                             >
                                               <Tag className="mr-1 inline h-3 w-3" />
                                               {tagData.tag}
@@ -1078,7 +1072,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                         </div>
                                       </div>
                                     )}
-                                    
+
                                     {question.tags.length > 0 && (
                                       <div className="space-y-2">
                                         <p className="text-xs font-medium text-muted-foreground">Tags đã chọn:</p>
@@ -1119,7 +1113,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                     />
                                   </div>
                                 </div>
-                                
+
                                 <button
                                   type="button"
                                   onClick={() => removeQuestion("medium", index)}
@@ -1150,7 +1144,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           const config = getDifficultyConfig("hard")
                           const questionKey = `hard-${index}`
                           const tagInput = tagInputs[questionKey] || ""
-                          
+
                           const setTagInput = (value: string) => {
                             setTagInputs({ ...tagInputs, [questionKey]: value })
                           }
@@ -1169,7 +1163,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                               className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 dark:from-black/90 dark:to-black/70"
                             >
                               <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${config.gradient}`} />
-                              
+
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 space-y-4">
                                   <div className="flex items-center gap-3">
@@ -1192,7 +1186,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                       className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
                                     />
                                   </div>
-                                  
+
                                   <div className="space-y-3">
                                     <label className="text-sm font-semibold text-foreground">
                                       Các lựa chọn <span className="text-red-500">*</span>
@@ -1206,15 +1200,14 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                           <button
                                             type="button"
                                             onClick={() => toggleCorrect("hard", index, optIndex)}
-                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${
-                                              option.isCorrect
+                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${option.isCorrect
                                                 ? "bg-green-500 text-white"
                                                 : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
-                                            }`}
+                                              }`}
                                           >
                                             <CheckCircle2 className="h-5 w-5" />
                                           </button>
-                                          
+
                                           <Input
                                             value={option.text}
                                             onChange={(e) => updateOption("hard", index, optIndex, "text", e.target.value)}
@@ -1282,11 +1275,10 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                                 }
                                               }}
                                               disabled={question.tags.includes(tagData.tag)}
-                                              className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                                                question.tags.includes(tagData.tag)
+                                              className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${question.tags.includes(tagData.tag)
                                                   ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
                                                   : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
-                                              }`}
+                                                }`}
                                             >
                                               <Tag className="mr-1 inline h-3 w-3" />
                                               {tagData.tag}
@@ -1295,7 +1287,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                         </div>
                                       </div>
                                     )}
-                                    
+
                                     {question.tags.length > 0 && (
                                       <div className="space-y-2">
                                         <p className="text-xs font-medium text-muted-foreground">Tags đã chọn:</p>
@@ -1336,7 +1328,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                     />
                                   </div>
                                 </div>
-                                
+
                                 <button
                                   type="button"
                                   onClick={() => removeQuestion("hard", index)}

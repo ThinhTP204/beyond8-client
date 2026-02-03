@@ -105,6 +105,13 @@ export interface UpdateAIPromptRequest {
   tags: string[];
 }
 
+export interface EmbedFileRequest {
+  cloudFrontUrl: string;
+  courseId: string;
+  lessonId: string;
+  documentId: string;
+}
+
 export const fetchAI = {
   // Usage
   getStatistics: async (): Promise<ApiResponse<AIUsageStatistics>> => {
@@ -118,8 +125,8 @@ export const fetchAI = {
   },
 
   getAllHistory: async (params?: GetUsageHistoryParams): Promise<ApiResponse<AIUsageRecord[]>> => {
-      const response = await apiService.get<ApiResponse<AIUsageRecord[]>>("api/v1/ai-usage/all", params);
-      return response.data;
+    const response = await apiService.get<ApiResponse<AIUsageRecord[]>>("api/v1/ai-usage/all", params);
+    return response.data;
   },
 
   // Prompts
@@ -150,6 +157,18 @@ export const fetchAI = {
 
   toggleStatus: async (id: string): Promise<ApiResponse<boolean>> => {
     const response = await apiService.patch<ApiResponse<boolean>>(`api/v1/ai-prompts/${id}/toggle-status`, {});
+    return response.data;
+  },
+
+  //Check the health of the embedding service (Qdrant, Hugging Face)
+  checkHealthEmbed: async (): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.get<ApiResponse<boolean>>("api/v1/ai/embed/health");
+    return response.data;
+  },
+
+  //Gửi CloudFront URL của PDF, backend giải mã key, tải từ S3 và embed vào Qdrant (Instructor only)
+  embedFile: async (data: EmbedFileRequest): Promise<ApiResponse<boolean>> => {
+    const response = await apiService.post<ApiResponse<boolean>>("api/v1/ai/embed", data);
     return response.data;
   },
 };

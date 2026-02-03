@@ -87,7 +87,7 @@ export function CreateQuestionMethodDialog({
               >
                 {/* Gradient accent line */}
                 {/* <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${method.gradient}`} /> */}
-                
+
                 <div className="relative space-y-4">
                   {/* Icon */}
                   <div className={`inline-flex rounded-full bg-gradient-to-br ${method.gradient} p-3 text-white shadow-lg`}>

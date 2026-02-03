@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { ArrowLeft, Trash2, Video, FileText, ClipboardList, Upload, Image as ImageIcon, Eye } from "lucide-react";
+import { ArrowLeft, Trash2, Video, FileText, ClipboardList, Upload, Image as ImageIcon, Eye, Plus, Sparkles, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HeaderPortal } from "./HeaderPortal";
 import { Progress } from "@/components/ui/progress";
@@ -34,6 +34,7 @@ import {
 } from "@/hooks/useLesson";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import { QuestionBankDialog } from "@/components/widget/QuestionBankDialog";
 
 export interface LessonEditorRef {
     hasUnsavedChanges: () => boolean;
@@ -55,6 +56,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         const [lessonDescriptionValue, setLessonDescriptionValue] = useState("");
         const [isPreview, setIsPreview] = useState(false);
         const [isPublished, setIsPublished] = useState(false);
+        const [isQuestionBankDialogOpen, setIsQuestionBankDialogOpen] = useState(false);
         const router = useRouter();
 
         // Video specific
@@ -984,17 +986,100 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                 )}
 
                                 {selectedLesson?.type === "Quiz" && (
-                                    <div className="space-y-4">
-                                        <h3 className="text-lg font-semibold text-gray-900">Nội dung Quiz</h3>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="quiz-id">Quiz ID</Label>
-                                            <Input
-                                                id="quiz-id"
-                                                value={quizId}
-                                                onChange={(e) => setQuizId(e.target.value)}
-                                                placeholder="Nhập Quiz ID"
-                                            />
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-lg font-semibold text-gray-900">Nội dung Quiz</h3>
+                                            {quizId && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => setQuizId("")}
+                                                    className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                >
+                                                    <Trash2 className="w-4 h-4 mr-2" />
+                                                    Chọn lại
+                                                </Button>
+                                            )}
                                         </div>
+
+                                        {!quizId ? (
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                {/* Option 1: Select from Question Bank */}
+                                                <div
+                                                    onClick={() => setIsQuestionBankDialogOpen(true)}
+                                                    className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-6 transition-all hover:border-purple-300 hover:shadow-md hover:bg-purple-50/30 flex flex-col items-center text-center gap-4"
+                                                >
+                                                    <div className="w-16 h-16 rounded-full bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center transition-colors">
+                                                        <ClipboardList className="w-8 h-8 text-blue-600" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-blue-700">Ngân hàng câu hỏi</h4>
+                                                        <p className="text-sm text-gray-500">Chọn câu hỏi có sẵn từ ngân hàng của bạn</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Option 2: Create New Quiz */}
+                                                <div className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-6 transition-all hover:border-purple-300 hover:shadow-md hover:bg-purple-50/30 flex flex-col items-center text-center gap-4 opacity-70">
+                                                    <div className="w-16 h-16 rounded-full bg-green-50 group-hover:bg-green-100 flex items-center justify-center transition-colors">
+                                                        <Plus className="w-8 h-8 text-green-600" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-green-700">Tạo mới câu hỏi</h4>
+                                                        <p className="text-sm text-gray-500">Tạo một câu hỏi quiz mới hoàn toàn (Đang phát triển)</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Option 3: Create with AI */}
+                                                <div className="group cursor-pointer rounded-xl border border-gray-200 bg-white p-6 transition-all hover:border-purple-300 hover:shadow-md hover:bg-purple-50/30 flex flex-col items-center text-center gap-4 opacity-70">
+                                                    <div className="w-16 h-16 rounded-full bg-purple-50 group-hover:bg-purple-100 flex items-center justify-center transition-colors">
+                                                        <Sparkles className="w-8 h-8 text-purple-600" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-gray-900 mb-1 group-hover:text-purple-700">Tạo bằng AI</h4>
+                                                        <p className="text-sm text-gray-500">Sử dụng AI để tạo bộ câu hỏi tự động (Đang phát triển)</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="rounded-xl border border-purple-200 bg-purple-50/30 p-6 flex flex-col items-center text-center gap-4">
+                                                <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center">
+                                                    <CheckCircle2 className="w-8 h-8 text-purple-600" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-gray-900 mb-1">Đã chọn câu hỏi</h4>
+                                                    <p className="text-sm text-gray-500 font-mono bg-white px-3 py-1 rounded border inline-block mt-2">ID: {quizId}</p>
+                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    className="mt-2"
+                                                    onClick={() => {
+                                                        // Future impl: Open preview of the question
+                                                    }}
+                                                >
+                                                    Xem chi tiết
+                                                </Button>
+                                            </div>
+                                        )}
+
+                                        <QuestionBankDialog
+                                            open={isQuestionBankDialogOpen}
+                                            onOpenChange={setIsQuestionBankDialogOpen}
+                                            selectionMode="multiple"
+                                            onSelectMultiple={(ids) => {
+                                                if (ids.length > 0) {
+                                                    setQuizId(ids[0])
+                                                    if (ids.length > 1) {
+                                                        // alert("Hiện tại mỗi bài học chỉ hỗ trợ 1 câu hỏi. Đã chọn câu hỏi đầu tiên.")
+                                                        // Ideally use a Toast here
+                                                    }
+                                                }
+                                                setIsQuestionBankDialogOpen(false)
+                                            }}
+                                            onSelect={(id) => {
+                                                setQuizId(id)
+                                                setIsQuestionBankDialogOpen(false)
+                                            }}
+                                        />
                                     </div>
                                 )}
                             </div>

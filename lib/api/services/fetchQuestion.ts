@@ -109,6 +109,27 @@ export interface ImportQuestionsFromAIRequest {
   hard: GeneratedQuestion[]
 }
 
+export interface GenerateQuizFromAIRequest {
+  courseId: string;
+  lessonId: string;
+  totalCount: number;
+  query: string;
+  maxPoints: number;
+  distribution: {
+    easyPercent: number
+    mediumPercent: number
+    hardPercent: number
+  }
+  topK: number
+}
+
+export interface GenerateQuizFromAIResponse extends ApiResponse<GeneratedQuestionsByDifficulty[]> {
+  isSuccess: boolean
+  message: string
+  data: GeneratedQuestionsByDifficulty[]
+  metadata: null | unknown
+}
+
 export interface ImportQuestionsFromAIResponse extends ApiResponse<string[]> {
   isSuccess: boolean
   message: string
@@ -179,6 +200,12 @@ export const questionService = {
 
   bulkCreateQuestions: async (data: BulkCreateQuestionRequest): Promise<BulkCreateQuestionResponse> => {
     const response = await apiService.post<BulkCreateQuestionResponse, BulkCreateQuestionRequest>("api/v1/questions/bulk", data)
+    return response.data
+  },
+
+  //Generate quiz from AI
+  generateQuizFromAI: async (data: GenerateQuizFromAIRequest): Promise<GenerateQuizFromAIResponse> => {
+    const response = await apiService.post<GenerateQuizFromAIResponse, GenerateQuizFromAIRequest>("api/v1/ai/quiz/generate", data)
     return response.data
   },
 }
