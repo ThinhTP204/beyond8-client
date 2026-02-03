@@ -50,7 +50,7 @@ export function CreateQuestionMethodDialog({
     },
     {
       id: "pdf",
-      title: "Upload file PDF",
+      title: "Tạo câu hỏi từ PDF",
       description: "Upload file PDF để tự động tạo câu hỏi",
       icon: FileUp,
       gradient: "from-amber-500 to-orange-500",
