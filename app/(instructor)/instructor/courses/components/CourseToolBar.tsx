@@ -6,10 +6,7 @@ import {
   LayoutGrid,
   LayoutList,
   Plus,
-  ArrowDownWideNarrow,
-  ArrowUpWideNarrow,
-  TrendingUp,
-  TrendingDown,
+  BookOpen,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
@@ -22,13 +19,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useDebounce } from '@/hooks/useDebounce'
 import { useCategory } from '@/hooks/useCategory'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -52,16 +42,6 @@ export default function CourseToolBar({
   const [searchValue, setSearchValue] = useState(searchParams.get('keyword') || '')
   const debouncedSearch = useDebounce(searchValue, 500)
 
-  // Sort State
-  const sortBy = searchParams.get('sortBy') || 'createdAt'
-  const isDescending = searchParams.get('isDescending') !== 'false'
-
-  const currentSortValue = useMemo(() => {
-    if (sortBy === 'price') {
-      return isDescending ? 'price_desc' : 'price_asc'
-    }
-    return isDescending ? 'createdAt_desc' : 'createdAt_asc'
-  }, [sortBy, isDescending])
 
   const { categories: categoryData, isLoading: isLoadingCategories } = useCategory()
 
@@ -131,33 +111,6 @@ export default function CourseToolBar({
     router.push(`?${params.toString()}`)
   }
 
-  const handleSortChange = (value: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-
-    switch (value) {
-      case 'createdAt_desc': // Mới nhất
-        params.set('sortBy', 'createdAt')
-        params.set('isDescending', 'true')
-        break
-      case 'createdAt_asc': // Cũ nhất
-        params.set('sortBy', 'createdAt')
-        params.set('isDescending', 'false')
-        break
-      case 'price_desc': // Giá cao nhất
-        params.set('sortBy', 'price')
-        params.set('isDescending', 'true')
-        break
-      case 'price_asc': // Giá thấp nhất
-        params.set('sortBy', 'price')
-        params.set('isDescending', 'false')
-        break
-      default:
-        params.set('sortBy', 'createdAt')
-        params.set('isDescending', 'true')
-    }
-
-    router.push(`?${params.toString()}`)
-  }
 
   const getPlaceholder = (categoryId: string) => {
     const selected = categories.find(c => c.value === categoryId)
@@ -231,42 +184,23 @@ export default function CourseToolBar({
           />
         </div>
 
-        {/* Sort & Filter Container */}
+      
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          {/* Sort Select */}
-          <div className="flex-1 sm:w-[180px]">
-            <Select value={currentSortValue} onValueChange={handleSortChange}>
-              <SelectTrigger className="h-10 rounded-2xl border-purple-200 bg-white focus:ring-purple-500 w-full">
-                <SelectValue placeholder="Sắp xếp theo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="createdAt_desc">
-                  <div className="flex items-center gap-2">
-                    <ArrowDownWideNarrow className="w-4 h-4" />
-                    <span>Mới nhất</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="createdAt_asc">
-                  <div className="flex items-center gap-2">
-                    <ArrowUpWideNarrow className="w-4 h-4" />
-                    <span>Cũ nhất</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="price_desc">
-                  <div className="flex items-center gap-2">
-                    <TrendingDown className="w-4 h-4" />
-                    <span>Giá cao nhất</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="price_asc">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4" />
-                    <span>Giá thấp nhất</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Question Bank Button */}
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/instructor/question-bank')}
+              className="bg-white border border-purple-200 hover:bg-white rounded-2xl px-3"
+            >
+              <BookOpen className="w-5 h-5 text-purple-600" />
+              <span className="hidden sm:inline ml-1 text-purple-600">Ngân hàng câu hỏi</span>
+              <span className="sm:hidden text-purple-600">Câu hỏi</span>
+            </Button>
+          </motion.div>
 
           {/* Filter Sheet */}
           <CourseFilterSheet activeFilterCount={activeFilterCount} />
