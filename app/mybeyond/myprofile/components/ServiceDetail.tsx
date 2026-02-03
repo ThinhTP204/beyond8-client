@@ -126,9 +126,9 @@ const ServiceDetail = () => {
              <div className="space-y-2">
                <div className="flex justify-between text-sm">
                  <span className="text-muted-foreground">Số request còn lại</span>
-                 <span className="font-bold text-foreground">{(maxRequestsPerWeek - remainingRequests) / maxRequestsPerWeek} /{remainingRequests} request</span>
+                 <span className="font-bold text-foreground">{(maxRequestsPerWeek - remainingRequests)}  /{remainingRequests} request</span>
                </div>
-               <Progress value={((maxRequestsPerWeek - remainingRequests) / maxRequestsPerWeek) * 100} className="h-2 bg-muted transition-all" />
+               <Progress value={((maxRequestsPerWeek - remainingRequests) * 100) / maxRequestsPerWeek} className="h-2 bg-muted transition-all" />
                <p className="text-xs text-muted-foreground">
                  {isRequestLimitedReached ? (
                     <span className="text-red-500 font-medium flex items-center gap-1">
