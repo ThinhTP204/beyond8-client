@@ -100,3 +100,27 @@ export function useReoderSection(courseId: string) {
         isPending
     }
 }
+
+export function useActivationSection(courseId: string) {
+    const queryClient = useQueryClient()
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: ({ sectionId, isPublished }: { sectionId: string, isPublished: boolean }) =>
+            fetchSection.activationSection(sectionId, isPublished),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({
+                queryKey: ["sections", courseId]
+            })
+            queryClient.invalidateQueries({
+                queryKey: ["lessons", variables.sectionId]
+            })
+            toast.success("Cập nhật trạng thái chương thành công!")
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Cập nhật trạng thái chương thất bại!")
+        }
+    })
+    return {
+        activationSection: mutateAsync,
+        isPending
+    }
+}

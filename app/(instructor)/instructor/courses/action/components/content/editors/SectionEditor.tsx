@@ -14,7 +14,7 @@ import {
 import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 import { HeaderPortal } from "./HeaderPortal";
 
-import { useUpdateSection, useDeleteSection } from "@/hooks/useSection";
+import { useUpdateSection, useDeleteSection, useActivationSection } from "@/hooks/useSection";
 import { useCreateLesson, useGetLessonBySectionId } from "@/hooks/useLesson";
 import { LessonType } from "@/lib/api/services/fetchLesson";
 import { useRouter } from "next/navigation";
@@ -26,7 +26,7 @@ export interface SectionEditorRef {
 
 interface SectionEditorProps {
     courseId: string;
-    section: { id: string; orderIndex: number; title: string; description?: string };
+    section: { id: string; orderIndex: number; title: string; description?: string; isPublished?: boolean };
     onBackToInfo?: () => void;
     onLessonSelect?: (lessonId: string) => void;
     onDeleted?: () => void;
@@ -37,10 +37,12 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         const [titleValue, setTitleValue] = useState(section.title);
         const [descriptionValue, setDescriptionValue] = useState(section.description || "");
         const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+        const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
         const router = useRouter();
 
         const { updateSection, isPending: isUpdating } = useUpdateSection(courseId);
         const { deleteSection, isPending: isDeleting } = useDeleteSection(courseId);
+        const { activationSection, isPending: isActivating } = useActivationSection(courseId);
         const { createLesson } = useCreateLesson();
         const { lessons } = useGetLessonBySectionId(section.id);
 
@@ -75,7 +77,6 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         const handleCreateLesson = async (type: "Video" | "Text" | "Quiz") => {
             const baseData = {
                 sectionId: section.id,
-                title: "Bài học mới",
                 description: "",
                 isPreview: false,
             };
@@ -84,6 +85,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                 await createLesson({
                     type: LessonType.Video,
                     ...baseData,
+                    title: "Video mới",
                     videoOriginalUrl: null,
                     videoThumbnailUrl: null,
                     durationSeconds: 1,
@@ -93,12 +95,14 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                 await createLesson({
                     type: LessonType.Text,
                     ...baseData,
+                    title: "Bài học mới",
                     content: "",
                 });
             } else if (type === "Quiz") {
                 await createLesson({
                     type: LessonType.Quiz,
                     ...baseData,
+                    title: "Bài kiểm tra mới",
                     quizId: null,
                 });
             }
@@ -235,13 +239,13 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                             transition={{ duration: 0.3 }}
                         >
                             {/* Title - Notion-like editable */}
-                            <div className="mb-6">
+                            <div className="mb-6 flex items-start gap-4">
                                 <textarea
                                     ref={titleRef}
                                     value={titleValue}
                                     onChange={(e) => setTitleValue(e.target.value)}
                                     placeholder="Untitled"
-                                    className="w-full text-4xl font-bold text-gray-900 border-none focus:ring-0 focus:outline-none placeholder:text-gray-300 resize-none bg-transparent overflow-hidden break-words"
+                                    className="flex-1 text-4xl font-bold text-gray-900 border-none focus:ring-0 focus:outline-none placeholder:text-gray-300 resize-none bg-transparent overflow-hidden break-words"
                                     rows={1}
                                     style={{
                                         height: "auto",
@@ -252,6 +256,35 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                                         target.style.height = "auto";
                                         target.style.height = target.scrollHeight + "px";
                                     }}
+                                />
+
+                                <ConfirmDialog
+                                    open={isPublishDialogOpen}
+                                    onOpenChange={setIsPublishDialogOpen}
+                                    onConfirm={async () => {
+                                        await activationSection({
+                                            sectionId: section.id,
+                                            isPublished: !section.isPublished
+                                        });
+                                        setIsPublishDialogOpen(false);
+                                    }}
+                                    title={section.isPublished ? "Ẩn chương học" : "Hiển thị chương học"}
+                                    description={section.isPublished
+                                        ? "Học viên sẽ không thể nhìn thấy chương này và các bài học bên trong. Bạn có chắc chắn muốn ẩn không?"
+                                        : "Chương học sẽ hiển thị cho học viên. Bạn có chắc chắn muốn hiển thị không?"}
+                                    confirmText={section.isPublished ? "Ẩn" : "Hiển thị"}
+                                    cancelText="Hủy"
+                                    variant={section.isPublished ? "destructive" : "default"} // Changed to default for publish action to look friendlier, or success
+                                    isLoading={isActivating}
+                                    trigger={
+                                        <Button
+                                            variant={section.isPublished ? "destructive" : "default"} // or ghost/outline
+                                            size="sm"
+                                            className="rounded-full mt-1 shrink-0"
+                                        >
+                                            {section.isPublished ? "Ẩn chương" : "Hiển thị"}
+                                        </Button>
+                                    }
                                 />
                             </div>
 
@@ -327,7 +360,7 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                                                 animate={{ opacity: 1, x: 0 }}
                                                 transition={{ delay: index * 0.05 }}
                                                 onClick={() => onLessonSelect?.(lesson.id)}
-                                                className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                                                className={`group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${!lesson.isPublished ? 'opacity-50 grayscale' : ''}`}
                                             >
                                                 {/* Icon */}
                                                 <div className="shrink-0">{getLessonIcon(lesson.type)}</div>

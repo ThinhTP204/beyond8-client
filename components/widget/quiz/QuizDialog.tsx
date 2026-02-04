@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Clock, CheckCircle2, HelpCircle, AlertCircle, FileText } from "lucide-react";
+import { Loader2, Clock, CheckCircle2, HelpCircle, AlertCircle, FileText, Circle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Question, QuestionDifficulty } from "@/lib/api/services/fetchQuestion";
@@ -39,8 +39,8 @@ export const QuizDialog = ({ open, onOpenChange, quizId }: QuizDialogProps) => {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-0 gap-0">
-                <DialogHeader className="px-6 py-4 border-b shrink-0 bg-white z-10">
+            <DialogContent className="max-w-4xl h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
+                <DialogHeader className="px-6 py-4 border-b shrink-0 bg-white">
                     <DialogTitle className="flex items-center gap-2 text-xl">
                         <FileText className="w-5 h-5 text-purple-600" />
                         Chi tiết bài kiểm tra
@@ -63,7 +63,7 @@ export const QuizDialog = ({ open, onOpenChange, quizId }: QuizDialogProps) => {
                         </div>
                     ) : (
                         <ScrollArea className="h-full">
-                            <div className="p-6 space-y-8">
+                            <div className="p-6 space-y-8 bg-gray-50/50 min-h-full">
                                 {/* Quiz Info Section */}
                                 <div className="space-y-4">
                                     <div>
@@ -119,34 +119,30 @@ export const QuizDialog = ({ open, onOpenChange, quizId }: QuizDialogProps) => {
                                                             <div className="flex items-start justify-between gap-4">
                                                                 <div className="text-base font-medium text-gray-900" dangerouslySetInnerHTML={{ __html: question.content }} />
                                                                 <Badge className={cn("shrink-0", getDifficultyColor(question.difficulty))}>
-                                                                    {question.difficulty}
+                                                                    {question.difficulty === "Easy" ? "Dễ" : question.difficulty === "Medium" ? "Trung bình" : "Khó"}
                                                                 </Badge>
                                                             </div>
 
                                                             {/* Options */}
-                                                            <div className="grid gap-2 mt-2">
-                                                                {question.options.map((option) => (
-                                                                    <div
-                                                                        key={option.id}
-                                                                        className={cn(
-                                                                            "p-3 rounded-lg border text-sm flex items-center gap-3",
-                                                                            option.isCorrect
-                                                                                ? "bg-green-50 border-green-200 text-green-900"
-                                                                                : "bg-gray-50 border-gray-100 text-gray-700"
-                                                                        )}
-                                                                    >
-                                                                        <div className={cn(
-                                                                            "w-4 h-4 rounded-full border flex items-center justify-center shrink-0",
-                                                                            option.isCorrect
-                                                                                ? "border-green-600 bg-green-600"
-                                                                                : "border-gray-400"
-                                                                        )}>
-                                                                            {option.isCorrect && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                                            {question.options && question.options.length > 0 && (
+                                                                <div className="space-y-2 pl-2">
+                                                                    {question.options.map((option) => (
+                                                                        <div
+                                                                            key={option.id}
+                                                                            className="flex items-start gap-2 text-sm"
+                                                                        >
+                                                                            {option.isCorrect ? (
+                                                                                <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600 mt-0.5" />
+                                                                            ) : (
+                                                                                <Circle className="h-5 w-5 flex-shrink-0 text-muted-foreground mt-0.5" />
+                                                                            )}
+                                                                            <span className={option.isCorrect ? "font-medium text-green-700" : "text-muted-foreground"}>
+                                                                                {option.text}
+                                                                            </span>
                                                                         </div>
-                                                                        <span dangerouslySetInnerHTML={{ __html: option.text }} />
-                                                                    </div>
-                                                                ))}
-                                                            </div>
+                                                                    ))}
+                                                                </div>
+                                                            )}
 
                                                             {/* Explanation if available */}
                                                             {question.explanation && (

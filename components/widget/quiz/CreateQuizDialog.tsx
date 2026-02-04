@@ -21,12 +21,10 @@ import { Separator } from "@/components/ui/separator"
 import {
     Loader2,
     Settings,
-    Sparkles,
     Target,
     ArrowRight,
     ArrowLeft,
     CheckCircle2,
-    AlertCircle,
     Clock,
     Trophy,
     Shuffle,
@@ -168,9 +166,13 @@ export function CreateQuizDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
                 className={cn(
-                    "flex flex-col p-0 gap-0 transition-all duration-300",
+                    "flex flex-col p-0 gap-0 transition-all duration-300 overflow-hidden",
                     step === 1 ? "max-w-6xl h-[85vh]" : "max-w-[90vw] h-[95vh]",
-                    isChildDialogOpen && "opacity-0 pointer-events-none"
+                    isChildDialogOpen ? "!opacity-0 pointer-events-none" : "opacity-100"
+                )}
+                overlayClassName={cn(
+                    "transition-opacity duration-300",
+                    isChildDialogOpen ? "!opacity-0 pointer-events-none" : "opacity-100"
                 )}
             >
                 <DialogHeader className="px-6 py-4 border-b bg-gray-50/50 flex-shrink-0">
@@ -193,7 +195,7 @@ export function CreateQuizDialog({
                         </div>
 
                         {/* Modern Stepper */}
-                        <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                        <div className="flex items-center bg-gray-100 rounded-lg p-1 mr-4">
                             <div className={cn(
                                 "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
                                 step === 1 ? "bg-white text-blue-700 shadow-sm" : "text-gray-500"
@@ -214,11 +216,11 @@ export function CreateQuizDialog({
 
                 <div className="flex-1 overflow-y-auto bg-gray-50/30">
                     {step === 1 ? (
-                        <div className="p-6 h-full">
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 {/* Column 1: Basic Information */}
                                 <div className="space-y-6">
-                                    <Card className="border-gray-200 shadow-sm h-full flex flex-col">
+                                    <Card className="border-gray-200 shadow-sm flex flex-col h-full">
                                         <CardHeader className="pb-3 border-b bg-gray-50/50">
                                             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
                                                 <FileText className="w-4 h-4 text-gray-500" />
@@ -230,26 +232,38 @@ export function CreateQuizDialog({
                                                 <Label htmlFor="title" className="text-base font-semibold text-gray-900">
                                                     Tên bài kiểm tra <span className="text-red-500">*</span>
                                                 </Label>
-                                                <Input
-                                                    id="title"
-                                                    value={title}
-                                                    onChange={(e) => setTitle(e.target.value)}
-                                                    placeholder="Nhập tên bài kiểm tra..."
-                                                    className="h-11 text-md bg-white shadow-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                                                />
+                                                <div className="relative">
+                                                    <Input
+                                                        id="title"
+                                                        value={title}
+                                                        onChange={(e) => setTitle(e.target.value)}
+                                                        maxLength={100}
+                                                        placeholder="Nhập tên bài kiểm tra..."
+                                                        className="h-11 pr-16 text-md bg-white shadow-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                                                    />
+                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium pointer-events-none">
+                                                        {title.length}/100
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             <div className="space-y-2 flex-1 flex flex-col">
                                                 <Label htmlFor="description" className="text-sm font-medium text-gray-700">
-                                                    Mô tả / Hướng dẫn
+                                                    Mô tả / Hướng dẫn <span className="text-gray-400 font-normal">(tùy chọn)</span>
                                                 </Label>
-                                                <Textarea
-                                                    id="description"
-                                                    value={description}
-                                                    onChange={(e) => setDescription(e.target.value)}
-                                                    placeholder="Nhập hướng dẫn làm bài cho học viên..."
-                                                    className="flex-1 resize-none bg-white shadow-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500 min-h-[150px]"
-                                                />
+                                                <div className="relative flex-1 flex flex-col">
+                                                    <Textarea
+                                                        id="description"
+                                                        value={description}
+                                                        onChange={(e) => setDescription(e.target.value)}
+                                                        maxLength={500}
+                                                        placeholder="Nhập hướng dẫn làm bài cho học viên..."
+                                                        className="flex-1 resize-none bg-white shadow-sm border-gray-200 focus:border-blue-500 focus:ring-blue-500 min-h-[350px] pb-8"
+                                                    />
+                                                    <span className="absolute right-3 bottom-3 text-xs text-gray-400 font-medium pointer-events-none">
+                                                        {description.length}/500
+                                                    </span>
+                                                </div>
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -257,7 +271,7 @@ export function CreateQuizDialog({
 
                                 {/* Column 2: Structure & Difficulty */}
                                 <div className="space-y-6">
-                                    <Card className="border-gray-200 shadow-sm h-full flex flex-col">
+                                    <Card className="border-gray-200 shadow-sm flex flex-col h-full">
                                         <CardHeader className="pb-3 border-b bg-gray-50/50">
                                             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
                                                 <Target className="w-4 h-4 text-gray-500" />
@@ -346,7 +360,7 @@ export function CreateQuizDialog({
 
                                 {/* Column 3: Settings & Switches */}
                                 <div className="space-y-6">
-                                    <Card className="border-gray-200 shadow-sm h-full flex flex-col">
+                                    <Card className="border-gray-200 shadow-sm flex flex-col h-full">
                                         <CardHeader className="pb-3 border-b bg-gray-50/50">
                                             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
                                                 <Settings className="w-4 h-4 text-gray-500" />
@@ -447,6 +461,11 @@ export function CreateQuizDialog({
                                                 />
                                             </div>
                                         </div>
+                                        {selectedItems.size !== totalQuestions && (
+                                            <span className="text-sm text-red-500 font-medium animate-pulse">
+                                                Vui lòng chọn đủ {totalQuestions} câu hỏi ({selectedItems.size}/{totalQuestions})
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Difficulty Counters with Visuals */}
@@ -463,7 +482,7 @@ export function CreateQuizDialog({
                                             selectedMedium >= neededMedium ? "bg-yellow-50 text-yellow-700 border-yellow-200 border-solid" : "text-gray-500"
                                         )}>
                                             <div className={cn("w-2 h-2 rounded-full", selectedMedium >= neededMedium ? "bg-yellow-500" : "bg-gray-300")} />
-                                            <span className="font-semibold">{selectedMedium}</span> / {neededMedium} TB
+                                            <span className="font-semibold">{selectedMedium}</span> / {neededMedium} Trung Bình
                                         </Badge>
                                         <Badge variant="outline" className={cn(
                                             "h-9 px-3 gap-2 border-dashed border-2",
@@ -505,7 +524,7 @@ export function CreateQuizDialog({
                 <DialogFooter className="px-6 py-4 border-t bg-white flex-shrink-0 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
                     {step === 1 ? (
                         <>
-                            <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full text-gray-500 hover:text-gray-900">
+                            <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full text-gray-500 hover:bg-gray-100 hover:text-black">
                                 Hủy bỏ
                             </Button>
                             <Button
@@ -518,17 +537,19 @@ export function CreateQuizDialog({
                         </>
                     ) : (
                         <>
-                            <Button variant="outline" onClick={handleBackStep} disabled={isPending} className="rounded-full border-gray-300">
+                            <Button variant="outline" onClick={handleBackStep} disabled={isPending} className="rounded-full border-gray-300 hover:bg-gray-100 hover:text-black">
                                 <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại
                             </Button>
-                            <Button
-                                onClick={handleSubmit}
-                                disabled={isPending || selectedItems.size === 0}
-                                className="rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-200 px-8"
-                            >
-                                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-                                Hoàn tất & Tạo
-                            </Button>
+                            <div className="flex items-center gap-4">
+                                <Button
+                                    onClick={handleSubmit}
+                                    disabled={isPending || selectedItems.size !== totalQuestions}
+                                    className="rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-200 px-8"
+                                >
+                                    {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                                    Hoàn tất & Tạo
+                                </Button>
+                            </div>
                         </>
                     )}
                 </DialogFooter>

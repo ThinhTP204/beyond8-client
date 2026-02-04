@@ -8,20 +8,20 @@ interface NoSelectionProps {
 
 export const NoSelection: React.FC<NoSelectionProps> = ({ onBackToInfo }) => {
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white/50">
+        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-slate-50/50">
             <HeaderPortal>
                 {/* Tab Switcher in Header */}
                 {onBackToInfo && (
                     <div className="flex items-center justify-center w-full py-2">
-                        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-full">
+                        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-full border border-gray-200">
                             <button
                                 onClick={onBackToInfo}
-                                className="px-6 py-2 text-sm font-medium rounded-full transition-all text-gray-500 hover:text-gray-900"
+                                className="px-6 py-2 text-sm font-medium rounded-full transition-all text-gray-500 hover:text-gray-900 hover:bg-white/50"
                             >
                                 Thông tin khóa học
                             </button>
                             <button
-                                className="px-6 py-2 text-sm font-medium rounded-full transition-all bg-white text-black shadow-sm"
+                                className="px-6 py-2 text-sm font-medium rounded-full transition-all bg-white text-black shadow-sm ring-1 ring-black/5"
                             >
                                 Nội dung khóa học
                             </button>
@@ -30,13 +30,15 @@ export const NoSelection: React.FC<NoSelectionProps> = ({ onBackToInfo }) => {
                 )}
             </HeaderPortal>
 
-            <div className="text-center max-w-md">
-                <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                    Chưa có chương nào được chọn
+            <div className="text-center max-w-md animate-in fade-in zoom-in duration-500">
+                <div className="bg-white p-4 rounded-full shadow-sm inline-flex mb-6 ring-1 ring-gray-100">
+                    <BookOpen className="h-12 w-12 text-primary/40" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3 bg-gradient-to-br from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                    Chưa chọn nội dung
                 </h3>
-                <p className="text-sm text-gray-500">
-                    Vui lòng chọn một chương từ danh sách bên trái hoặc tạo chương đầu tiên để bắt đầu.
+                <p className="text-base text-gray-500 leading-relaxed">
+                    Vui lòng chọn một <span className="font-semibold text-gray-700">Chương</span> hoặc <span className="font-semibold text-gray-700">Bài học</span> từ danh sách bên trái để bắt đầu chỉnh sửa.
                 </p>
             </div>
         </div>

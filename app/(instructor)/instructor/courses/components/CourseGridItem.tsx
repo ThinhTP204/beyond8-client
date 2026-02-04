@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { Course, CourseLevel, CourseStatus } from '@/lib/api/services/fetchCourse'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
+import SafeImage from '@/components/ui/SafeImage'
 
 interface CourseGridItemProps {
   course: Course
@@ -67,12 +68,11 @@ export default function CourseGridItem({ course }: CourseGridItemProps) {
     <div className="group flex flex-col h-full bg-white rounded-xl overflow-hidden border border-border/40 hover:shadow-lg transition-all duration-300">
       {/* Image Section */}
       <div className="relative w-full aspect-[4/3] overflow-hidden">
-        <Image
+        <SafeImage
           src={formatImageUrl(course.thumbnailUrl) || '/images/placeholder.jpg'}
           alt={course.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
-          unoptimized
         />
 
         {/* Overlay Badges */}

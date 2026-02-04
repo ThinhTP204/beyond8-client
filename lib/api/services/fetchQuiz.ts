@@ -1,4 +1,3 @@
-import { MetaData } from "@react-three/drei";
 import apiService from "../core";
 import { Metadata } from "./fetchUsers";
 import { ApiResponse } from "@/types/api";

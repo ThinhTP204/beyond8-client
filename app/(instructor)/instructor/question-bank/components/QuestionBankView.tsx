@@ -9,11 +9,11 @@ import { QuestionCard } from "./QuestionCard"
 import { useGetQuestionTagsCount, useGetQuestions } from "@/hooks/useQuestion"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
-import { CreateQuestionDialog } from "@/components/widget/CreateQuestionDialog"
-import { CreateQuestionPDFDialog } from "@/components/widget/CreateQuestionPDFDialog"
-import { CreateBulkQuestionDialog } from "@/components/widget/CreateBulkQuestionDialog"
-import { CreateQuestionMethodDialog } from "@/components/widget/CreateQuestionMethodDialog"
 import { Pagination } from "@/components/ui/custom-pagination"
+import { CreateQuestionMethodDialog } from "@/components/widget/question/CreateQuestionMethodDialog"
+import { CreateQuestionDialog } from "@/components/widget/question/CreateQuestionDialog"
+import { CreateBulkQuestionDialog } from "@/components/widget/question/CreateBulkQuestionDialog"
+import { CreateQuestionPDFDialog } from "@/components/widget/question/CreateQuestionPDFDialog"
 
 interface QuestionBankViewProps {
     selectedTag: string | null

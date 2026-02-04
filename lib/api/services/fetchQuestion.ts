@@ -123,10 +123,10 @@ export interface GenerateQuizFromAIRequest {
   topK: number
 }
 
-export interface GenerateQuizFromAIResponse extends ApiResponse<GeneratedQuestionsByDifficulty[]> {
+export interface GenerateQuizFromAIResponse extends ApiResponse<GeneratedQuestionsByDifficulty> {
   isSuccess: boolean
   message: string
-  data: GeneratedQuestionsByDifficulty[]
+  data: GeneratedQuestionsByDifficulty
   metadata: null | unknown
 }
 

@@ -11,7 +11,9 @@ import {
     ReoderLessonInSectionRequest,
     ReoderLessonOtherSectionRequest,
     CreateLessonDocumentRequest,
-    UpdateLessonDocumentRequest
+    UpdateLessonDocumentRequest,
+    Lesson,
+    LessonResponse
 } from "@/lib/api/services/fetchLesson";
 import { ApiError } from "@/types/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -116,18 +118,46 @@ export function useUpdateLesson(sectionId: string) {
     };
 }
 
-export function useDeleteLesson(sectionId: string) {
+export function useDeleteLesson(sectionId: string, courseId: string) {
     const queryClient = useQueryClient();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: (lessonId: string) => fetchLession.deleteLesson(lessonId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["lessons", sectionId]
-            });
+        onMutate: async (lessonId: string) => {
+            // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+            await queryClient.cancelQueries({ queryKey: ["lessons", sectionId] });
+
+            // Snapshot the previous value
+            const previousLessonsRequest = queryClient.getQueryData(["lessons", sectionId]);
+
+            // Optimistically update to the new value
+            if (previousLessonsRequest) {
+                queryClient.setQueryData(["lessons", sectionId], (old: LessonResponse) => {
+                    if (!old || !old.data) return old;
+                    return {
+                        ...old,
+                        data: old.data.filter((lesson: Lesson) => lesson.id !== lessonId)
+                    };
+                });
+            }
+
+            // Return a context object with the snapshotted value
+            return { previousLessonsRequest };
         },
-        onError: (error: ApiError) => {
-            toast.error(error?.message || "Lỗi khi xóa bài học!");
-        }
+        onError: (_err, _newLesson, context) => {
+            // If the mutation fails, use the context returned from onMutate to roll back
+            if (context?.previousLessonsRequest) {
+                queryClient.setQueryData(["lessons", sectionId], context.previousLessonsRequest);
+            }
+            toast.error("Lỗi khi xóa bài học!");
+        },
+        onSettled: () => {
+            // Always refetch after error or success:
+            queryClient.invalidateQueries({ queryKey: ["lessons", sectionId] });
+            queryClient.invalidateQueries({ queryKey: ["sections", courseId] });
+        },
+        onSuccess: () => {
+            toast.success("Xóa bài học thành công!");
+        },
     });
     return {
         deleteLesson: mutateAsync,

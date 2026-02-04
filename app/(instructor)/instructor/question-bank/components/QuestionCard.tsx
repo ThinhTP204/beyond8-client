@@ -76,7 +76,7 @@ export function QuestionCard({
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-2">
               <span className={`rounded-full border px-3 py-1 text-xs font-medium ${difficultyColors[question.difficulty]}`}>
-                {question.difficulty}
+                {question.difficulty === "Easy" ? "Dễ" : question.difficulty === "Medium" ? "Trung bình" : "Khó"}
               </span>
               <span className="rounded-full border border-brand-magenta/20 bg-brand-magenta/10 px-3 py-1 text-xs font-medium text-brand-magenta">
                 {question.points} điểm

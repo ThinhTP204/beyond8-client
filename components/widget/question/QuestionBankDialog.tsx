@@ -133,7 +133,7 @@ export function QuestionBankDialog({ open, onOpenChange, onSelect, selectionMode
                             Đã chọn <span className="text-brand-magenta font-bold">{selectedItems.size}</span> câu hỏi
                         </div>
                         <div className="flex gap-3">
-                            <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-full">
+                            <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-full hover:bg-gray-100 hover:text-black">
                                 Hủy
                             </Button>
                             <Button

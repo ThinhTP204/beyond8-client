@@ -10,6 +10,7 @@ import {
   Users
 } from 'lucide-react'
 import { Course, CourseLevel, CourseStatus } from '@/lib/api/services/fetchCourse'
+import SafeImage from '@/components/ui/SafeImage'
 
 interface CourseListItemProps {
   course: Course
@@ -67,12 +68,11 @@ export default function CourseListItem({ course }: CourseListItemProps) {
     <div className="group flex bg-white rounded-xl overflow-hidden border border-border/40 hover:shadow-lg transition-all duration-300 p-3 gap-4">
       {/* Image Section */}
       <div className="relative w-72 shrink-0 aspect-[16/9] rounded-lg overflow-hidden">
-        <Image
+        <SafeImage
           src={course.thumbnailUrl || '/images/placeholder.jpg'}
           alt={course.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
-          unoptimized
         />
 
         {/* Overlay Badges */}

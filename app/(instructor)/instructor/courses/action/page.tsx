@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 // import { v4 as uuidv4 } from 'uuid'; // Removed unused
 
@@ -45,17 +45,37 @@ const pageTransition = {
 
 export function CourseAction({ initialData, isEditMode = false }: CourseActionProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
   const { createCourse, isPending } = useCreateCourse();
   const { updateCourse } = useUpdateCourse();
   const isMobile = useIsMobile();
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [viewMode, setViewMode] = useState<"info" | "content">("info");
+
+  // Initialize viewMode from URL or default to "info"
+  const [viewMode, setViewMode] = useState<"info" | "content">(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "content" && initialData?.id) {
+      return "content";
+    }
+    return "info";
+  });
 
   // Switch to step 1 when changing view mode
   const handleViewModeChange = (mode: "info" | "content") => {
     setViewMode(mode);
     setCurrentStep(mode === "info" ? 1 : 6); // Reset step based on mode
+
+    // Update URL without reloading
+    const params = new URLSearchParams(searchParams);
+    if (mode === "info") {
+      params.delete("tab");
+    } else {
+      params.set("tab", "content");
+    }
+    router.replace(`${pathname}?${params.toString()}`);
   };
 
   const [formData, setFormData] = useState(() => {

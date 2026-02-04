@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ChevronDown, ChevronRight, Video, FileText, ClipboardList, Loader2, Plus, BookOpen, GripVertical, ArrowLeft } from "lucide-react";
+import { ChevronDown, ChevronRight, Video, FileText, ClipboardList, Loader2, Plus, BookOpen, GripVertical, ArrowLeft, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useGetSectionsByCourseId, useCreateSection, useReoderSection } from "@/hooks/useSection";
-import { useGetLessonBySectionId, useReorderLessonInSection, useReorderLessonOtherSection } from "@/hooks/useLesson";
+import { useGetSectionsByCourseId, useCreateSection, useReoderSection, useDeleteSection } from "@/hooks/useSection";
+import { useGetLessonBySectionId, useReorderLessonInSection, useReorderLessonOtherSection, useDeleteLesson } from "@/hooks/useLesson";
 import { cn } from "@/lib/utils";
 import { Lesson } from "@/lib/api/services/fetchLesson";
 
@@ -19,6 +19,7 @@ interface CompactSectionListProps {
   onSelectSection: (sectionId: string) => void;
   onSelectLesson: (sectionId: string, lessonId: string) => void;
   onCreateSection: () => void;
+  onLessonDeleted?: (lessonId: string) => void;
 }
 
 const getLessonIcon = (type: string) => {
@@ -35,7 +36,7 @@ const getLessonIcon = (type: string) => {
 };
 
 interface SectionItemProps {
-  section: { id: string; orderIndex: number; title: string };
+  section: { id: string; orderIndex: number; title: string; isPublished?: boolean };
   isSelected: boolean;
   isExpanded: boolean;
   onToggle: () => void;
@@ -86,7 +87,8 @@ const SectionItem = ({
       <div
         className={cn(
           "flex items-center gap-2 px-3 py-3.5 cursor-pointer transition-colors hover:bg-gray-100 group",
-          isSelected && !selectedLessonId && "bg-purple-50 hover:bg-purple-100"
+          isSelected && !selectedLessonId && "bg-purple-50 hover:bg-purple-100",
+          !section.isPublished && "opacity-60 grayscale"
         )}
         onClick={() => onSelect(section.id)}
       >
@@ -106,6 +108,11 @@ const SectionItem = ({
         <BookOpen className="h-4 w-4 text-purple-600 shrink-0" />
         <span className={cn("text-base font-medium flex-1 truncate min-w-0", isSelected && !selectedLessonId && "text-purple-700")}>
           Chương {section.orderIndex}: {section.title}
+          {!section.isPublished && (
+            <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded border border-gray-200 inline-block align-middle transform -translate-y-0.5 font-normal">
+              Ẩn
+            </span>
+          )}
         </span>
         {isLoading && <Loader2 className="h-3 w-3 animate-spin text-gray-400 shrink-0" />}
         <button
@@ -155,7 +162,8 @@ const SectionItem = ({
                     }}
                     className={cn(
                       "flex items-center gap-2 px-4 mx-2 py-2.5 pl-8 cursor-pointer transition-all duration-200 hover:bg-gray-100 group",
-                      selectedLessonId === lesson.id && "bg-purple-100 hover:bg-purple-100 rounded-lg"
+                      selectedLessonId === lesson.id && "bg-purple-100 hover:bg-purple-100 rounded-lg",
+                      !(lesson as Lesson).isPublished && "opacity-60 grayscale" // Casting to any if Lesson type doesn't explicitly have it yet in this file context, but it should.
                     )}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -236,6 +244,7 @@ export default function CompactSectionList({
   onSelectSection,
   onSelectLesson,
   onCreateSection,
+  onLessonDeleted,
 }: CompactSectionListProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [draggedSectionId, setDraggedSectionId] = useState<string | null>(null);
@@ -247,7 +256,13 @@ export default function CompactSectionList({
   const { reorderSection } = useReoderSection(courseId);
   const { reorderLessonInSection } = useReorderLessonInSection();
   const { reorderLessonOtherSection } = useReorderLessonOtherSection();
-  const router = useRouter();
+  const { deleteSection } = useDeleteSection(courseId);
+  // We need a sectionId for deleteLesson invalidation, but since we don't track which section the dragged lesson is from easily here without more state, 
+  // and invalidation might propagate or we can pass the courseId if the hook supported it. 
+  // However, looking at useDeleteLesson, it takes sectionId for invalidation.
+  // We need to pass the sectionId of the lesson being deleted. 
+  // Fortunately we added draggedLessonSectionId state earlier.
+  const { deleteLesson } = useDeleteLesson(draggedLessonSectionId || "", courseId);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   const handleAutoScroll = (clientY: number) => {
@@ -461,19 +476,46 @@ export default function CompactSectionList({
       {/* Header */}
       <div className="border-b bg-gray-50/50 px-4 py-2 shrink-0 flex items-center justify-between">
         <h3 className="font-semibold text-base text-gray-900">Danh sách các chương</h3>
-        <Button
-          onClick={handleCreateDefaultSection}
-          size="sm"
-          variant="outline"
-          className="h-8"
-          disabled={isCreating}
-        >
-          {isCreating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="h-4 w-4" />
-          )}
-        </Button>
+        {draggedSectionId || draggedLessonId ? (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (draggedSectionId) {
+                deleteSection(draggedSectionId);
+                setDraggedSectionId(null);
+              } else if (draggedLessonId) {
+                deleteLesson(draggedLessonId);
+                onLessonDeleted?.(draggedLessonId);
+                setDraggedLessonId(null);
+                setDraggedLessonSectionId(null);
+              }
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button
+            onClick={handleCreateDefaultSection}
+            size="sm"
+            variant="outline"
+            className="h-8"
+            disabled={isCreating}
+          >
+            {isCreating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Sections List */}

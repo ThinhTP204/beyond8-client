@@ -434,6 +434,34 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
   // Memoize availableTags to prevent unnecessary re-renders
   const memoizedAvailableTags = useMemo(() => availableTags, [availableTags])
 
+  const isFormValid = useMemo(() => {
+    if (!questionsData) return false
+
+    const allQuestions = [...questionsData.easy, ...questionsData.medium, ...questionsData.hard]
+
+    // Filter questions that will be imported (must have content and at least one option)
+    const activeQuestions = allQuestions.filter(q => {
+      const hasContent = q.content.trim() !== ""
+      const hasValidOptions = q.options.some(o => o.text.trim() !== "")
+      return hasContent && hasValidOptions
+    })
+
+    if (activeQuestions.length === 0) return false
+
+    // Check if any active question is missing tags
+    const hasMissingTags = activeQuestions.some(q => !q.tags || q.tags.length === 0)
+    if (hasMissingTags) return false
+
+    // Also check for correct answers to prevent silent failures
+    const hasMissingCorrect = activeQuestions.some(q => {
+      const validOptions = q.options.filter(o => o.text.trim() !== "")
+      return !validOptions.some(o => o.isCorrect)
+    })
+    if (hasMissingCorrect) return false
+
+    return true
+  }, [questionsData])
+
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent
@@ -451,7 +479,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="flex-1 overflow-y-auto px-6 scrollbar-hide bg-gray-50/50" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           <AnimatePresence mode="wait">
             {step === 1 ? (
               <motion.div
@@ -467,8 +495,8 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   className={`relative overflow-hidden rounded-2xl border-2 border-dashed transition-all ${isDragging
-                      ? "border-brand-magenta bg-brand-magenta/5"
-                      : "border-brand-magenta/20 bg-white/50 dark:bg-black/50"
+                    ? "border-brand-magenta bg-brand-magenta/5"
+                    : "border-brand-magenta/20 bg-white/50 dark:bg-black/50"
                     }`}
                 >
                   <div className="p-12">
@@ -644,8 +672,8 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                 }}
                                 disabled={globalTags.includes(tagData.tag)}
                                 className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${globalTags.includes(tagData.tag)
-                                    ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
-                                    : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                  ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
+                                  : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
                                   }`}
                               >
                                 <Tag className="mr-1 inline h-3 w-3" />
@@ -771,8 +799,8 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                             type="button"
                                             onClick={() => toggleCorrect("easy", index, optIndex)}
                                             className={`flex-shrink-0 rounded-full p-1 transition-all ${option.isCorrect
-                                                ? "bg-green-500 text-white"
-                                                : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
+                                              ? "bg-green-500 text-white"
+                                              : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
                                               }`}
                                           >
                                             <CheckCircle2 className="h-5 w-5" />
@@ -846,8 +874,8 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                               }}
                                               disabled={question.tags.includes(tagData.tag)}
                                               className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${question.tags.includes(tagData.tag)
-                                                  ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
-                                                  : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                                ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
+                                                : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
                                                 }`}
                                             >
                                               <Tag className="mr-1 inline h-3 w-3" />
@@ -986,8 +1014,8 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                             type="button"
                                             onClick={() => toggleCorrect("medium", index, optIndex)}
                                             className={`flex-shrink-0 rounded-full p-1 transition-all ${option.isCorrect
-                                                ? "bg-green-500 text-white"
-                                                : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
+                                              ? "bg-green-500 text-white"
+                                              : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
                                               }`}
                                           >
                                             <CheckCircle2 className="h-5 w-5" />
@@ -1061,8 +1089,8 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                               }}
                                               disabled={question.tags.includes(tagData.tag)}
                                               className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${question.tags.includes(tagData.tag)
-                                                  ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
-                                                  : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                                ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
+                                                : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
                                                 }`}
                                             >
                                               <Tag className="mr-1 inline h-3 w-3" />
@@ -1201,8 +1229,8 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                             type="button"
                                             onClick={() => toggleCorrect("hard", index, optIndex)}
                                             className={`flex-shrink-0 rounded-full p-1 transition-all ${option.isCorrect
-                                                ? "bg-green-500 text-white"
-                                                : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
+                                              ? "bg-green-500 text-white"
+                                              : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
                                               }`}
                                           >
                                             <CheckCircle2 className="h-5 w-5" />
@@ -1276,8 +1304,8 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                               }}
                                               disabled={question.tags.includes(tagData.tag)}
                                               className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${question.tags.includes(tagData.tag)
-                                                  ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
-                                                  : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                                ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
+                                                : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
                                                 }`}
                                             >
                                               <Tag className="mr-1 inline h-3 w-3" />
@@ -1402,7 +1430,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                 <Button
                   type="button"
                   onClick={handleImportQuestions}
-                  disabled={!questionsData || isImporting || isImportSuccess}
+                  disabled={!isFormValid || isImporting || isImportSuccess}
                   className="rounded-full bg-brand-magenta text-white"
                 >
                   {isImporting ? "Đang tạo..." : isImportSuccess ? "Đã tạo thành công!" : "Tạo câu hỏi"}

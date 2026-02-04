@@ -71,5 +71,10 @@ export const fetchSection = {
     reoderSection: async (data: ReoderSectionRequest): Promise<SectionResponse> => {
         const response = await apiService.post<SectionResponse>(`api/v1/lessons/reorder-section`, data);
         return response.data;
+    },
+
+    activationSection: async (sectionId: string, isPublished: boolean): Promise<SectionResponse> => {
+        const response = await apiService.patch<SectionResponse>(`api/v1/sections/${sectionId}/activation`, { isPublished });
+        return response.data;
     }
 }

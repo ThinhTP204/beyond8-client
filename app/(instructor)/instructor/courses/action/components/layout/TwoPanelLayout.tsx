@@ -134,6 +134,12 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
     }
   };
 
+  const handleLessonDeleted = (lessonId: string) => {
+    if (selectedLessonId === lessonId) {
+      setSelectedLessonId(null);
+    }
+  };
+
   const selectedSection = sections?.find((s) => s.id === selectedSectionId);
 
   return (
@@ -162,6 +168,7 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
                   onSelectSection={handleSelectSection}
                   onSelectLesson={handleSelectLesson}
                   onCreateSection={handleCreateSection}
+                  onLessonDeleted={handleLessonDeleted}
                 />
               )}
 
@@ -255,6 +262,7 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
                   onSelectSection={handleSelectSection}
                   onSelectLesson={handleSelectLesson}
                   onCreateSection={handleCreateSection}
+                  onLessonDeleted={handleLessonDeleted}
                 />
               </div>
             </motion.div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-import { ArrowLeft, Trash2, Video, FileText, ClipboardList, Upload, Image as ImageIcon, Eye, Sparkles, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Trash2, Video, FileText, ClipboardList, Upload, Image as ImageIcon, Eye, Sparkles, CheckCircle2, Clock, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HeaderPortal } from "./HeaderPortal";
 import { Progress } from "@/components/ui/progress";
@@ -34,13 +34,11 @@ import {
 } from "@/hooks/useLesson";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-
-import { CreateQuizDialog } from "@/components/widget/CreateQuizDialog";
-import { CreateQuizAIDialog } from "@/components/widget/CreateQuizAIDialog";
 import { useParams } from "next/navigation";
 import { useGetQuizById } from "@/hooks/useQuiz";
-import { QuizDialog } from "@/components/widget/QuizDialog";
-
+import { CreateQuizDialog } from "@/components/widget/quiz/CreateQuizDialog";
+import { CreateQuizAIDialog } from "@/components/widget/quiz/CreateQuizAIDialog";
+import { QuizDialog } from "@/components/widget/quiz/QuizDialog";
 export interface LessonEditorRef {
     hasUnsavedChanges: () => boolean;
     save: () => Promise<void>;
@@ -92,6 +90,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
         const [textContent, setTextContent] = useState("");
 
         const [isDeleteLessonDialogOpen, setIsDeleteLessonDialogOpen] = useState(false);
+        const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
 
         // Document specific
         const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false);
@@ -105,7 +104,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
 
         // Hooks
         const { updateLesson, isPending: isUpdatingLesson } = useUpdateLesson(selectedSectionId);
-        const { deleteLesson, isPending: isDeletingLesson } = useDeleteLesson(selectedSectionId);
+        const { deleteLesson, isPending: isDeletingLesson } = useDeleteLesson(selectedSectionId, courseId);
         const { activationLesson } = useActivationLesson(selectedSectionId);
 
         const { lessonDocuments, isLoading: isLoadingDocs, refetch: refetchDocs } = useGetLessonDocument(lessonId);
@@ -272,7 +271,7 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                     };
                 } else if (selectedLesson.type === "Quiz") {
                     specificData = {
-                        quizId,
+                        quizId: quizId || null,
                     };
                 }
 
@@ -546,10 +545,10 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                             target.style.height = target.scrollHeight + 'px';
                                         }}
                                     />
-                                    <Button
-                                        variant={isPublished ? "destructive" : "default"}
-                                        size="sm"
-                                        onClick={async () => {
+                                    <ConfirmDialog
+                                        open={isPublishDialogOpen}
+                                        onOpenChange={setIsPublishDialogOpen}
+                                        onConfirm={async () => {
                                             if (lessonId) {
                                                 await activationLesson({
                                                     lessonId: lessonId,
@@ -557,20 +556,27 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                                         isPublished: !isPublished,
                                                     },
                                                 });
+                                                setIsPublishDialogOpen(false);
                                             }
                                         }}
-                                        className="rounded-full"
-                                    >
-                                        {isPublished ? (
-                                            <>
-                                                Ẩn bài học
-                                            </>
-                                        ) : (
-                                            <>
-                                                Hiển thị bài học
-                                            </>
-                                        )}
-                                    </Button>
+                                        title={isPublished ? "Ẩn bài học" : "Hiển thị bài học"}
+                                        description={isPublished
+                                            ? "Học viên sẽ không thể nhìn thấy bài học này. Bạn có chắc chắn muốn ẩn không?"
+                                            : "Bài học sẽ hiển thị cho học viên. Bạn có chắc chắn muốn hiển thị không?"}
+                                        confirmText={isPublished ? "Ẩn" : "Hiển thị"}
+                                        cancelText="Hủy"
+                                        variant={isPublished ? "destructive" : "default"}
+                                        isLoading={false}
+                                        trigger={
+                                            <Button
+                                                variant={isPublished ? "destructive" : "default"}
+                                                size="sm"
+                                                className="rounded-full"
+                                            >
+                                                {isPublished ? "Ẩn bài học" : "Hiển thị bài học"}
+                                            </Button>
+                                        }
+                                    />
                                 </div>
                             </div>
 
@@ -1060,20 +1066,30 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                                         <h4 className="font-bold text-gray-900 text-lg">{quiz?.title || "Bài kiểm tra"}</h4>
                                                         <p className="text-sm text-gray-500 line-clamp-2">{quiz?.description}</p>
                                                         <div className="flex flex-wrap gap-2 mt-2">
-                                                            <span className="text-xs bg-white px-2 py-1 rounded border font-medium text-gray-600">
-                                                                {quiz?.questionCount || 0} câu hỏi
-                                                            </span>
-                                                            <span className="text-xs bg-white px-2 py-1 rounded border font-medium text-gray-600">
-                                                                {quiz?.timeLimitMinutes || 0} phút
-                                                            </span>
-                                                            <span className="text-xs bg-white px-2 py-1 rounded border font-medium text-gray-600">
-                                                                Pass: {quiz?.passScorePercent || 0}%
-                                                            </span>
+                                                            <div className="flex items-center gap-1.5 bg-purple-50 px-2.5 py-1 rounded-md border border-purple-100">
+                                                                <Clock className="w-3.5 h-3.5 text-purple-600" />
+                                                                <span className="text-xs font-medium text-purple-900">
+                                                                    {quiz?.timeLimitMinutes || 0} phút
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
+                                                                <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                                                                <span className="text-xs font-medium text-blue-900">
+                                                                    Đạt: {quiz?.passScorePercent || 0}%
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 bg-orange-50 px-2.5 py-1 rounded-md border border-orange-100">
+                                                                <HelpCircle className="w-3.5 h-3.5 text-orange-600" />
+                                                                <span className="text-xs font-medium text-orange-900">
+                                                                    {quiz?.questions?.length || quiz?.questionCount || 0} câu hỏi
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <Button
                                                         variant="outline"
                                                         onClick={() => setIsQuizDetailOpen(true)}
+                                                        className="rounded-full hover:bg-gray-200 hover:text-black"
                                                     >
                                                         Chi tiết
                                                     </Button>

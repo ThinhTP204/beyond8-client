@@ -59,7 +59,7 @@ export function CreateQuizAIDialog({
     onConfirm
 }: CreateQuizAIDialogProps) {
     const { createQuiz } = useCreateQuiz()
-    const { } = useCheckEmbedHealth()
+    const { refetch: checkHealth } = useCheckEmbedHealth()
     const { mutateAsync: embedFile } = useEmbedFile()
     const { generateQuestionsAsync } = useGenerateQuestionsWithAI()
     const { importQuestionsAsync } = useImportQuestionsFromAI()
@@ -127,8 +127,11 @@ export function CreateQuizAIDialog({
 
         try {
             setProcessStep('checking_health')
-            // Mock delay for visual
-            await new Promise(r => setTimeout(r, 800))
+            const healthCheck = await checkHealth()
+
+            if (healthCheck.isError || !healthCheck.data?.isSuccess) {
+                throw new Error("Dịch vụ AI đang bảo trì hoặc không phản hồi. Vui lòng thử lại sau.")
+            }
 
             setProcessStep('embedding')
             await embedFile({
@@ -150,15 +153,15 @@ export function CreateQuizAIDialog({
                     mediumPercent,
                     hardPercent
                 },
-                topK: 3
+                topK: 15
             })
 
             if (!generatedData.isSuccess || !generatedData.data) {
-                throw new Error(generatedData.message || "Không thể tạo câu hỏi từ AI")
+                throw new Error(generatedData.message || "Không thể tạo câu hỏi từ AI (Dữ liệu rỗng)")
             }
 
             setProcessStep('importing')
-            const questionsByDiff = generatedData.data[0]
+            const questionsByDiff = generatedData.data
             const importResponse = await importQuestionsAsync({
                 easy: questionsByDiff.easy,
                 medium: questionsByDiff.medium,
@@ -221,7 +224,7 @@ export function CreateQuizAIDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className={cn(
-                "flex flex-col p-0 gap-0 transition-all duration-300",
+                "flex flex-col p-0 gap-0 transition-all duration-300 overflow-hidden",
                 step === 1 ? "max-w-6xl h-[85vh]" : "max-w-2xl h-[80vh]" // Step 2 is smaller/focused for AI dialog
             )}>
                 <DialogHeader className="px-6 py-4 border-b bg-gray-50/50 flex-shrink-0">
@@ -244,7 +247,7 @@ export function CreateQuizAIDialog({
                         </div>
 
                         {/* Modern Stepper */}
-                        <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                        <div className="flex items-center bg-gray-100 rounded-lg p-1 mr-4">
                             <div className={cn(
                                 "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all",
                                 step === 1 ? "bg-white text-purple-700 shadow-sm" : "text-gray-500"
@@ -265,11 +268,11 @@ export function CreateQuizAIDialog({
 
                 <div className="flex-1 overflow-y-auto bg-gray-50/30">
                     {step === 1 ? (
-                        <div className="p-6 h-full">
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                        <div className="p-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 {/* Column 1: Basic Info */}
                                 <div className="space-y-6">
-                                    <Card className="border-gray-200 shadow-sm h-full flex flex-col">
+                                    <Card className="border-gray-200 shadow-sm flex flex-col h-full">
                                         <CardHeader className="pb-3 border-b bg-gray-50/50">
                                             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
                                                 <FileText className="w-4 h-4 text-gray-500" />
@@ -281,23 +284,37 @@ export function CreateQuizAIDialog({
                                                 <Label htmlFor="title" className="text-base font-semibold text-gray-900">
                                                     Tên bài kiểm tra <span className="text-red-500">*</span>
                                                 </Label>
-                                                <Input
-                                                    id="title"
-                                                    value={title}
-                                                    onChange={(e) => setTitle(e.target.value)}
-                                                    placeholder="Ví dụ: Quiz Chapter 1"
-                                                    className="h-11 text-md bg-white shadow-sm border-gray-200 focus:border-purple-500 focus:ring-purple-500"
-                                                />
+                                                <div className="relative">
+                                                    <Input
+                                                        id="title"
+                                                        value={title}
+                                                        onChange={(e) => setTitle(e.target.value)}
+                                                        maxLength={100}
+                                                        placeholder="Ví dụ: Quiz Chapter 1"
+                                                        className="h-11 pr-16 text-md bg-white shadow-sm border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+                                                    />
+                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium pointer-events-none">
+                                                        {title.length}/100
+                                                    </span>
+                                                </div>
                                             </div>
                                             <div className="space-y-2 flex-1 flex flex-col">
-                                                <Label htmlFor="description" className="text-sm font-medium text-gray-700">Mô tả</Label>
-                                                <Textarea
-                                                    id="description"
-                                                    value={description}
-                                                    onChange={(e) => setDescription(e.target.value)}
-                                                    placeholder="Mô tả..."
-                                                    className="flex-1 resize-none bg-white shadow-sm border-gray-200 focus:border-purple-500 focus:ring-purple-500 min-h-[150px]"
-                                                />
+                                                <Label htmlFor="description" className="text-sm font-medium text-gray-700">
+                                                    Mô tả <span className="text-gray-400 font-normal">(tùy chọn)</span>
+                                                </Label>
+                                                <div className="relative flex-1 flex flex-col h-full">
+                                                    <Textarea
+                                                        id="description"
+                                                        value={description}
+                                                        onChange={(e) => setDescription(e.target.value)}
+                                                        maxLength={500}
+                                                        placeholder="Mô tả..."
+                                                        className="flex-1 resize-none bg-white shadow-sm border-gray-200 focus:border-purple-500 focus:ring-purple-500 h-full min-h-[350px] pb-8"
+                                                    />
+                                                    <span className="absolute right-3 bottom-3 text-xs text-gray-400 font-medium pointer-events-none">
+                                                        {description.length}/500
+                                                    </span>
+                                                </div>
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -305,7 +322,7 @@ export function CreateQuizAIDialog({
 
                                 {/* Column 2: Structure & Difficulty */}
                                 <div className="space-y-6">
-                                    <Card className="border-gray-200 shadow-sm h-full flex flex-col">
+                                    <Card className="border-gray-200 shadow-sm flex flex-col h-full">
                                         <CardHeader className="pb-3 border-b bg-gray-50/50">
                                             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
                                                 <Target className="w-4 h-4 text-gray-500" /> Cấu trúc & Độ khó
@@ -357,7 +374,7 @@ export function CreateQuizAIDialog({
 
                                 {/* Column 3: Settings & Switches */}
                                 <div className="space-y-6">
-                                    <Card className="border-gray-200 shadow-sm h-full flex flex-col">
+                                    <Card className="border-gray-200 shadow-sm flex flex-col h-full">
                                         <CardHeader className="pb-3 border-b bg-gray-50/50">
                                             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-gray-800">
                                                 <Settings className="w-4 h-4 text-gray-500" /> Thiết lập & Tùy chọn
@@ -400,7 +417,7 @@ export function CreateQuizAIDialog({
                             </div>
                         </div>
                     ) : (
-                        <div className="p-8 max-w-lg mx-auto h-full flex flex-col justify-center">
+                        <div className="p-8 max-w-lg mx-auto min-h-full flex flex-col justify-center">
                             {processStep === 'idle' || processStep === 'error' ? (
                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                     <div className="text-center space-y-2 mb-8">
@@ -493,7 +510,7 @@ export function CreateQuizAIDialog({
                 <DialogFooter className="px-6 py-4 border-t bg-white flex-shrink-0 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
                     {step === 1 ? (
                         <>
-                            <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full text-gray-500 hover:text-gray-900">Hủy bỏ</Button>
+                            <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full text-gray-500 hover:bg-gray-100 hover:text-black">Hủy bỏ</Button>
                             <Button onClick={handleNextStep} disabled={!title || !isDistributionValid} className="rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-md px-6">
                                 Tổng quan & AI <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
@@ -502,7 +519,7 @@ export function CreateQuizAIDialog({
                         <>
                             {processStep === 'idle' || processStep === 'error' ? (
                                 <>
-                                    <Button variant="outline" onClick={handleBackStep} className="rounded-full border-gray-200">
+                                    <Button variant="outline" onClick={handleBackStep} className="rounded-full border-gray-200 hover:bg-gray-100 hover:text-black">
                                         <ArrowLeft className="rounded-full w-4 h-4 mr-2" /> Quay lại
                                     </Button>
                                     <Button
