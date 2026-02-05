@@ -307,12 +307,11 @@ export default function QuizAttemptPage() {
 
       if (result.isSuccess) {
         toast.success('Nộp bài thành công!')
-        // Navigate back to overview
         const slug = params?.slug as string
         const courseId = params?.courseId as string
         const sectionId = params?.sectionId as string
         const lessonId = params?.lessonId as string
-        router.push(`/courses/${slug}/${courseId}/${sectionId}/${lessonId}/quiz-attempt?quizId=${quizId}`)
+        router.replace(`/courses/${slug}/${courseId}/${sectionId}/${lessonId}/quiz-attempt?quizId=${quizId}`)
       }
     } catch (error) {
       console.error('Error submitting quiz:', error)
@@ -320,18 +319,22 @@ export default function QuizAttemptPage() {
     }
   }
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading && !currentQuizAttempt && quizId) {
+      const slug = params?.slug as string
+      const courseId = params?.courseId as string
+      const sectionId = params?.sectionId as string
+      const lessonId = params?.lessonId as string
+      router.replace(`/courses/${slug}/${courseId}/${sectionId}/${lessonId}/quiz-attempt?quizId=${quizId}`)
+    }
+  }, [isLoading, currentQuizAttempt, quizId, params, router])
+
+  const isRedirectingToOverview = !isLoading && !currentQuizAttempt
+
+  if (isRedirectingToOverview) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
-      </div>
-    )
-  }
-
-  if (!currentQuizAttempt) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Không tìm thấy bài kiểm tra</p>
       </div>
     )
   }
@@ -340,7 +343,7 @@ export default function QuizAttemptPage() {
     qId => answers[qId] && answers[qId].length > 0
   ).length
 
-  const timeRemaining = currentQuizAttempt.timeLimitMinutes 
+  const timeRemaining = currentQuizAttempt?.timeLimitMinutes 
     ? Math.max(0, (currentQuizAttempt.timeLimitMinutes * 60) - timeSpentSeconds)
     : null
 
@@ -349,7 +352,8 @@ export default function QuizAttemptPage() {
     const courseId = params?.courseId as string
     const sectionId = params?.sectionId as string
     const lessonId = params?.lessonId as string
-    router.push(`/courses/${slug}/${courseId}/${sectionId}/${lessonId}/quiz-attempt?quizId=${quizId}`)
+    // Thoát về overview nhưng replace history, tránh quay lại màn làm bài bằng Back
+    router.replace(`/courses/${slug}/${courseId}/${sectionId}/${lessonId}/quiz-attempt?quizId=${quizId}`)
   }
 
   return (
@@ -357,7 +361,7 @@ export default function QuizAttemptPage() {
       
       {/* Header */}
       <QuizAttemptHeader 
-        quizTitle={currentQuizAttempt.quizTitle}
+        quizTitle={currentQuizAttempt?.quizTitle ?? ''}
         timeRemaining={timeRemaining}
         onExit={handleExit}
       />
@@ -366,10 +370,10 @@ export default function QuizAttemptPage() {
       <div className="flex flex-1 overflow-hidden relative z-10 h-full">
         {/* Quiz Attempt Sidebar */}
         <QuizAttemptSidebar
-          quizTitle={currentQuizAttempt.quizTitle}
+          quizTitle={currentQuizAttempt?.quizTitle ?? ''}
           timeSpentSeconds={timeSpentSeconds}
-          timeLimitMinutes={currentQuizAttempt.timeLimitMinutes}
-          questions={currentQuizAttempt.questions}
+          timeLimitMinutes={currentQuizAttempt?.timeLimitMinutes ?? null}
+          questions={currentQuizAttempt?.questions ?? []}
           answers={answers}
           flaggedQuestions={flaggedQuestions}
           currentQuestionIndex={currentQuestionIndex}
@@ -377,7 +381,7 @@ export default function QuizAttemptPage() {
           onSubmitQuiz={() => setShowSubmitDialog(true)}
           isSubmitting={isSubmitting}
           answeredCount={answeredCount}
-          totalQuestions={currentQuizAttempt.totalQuestions}
+          totalQuestions={currentQuizAttempt?.totalQuestions ?? 0}
         />
 
         {/* Question Content */}
@@ -385,7 +389,7 @@ export default function QuizAttemptPage() {
           <div className="px-14 py-6 mb-20 w-full">
             {/* All Questions */}
             <div className="space-y-8">
-              {currentQuizAttempt.questions.map((question, index) => (
+              {currentQuizAttempt?.questions?.map((question, index) => (
                 <div
                   key={question.questionId}
                   ref={(el) => {
@@ -397,7 +401,7 @@ export default function QuizAttemptPage() {
                   <QuestionCard
                     question={question}
                     currentIndex={index}
-                    totalQuestions={currentQuizAttempt.totalQuestions}
+                    totalQuestions={currentQuizAttempt?.totalQuestions ?? 0}
                     selectedAnswers={answers[question.questionId] || []}
                     isFlagged={flaggedQuestions.includes(question.questionId)}
                     onAnswerChange={(selectedOptions: string[]) => 
@@ -419,9 +423,6 @@ export default function QuizAttemptPage() {
         </div>
       </div>
 
-      {/* Footer */}
-      {/* <QuizAttemptFooter /> */}
-
       {/* Submit Confirmation Dialog */}
       <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
         <AlertDialogContent>
@@ -431,7 +432,7 @@ export default function QuizAttemptPage() {
               Bạn có chắc chắn muốn nộp bài không? Sau khi nộp bài, bạn sẽ không thể chỉnh sửa câu trả lời nữa.
               <br />
               <br />
-              Đã trả lời: {answeredCount}/{currentQuizAttempt.totalQuestions} câu hỏi
+              Đã trả lời: {answeredCount}/{currentQuizAttempt?.totalQuestions ?? 0} câu hỏi
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

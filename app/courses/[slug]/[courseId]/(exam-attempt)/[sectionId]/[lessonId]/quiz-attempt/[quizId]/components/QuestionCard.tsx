@@ -107,23 +107,21 @@ export default function QuestionCard({
                     key={option.id}
                     whileHover={{ scale: 1.01, x: 4 }}
                     className={cn(
-                      "flex items-center space-x-3 p-4 rounded-xl border-2 transition-all cursor-pointer backdrop-blur-sm relative overflow-hidden",
+                      "flex items-center space-x-3 p-4 rounded-xl border-2 transition-all backdrop-blur-sm relative overflow-hidden",
                       isSelected
                         ? "border-brand-magenta/50 bg-gradient-to-r from-brand-magenta/10 to-brand-purple/10 shadow-md shadow-brand-magenta/10"
                         : "border-border hover:border-brand-magenta/30 hover:bg-brand-magenta/5"
                     )}
-                    onClick={() => handleMultipleChoiceChange(option.id, !isSelected)}
                   >
                     <Checkbox
                       id={option.id}
                       checked={isSelected}
                       onCheckedChange={(checked) => handleMultipleChoiceChange(option.id, checked as boolean)}
-                      className="relative z-10 border-brand-magenta/30 data-[state=checked]:bg-brand-magenta data-[state=checked]:border-brand-magenta"
+                      className="relative z-10 cursor-pointer border-brand-magenta/30 data-[state=checked]:bg-brand-magenta data-[state=checked]:border-brand-magenta"
                     />
                     <Label
-                      htmlFor={option.id}
                       className={cn(
-                        "flex-1 cursor-pointer text-sm relative z-10",
+                        "flex-1 text-sm relative z-10",
                         isSelected ? "text-foreground font-medium" : "text-foreground"
                       )}
                     >
@@ -149,12 +147,11 @@ export default function QuestionCard({
                     key={option.id}
                     whileHover={{ scale: 1.01, x: 4 }}
                     className={cn(
-                      "flex items-center space-x-3 p-4 rounded-xl border-2 transition-all cursor-pointer backdrop-blur-sm relative overflow-hidden",
+                      "flex items-center space-x-3 p-4 rounded-xl border-2 transition-all backdrop-blur-sm relative overflow-hidden",
                       isSelected
                         ? "border-brand-magenta/50 bg-gradient-to-r from-brand-magenta/10 to-brand-purple/10 shadow-md shadow-brand-magenta/10"
                         : "border-border hover:border-brand-magenta/30 hover:bg-brand-magenta/5"
                     )}
-                    onClick={() => handleSingleChoiceChange(option.id)}
                   >
                     <RadioGroupItem
                       value={option.id}
@@ -162,9 +159,8 @@ export default function QuestionCard({
                       className="relative z-10 border-brand-magenta/30 text-brand-magenta"
                     />
                     <Label
-                      htmlFor={option.id}
                       className={cn(
-                        "flex-1 cursor-pointer text-sm relative z-10",
+                        "flex-1 text-sm relative z-10",
                         isSelected ? "text-foreground font-medium" : "text-foreground"
                       )}
                     >
