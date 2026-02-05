@@ -10,6 +10,8 @@ import CompactSectionList from "../content/CompactSectionList";
 import { useGetSectionsByCourseId } from "@/hooks/useSection";
 import ContentEditor, { ContentEditorRef } from "../content/ContentEditor";
 
+import { CoursePreviewDialog } from "../CoursePreviewDialog";
+
 interface TwoPanelLayoutProps {
   courseId: string;
   onBackToInfo?: () => void;
@@ -26,6 +28,7 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
   } | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const { sections } = useGetSectionsByCourseId(courseId);
 
@@ -178,7 +181,13 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
 
                 {/* Right Toolbar */}
                 <div id="course-editor-right-toolbar-root" className="w-14 border-l bg-gray-50 flex flex-col items-center py-4 gap-4 shrink-0 z-10">
-                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50" title="Xem trước">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50"
+                    title="Xem trước"
+                    onClick={() => setShowPreview(true)}
+                  >
                     <Eye className="h-5 w-5" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-purple-600 hover:bg-purple-50" title="Trợ giúp">
@@ -267,6 +276,12 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
         onCancel={handleCancelNavigation}
         title="Bạn có muốn lưu thay đổi?"
         description="Bạn có những thay đổi chưa được lưu. Bạn muốn lưu trước khi chuyển sang mục khác không?"
+      />
+
+      <CoursePreviewDialog
+        courseId={courseId}
+        open={showPreview}
+        onOpenChange={setShowPreview}
       />
     </>
   );

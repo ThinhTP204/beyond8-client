@@ -124,3 +124,24 @@ export function useActivationSection(courseId: string) {
         isPending
     }
 }
+
+export function useUpdateAssignmentId(courseId: string) {
+    const queryClient = useQueryClient()
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: ({ sectionId, assignmentId }: { sectionId: string, assignmentId: string | null }) =>
+            fetchSection.updateAssignmentId(sectionId, assignmentId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["sections", courseId]
+            })
+            toast.success("Cập nhật bài tập thành công!")
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Cập nhật bài tập thất bại!")
+        }
+    })
+    return {
+        updateAssignment: mutateAsync,
+        isPending
+    }
+}

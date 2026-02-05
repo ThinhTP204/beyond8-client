@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Plus, Video, FileText, ClipboardList, ChevronRight, Trash2, ArrowLeft } from "lucide-react";
+import { CreateAssignmentDialog } from "@/components/widget/assignment/CreateAssignmentDialog";
+import { AssignmentDialog } from "@/components/widget/assignment/AssignmentDialog";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -15,8 +17,9 @@ import { ConfirmDialog } from "@/components/widget/confirm-dialog";
 import { UnsaveDialog } from "@/components/widget/UnsaveDialog";
 import { HeaderPortal } from "./HeaderPortal";
 
-import { useUpdateSection, useDeleteSection, useActivationSection } from "@/hooks/useSection";
+import { useUpdateSection, useDeleteSection, useActivationSection, useUpdateAssignmentId as useLinkAssignment } from "@/hooks/useSection";
 import { useCreateLesson, useGetLessonBySectionId } from "@/hooks/useLesson";
+import { useGetAssignmentById, useDeleteAssignment } from "@/hooks/useAssignment";
 import { LessonType } from "@/lib/api/services/fetchLesson";
 import { useRouter } from "next/navigation";
 
@@ -27,7 +30,7 @@ export interface SectionEditorRef {
 
 interface SectionEditorProps {
     courseId: string;
-    section: { id: string; orderIndex: number; title: string; description?: string; isPublished?: boolean };
+    section: { id: string; orderIndex: number; title: string; description?: string; isPublished?: boolean; assignmentId?: string | null };
     onBackToInfo?: () => void;
     onLessonSelect?: (lessonId: string) => void;
     onDeleted?: () => void;
@@ -40,11 +43,18 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
         const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
         const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
         const [showUnsaveDialog, setShowUnsaveDialog] = useState(false);
+        const [showDeleteAssignmentDialog, setShowDeleteAssignmentDialog] = useState(false);
+        const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
+        const [isViewAssignmentDialogOpen, setIsViewAssignmentDialogOpen] = useState(false);
         const router = useRouter();
 
         const { updateSection, isPending: isUpdating } = useUpdateSection(courseId);
         const { deleteSection, isPending: isDeleting } = useDeleteSection(courseId);
         const { activationSection, isPending: isActivating } = useActivationSection(courseId);
+        const { updateAssignment: linkAssignment } = useLinkAssignment(section.id);
+        const { assignment } = useGetAssignmentById(section.assignmentId || "");
+        const { deleteAssignmentAsync } = useDeleteAssignment();
+
         const { createLesson } = useCreateLesson();
         const { lessons } = useGetLessonBySectionId(section.id);
 
@@ -120,6 +130,27 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                     quizId: null,
                 });
             }
+        };
+
+        const handleAssignmentCreated = async (assignmentId: string) => {
+            await linkAssignment({
+                sectionId: section.id,
+                assignmentId
+            })
+        };
+
+        const handleDeleteAssignment = async () => {
+            if (section.assignmentId) {
+                await deleteAssignmentAsync(section.assignmentId);
+                setShowDeleteAssignmentDialog(false);
+            }
+        };
+
+        const handleUnlinkAssignment = async () => {
+            await linkAssignment({
+                sectionId: section.id,
+                assignmentId: null
+            })
         };
 
         useImperativeHandle(ref, () => ({
@@ -430,34 +461,89 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                                 )}
                             </div>
 
-                            {/* Assignment Section - Placeholder */}
+                            {/* Assignment Section */}
                             <div className="mt-12">
                                 <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
                                     Bài tập cuối chương
                                 </h2>
-                                <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors">
-                                    <ClipboardList className="h-8 w-8 text-gray-300 mb-2" />
-                                    <p className="text-sm text-gray-500 mb-4">Chưa có bài tập nào cho chương này</p>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="gap-2"
-                                        onClick={() => {
-                                            // Placeholder action
-                                            console.log("Create assignment clicked");
-                                        }}
+                                {section.assignmentId ? (
+                                    <div
+                                        onClick={() => setIsViewAssignmentDialogOpen(true)}
+                                        className="group flex items-center gap-3 px-3 py-3 rounded-lg border hover:bg-gray-50 cursor-pointer transition-colors"
                                     >
-                                        <Plus className="h-4 w-4" />
-                                        Tạo bài tập
-                                    </Button>
-                                </div>
+                                        <div className="shrink-0 bg-purple-100 p-2 rounded-md">
+                                            <ClipboardList className="h-5 w-5 text-purple-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-sm font-medium text-gray-900 truncate">
+                                                {assignment?.title || "Bài tập đang tải..."}
+                                            </h3>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setShowDeleteAssignmentDialog(true);
+                                                }}
+                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </div>
+                                            <div className="p-2 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <ChevronRight className="h-4 w-4" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 transition-colors">
+                                        <ClipboardList className="h-8 w-8 text-gray-300 mb-2" />
+                                        <p className="text-sm text-gray-500 mb-4">Chưa có bài tập nào cho chương này</p>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-2"
+                                            onClick={() => setIsAssignmentDialogOpen(true)}
+                                        >
+                                            <Plus className="h-4 w-4" />
+                                            Tạo bài tập
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
-
-
                     </div>
-                </div >
-            </div >
+                </div>
+
+                {/* Assignment Dialog */}
+                <CreateAssignmentDialog
+                    open={isAssignmentDialogOpen}
+                    onOpenChange={setIsAssignmentDialogOpen}
+                    courseId={courseId}
+                    sectionId={section.id}
+                    sectionTitle={section.title}
+                    onConfirm={handleAssignmentCreated}
+                />
+
+                {/* View/Edit Assignment Dialog */}
+                <AssignmentDialog
+                    open={isViewAssignmentDialogOpen}
+                    onOpenChange={setIsViewAssignmentDialogOpen}
+                    assignment={assignment || null}
+                    sectionId={section.id}
+                    onUnlink={handleUnlinkAssignment}
+                />
+
+                <ConfirmDialog
+                    open={showDeleteAssignmentDialog}
+                    onOpenChange={setShowDeleteAssignmentDialog}
+                    title="Xóa bài tập này?"
+                    description="Bạn có chắc chắn muốn xóa bài tập này? Hành động này không thể hoàn tác."
+                    onConfirm={handleDeleteAssignment}
+                    confirmText="Xóa"
+                    cancelText="Hủy"
+                    variant="destructive"
+                />
+            </div>
         );
     }
 );

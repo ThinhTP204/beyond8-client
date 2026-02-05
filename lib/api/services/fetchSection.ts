@@ -76,5 +76,10 @@ export const fetchSection = {
     activationSection: async (sectionId: string, isPublished: boolean): Promise<SectionResponse> => {
         const response = await apiService.patch<SectionResponse>(`api/v1/sections/${sectionId}/activation`, { isPublished });
         return response.data;
+    },
+
+    updateAssignmentId: async (sectionId: string, assignmentId: string | null): Promise<SectionResponse> => {
+        const response = await apiService.patch<SectionResponse>(`api/v1/sections/${sectionId}/update-assignment`, { assignmentId });
+        return response.data;
     }
 }
