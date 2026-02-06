@@ -11,6 +11,8 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import QuizAttemptFooter from './[quizId]/components/QuizAttemptFooter'
+import { Button } from '@/components/ui/button'
+import { ChevronLeft } from 'lucide-react'
 
 export default function QuizAttemptOverviewPage() {
   const params = useParams()
@@ -32,11 +34,22 @@ export default function QuizAttemptOverviewPage() {
   const [showInProgressDialog, setShowInProgressDialog] = useState(false)
 
   useEffect(() => {
+    const handlePopState = () => {
+      router.push(`/courses/${slug}/${courseId}`)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [router, slug, courseId])
+
+  useEffect(() => {
     if (!quizId) {
       toast.error('Không tìm thấy bài kiểm tra')
-      router.back()
+      router.push(`/courses/${slug}/${courseId}`)
     }
-  }, [quizId, router])
+  }, [quizId, router, slug, courseId])
 
   const handleStartQuiz = async () => {
     if (!quizId) return
@@ -86,7 +99,19 @@ export default function QuizAttemptOverviewPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
-      
+
+      {/* Back to lesson button */}
+      <div className="container mx-auto py-4">
+        <Button
+          variant="outline"
+          className="rounded-2xl border-brand-magenta/20 text-brand-magenta hover:bg-brand-magenta/10 hover:text-brand-magenta"
+          onClick={() => router.push(`/courses/${slug}/${courseId}`)}
+        >
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Quay lại bài học
+        </Button>
+      </div>
+
       <div className="flex-1 flex relative">
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto relative z-10">
