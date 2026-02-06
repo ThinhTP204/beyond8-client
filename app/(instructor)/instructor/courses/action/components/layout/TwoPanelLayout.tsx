@@ -11,6 +11,7 @@ import { useGetSectionsByCourseId } from "@/hooks/useSection";
 import ContentEditor, { ContentEditorRef } from "../content/ContentEditor";
 
 import { CoursePreviewDialog } from "../CoursePreviewDialog";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface TwoPanelLayoutProps {
   courseId: string;
@@ -31,6 +32,7 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
   const [showPreview, setShowPreview] = useState(false);
 
   const { sections } = useGetSectionsByCourseId(courseId);
+  const { userProfile } = useUserProfile();
 
   // Auto-select first section on mount
   React.useEffect(() => {
@@ -282,6 +284,11 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
         courseId={courseId}
         open={showPreview}
         onOpenChange={setShowPreview}
+        instructor={userProfile ? {
+          name: userProfile.fullName || "",
+          avatar: userProfile.avatarUrl || "",
+          bio: userProfile.bio || ""
+        } : undefined}
       />
     </>
   );

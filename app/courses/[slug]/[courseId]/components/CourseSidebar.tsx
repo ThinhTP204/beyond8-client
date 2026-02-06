@@ -22,6 +22,7 @@ import { startOfToday, differenceInCalendarDays } from 'date-fns'
 
 interface CourseSidebarProps {
   course: CourseSummary | CourseDetailType
+  preview?: boolean
 }
 
 // Format duration from minutes to readable string
@@ -36,7 +37,7 @@ const formatDuration = (minutes: number): string => {
   return `${mins}m`
 }
 
-export default function CourseSidebar({ course }: CourseSidebarProps) {
+export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   const params = useParams()
   const slug = (params?.slug as string) || 'course-slug'
   const totalLessons =
@@ -125,7 +126,22 @@ export default function CourseSidebar({ course }: CourseSidebarProps) {
 
         {/* Action Buttons */}
         <div className="space-y-3">
-          {isAuthenticated && isCheckingEnroll ? (
+          {preview ? (
+            <>
+              <Button className="w-full text-lg py-7 rounded-2xl bg-primary hover:bg-primary/90 shadow-[0_0_30px_rgba(173,28,154,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(173,28,154,0.6)] border border-white/10 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                <span className="font-semibold text-white relative z-10">
+                  Đăng ký ngay
+                </span>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-2xl text-base font-semibold border-brand-magenta/20 hover:bg-brand-magenta/5 hover:text-brand-magenta transition-colors"
+              >
+                Thêm vào giỏ hàng
+              </Button>
+            </>
+          ) : isAuthenticated && isCheckingEnroll ? (
             <Button className="w-full text-lg py-7 rounded-2xl" disabled>
               Đang kiểm tra...
             </Button>
@@ -194,38 +210,38 @@ export default function CourseSidebar({ course }: CourseSidebarProps) {
               <span>{totalLessons} bài học</span>
             </li>
             <li className="flex items-center gap-3">
-               <Trophy className="w-5 h-5 text-brand-purple" />
-               <span>Chứng chỉ hoàn thành</span>
+              <Trophy className="w-5 h-5 text-brand-purple" />
+              <span>Chứng chỉ hoàn thành</span>
             </li>
             <li className="flex items-center gap-3">
-               <Infinity className="w-5 h-5 text-brand-purple" />
-               <span>Truy cập trọn đời</span>
+              <Infinity className="w-5 h-5 text-brand-purple" />
+              <span>Truy cập trọn đời</span>
             </li>
             <li className="flex items-center gap-3">
-               <Smartphone className="w-5 h-5 text-brand-purple" />
-               <span>Học trên thiết bị di động và TV</span>
+              <Smartphone className="w-5 h-5 text-brand-purple" />
+              <span>Học trên thiết bị di động và TV</span>
             </li>
           </ul>
         </div>
-        
+
         {/* Quick Stats */}
         <div className="bg-muted/30 -mx-6 -mb-6 p-4 border-t mt-6">
-           <div className="flex justify-between text-center">
-              <div>
-                 <div className="font-bold text-brand-dark">{levelText[course.level] || course.level}</div>
-                 <div className="text-xs text-muted-foreground">Trình độ</div>
-              </div>
-              <div className="w-px bg-border h-auto" />
-              <div>
-                 <div className="font-bold text-brand-dark">{course.language || 'Tiếng Việt'}</div>
-                 <div className="text-xs text-muted-foreground">Ngôn ngữ</div>
-              </div>
-              <div className="w-px bg-border h-auto" />
-              <div>
-                 <div className="font-bold text-brand-dark">Có</div>
-                 <div className="text-xs text-muted-foreground">Chứng chỉ</div>
-              </div>
-           </div>
+          <div className="flex justify-between text-center">
+            <div>
+              <div className="font-bold text-brand-dark">{levelText[course.level] || course.level}</div>
+              <div className="text-xs text-muted-foreground">Trình độ</div>
+            </div>
+            <div className="w-px bg-border h-auto" />
+            <div>
+              <div className="font-bold text-brand-dark">{course.language || 'Tiếng Việt'}</div>
+              <div className="text-xs text-muted-foreground">Ngôn ngữ</div>
+            </div>
+            <div className="w-px bg-border h-auto" />
+            <div>
+              <div className="font-bold text-brand-dark">Có</div>
+              <div className="text-xs text-muted-foreground">Chứng chỉ</div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

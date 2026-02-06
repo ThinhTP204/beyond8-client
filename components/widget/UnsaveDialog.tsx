@@ -93,7 +93,7 @@ export function UnsaveDialog({
                                 e.preventDefault()
                                 onSave()
                             }}
-                            className="rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-200"
+                            className="rounded-full bg-pink-200 hover:bg-pink-300 text-pink-600 hover:text-pink-700"
                             disabled={isLoading}
                         >
                             {saveText}

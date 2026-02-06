@@ -99,7 +99,7 @@ export default function CourseActionHeader({
                                 <Button
                                     disabled={isSubmitting}
                                     onClick={onSave}
-                                    className="rounded-full px-6 font-semibold bg-purple-900 text-white hover:bg-purple-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="rounded-full px-6 font-semibold bg-pink-500 text-white hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isSubmitting ? 'Đang cập nhật...' : 'Cập nhật'}
                                 </Button>

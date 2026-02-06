@@ -1,65 +1,181 @@
 "use client";
 
-import { useGetCourseSummary } from "@/hooks/useCourse";
+import { useGetCourseDetailsPreview } from "@/hooks/useCourse";
 import {
     Sheet,
     SheetContent,
     SheetHeader,
     SheetTitle,
+    SheetClose, // Added SheetClose
 } from "@/components/ui/sheet";
 import CourseDetail from "@/app/courses/[slug]/[courseId]/components/CourseDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
+import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import VideoLesson from "@/app/courses/[slug]/[courseId]/(learning)/[sectionId]/[lessonId]/components/VideoLesson";
+import LessonInfo from "@/app/courses/[slug]/[courseId]/(learning)/[sectionId]/[lessonId]/components/LessonInfo";
+import { ArrowLeft, X } from "lucide-react"; // Added X
+import { Button } from "@/components/ui/button";
+import { SectionDetail, LessonType } from "@/lib/api/services/fetchCourse";
+import LessonSidebar from "@/components/ui/lesson-sidebar";
+import { formatHls } from "@/lib/utils/formatHls";
+import { Lesson } from "@/lib/api/services/fetchLesson";
 interface CoursePreviewDialogProps {
     courseId: string;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    instructor?: {
+        name: string;
+        avatar?: string;
+        bio?: string;
+    }
 }
 
 export function CoursePreviewDialog({
     courseId,
     open,
     onOpenChange,
+    instructor
 }: CoursePreviewDialogProps) {
     const {
-        courseSummary,
+        courseDetailsPreview,
         isLoading,
         isError,
-    } = useGetCourseSummary(courseId);
+    } = useGetCourseDetailsPreview(courseId);
+
+    const [selectedLesson, setSelectedLesson] = useState<{ sectionId: string, lessonId: string } | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+    const handleLessonSelect = (sectionId: string, lessonId: string) => {
+        setSelectedLesson({ sectionId, lessonId });
+    };
+
+    const handleNavigate = (sectionId: string, lessonId: string) => {
+        setSelectedLesson({ sectionId, lessonId });
+    };
+
+    // Find current lesson data if selected
+    let currentLessonData: Lesson | undefined;
+    if (selectedLesson && courseDetailsPreview) {
+        const section = (courseDetailsPreview.sections as SectionDetail[]).find(s => s.id === selectedLesson.sectionId);
+        currentLessonData = section?.lessons.find(l => l.id === selectedLesson.lessonId) as Lesson | undefined;
+    }
+
+    const topRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (selectedLesson) {
+            topRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [selectedLesson]);
 
     return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent side="bottom" className="h-[calc(100vh-3rem)] p-0 rounded-t-xl" size="full">
-                <SheetHeader className="px-4 py-3 border-b flex flex-row items-center justify-between space-y-0">
-                    <SheetTitle>Xem trước khóa học</SheetTitle>
+        <Sheet open={open} onOpenChange={(val) => {
+            onOpenChange(val);
+            if (!val) setSelectedLesson(null); // Reset when closing
+        }}>
+            <SheetContent side="bottom" className="h-[calc(100vh-3rem)] p-0 rounded-t-xl gap-0 border-none bg-transparent shadow-none [&>button]:hidden" size="full">
+                <motion.div
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+                    className="h-full flex flex-col bg-background rounded-t-xl overflow-hidden relative"
+                >
+                    <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary z-50">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Close</span>
+                    </SheetClose>
+                    <SheetHeader className={`px-4 border-b border-neutral-100 flex flex-row items-center justify-between space-y-0 ${selectedLesson ? "py-2" : "py-3"}`}>
+                        <div className="flex items-center gap-4">
+                            {selectedLesson ? (
+                                <Button variant="link" size="sm" onClick={() => setSelectedLesson(null)} className="my-0 py-0">
+                                    <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại khóa học
+                                </Button>
+                            ) : (
+                                <SheetTitle>Xem trước khóa học</SheetTitle>
+                            )}
+                        </div>
+                    </SheetHeader>
 
-                </SheetHeader>
-
-                <ScrollArea className="h-full max-h-[calc(100vh-8rem)]">
-                    {isLoading ? (
-                        <div className="container mx-auto px-4 py-8">
-                            <Skeleton className="h-96 w-full mb-8" />
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                <div className="lg:col-span-2 space-y-4">
-                                    <Skeleton className="h-64 w-full" />
-                                    <Skeleton className="h-64 w-full" />
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <Skeleton className="h-96 w-full" />
+                    <ScrollArea className="h-full max-h-[calc(100vh-8rem)] bg-neutral-950">
+                        {isLoading ? (
+                            <div className="container mx-auto px-4 py-8">
+                                <Skeleton className="h-96 w-full mb-8" />
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                    <div className="lg:col-span-2 space-y-4">
+                                        <Skeleton className="h-64 w-full" />
+                                        <Skeleton className="h-64 w-full" />
+                                    </div>
+                                    <div className="lg:col-span-1">
+                                        <Skeleton className="h-96 w-full" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ) : isError || !courseSummary ? (
-                        <div className="flex items-center justify-center h-full min-h-[50vh]">
-                            <p className="text-muted-foreground">Không thể tải thông tin khóa học</p>
-                        </div>
-                    ) : (
-                        <div className="pb-10">
-                            <CourseDetail courseData={courseSummary} />
-                        </div>
-                    )}
-                </ScrollArea>
+                        ) : isError || !courseDetailsPreview ? (
+                            <div className="flex items-center justify-center h-full min-h-[50vh]">
+                                <p className="text-muted-foreground">Không thể tải thông tin khóa học</p>
+                            </div>
+                        ) : (
+                            <div className="bg-neutral-950 min-h-full">
+                                <div ref={topRef} />
+                                {selectedLesson && currentLessonData ? (
+                                    <div className="w-full px-4 relative">
+                                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-8">
+                                            <div className="lg:col-span-3 space-y-8">
+                                                {currentLessonData.type === LessonType.Video && (
+                                                    <VideoLesson
+                                                        title={currentLessonData.title}
+                                                        description={currentLessonData.description}
+                                                        videoUrl={
+                                                            (currentLessonData.hlsVariants
+                                                                ? formatHls(currentLessonData.hlsVariants) : currentLessonData.videoOriginalUrl) || undefined
+                                                        }
+                                                        durationSeconds={
+                                                            'durationSeconds' in currentLessonData ? currentLessonData.durationSeconds : null
+                                                        }
+                                                    />
+                                                )}
+                                                <LessonInfo
+                                                    course={courseDetailsPreview}
+                                                    currentLesson={currentLessonData}
+                                                    slug={courseDetailsPreview.slug}
+                                                    courseId={courseDetailsPreview.id}
+                                                    onNavigate={handleNavigate}
+                                                    instructor={instructor}
+                                                />
+                                            </div>
+                                            <div className="lg:col-span-1 relative">
+                                                <div className="sticky top-4 h-[calc(100vh-12rem)] overflow-hidden rounded-xl border border-white/10">
+                                                    <LessonSidebar
+                                                        course={courseDetailsPreview}
+                                                        slug={courseDetailsPreview.slug}
+                                                        courseId={courseDetailsPreview.id}
+                                                        isEnrolled={true}
+                                                        isSidebarOpen={isSidebarOpen}
+                                                        isMobile={false}
+                                                        onClose={() => setIsSidebarOpen(false)}
+                                                        onOpen={() => setIsSidebarOpen(true)}
+                                                        currentLessonId={currentLessonData.id}
+                                                        onNavigate={handleNavigate}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <CourseDetail
+                                        courseData={courseDetailsPreview}
+                                        mode="preview"
+                                        onLessonSelect={handleLessonSelect}
+                                        instructor={instructor}
+                                    />
+                                )}
+                            </div>
+                        )}
+                    </ScrollArea>
+                </motion.div>
             </SheetContent>
         </Sheet>
     );

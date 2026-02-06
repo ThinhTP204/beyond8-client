@@ -17,9 +17,15 @@ import SafeImage from '@/components/ui/SafeImage'
 import { formatNumber } from '@/lib/utils/formatCurrency'
 import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/services/fetchCourse'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 
 interface CourseHeroProps {
   course: CourseSummary | CourseDetailType
+  instructor?: {
+    name: string
+    avatar?: string
+    bio?: string
+  }
 }
 
 // Format duration from minutes to readable string
@@ -34,11 +40,11 @@ const formatDuration = (minutes: number): string => {
   return `${mins}m`
 }
 
-export default function CourseHero({ course }: CourseHeroProps) {
+export default function CourseHero({ course, instructor }: CourseHeroProps) {
   const params = useParams()
   // Ensure we have params before constructing URL, fallback to '#' if not
-  const profileUrl = params?.slug && params?.courseId 
-    ? `/courses/${params.slug}/${params.courseId}/instructor/${course.instructorId}` 
+  const profileUrl = params?.slug && params?.courseId
+    ? `/courses/${params.slug}/${params.courseId}/instructor/${course.instructorId}`
     : '#'
 
   const levelColors: Record<string, string> = {
@@ -56,21 +62,21 @@ export default function CourseHero({ course }: CourseHeroProps) {
   }
 
   const levelColor = levelColors[course.level] || 'bg-white/10 text-white border-white/20'
-  
+
   // Parse rating from string to number
   const rating = course.avgRating ? parseFloat(course.avgRating) : 0
   const displayRating = rating > 0 ? rating.toFixed(1) : '0.0'
-  
+
   // Format duration
   const duration = formatDuration(course.totalDurationMinutes)
-  
+
   // Format updated date
-  const updatedDate = course.updatedAt 
+  const updatedDate = course.updatedAt
     ? formatDateForDisplay(course.updatedAt)
-    : course.createdAt 
-    ? formatDateForDisplay(course.createdAt)
-    : 'Th11 2025'
-  
+    : course.createdAt
+      ? formatDateForDisplay(course.createdAt)
+      : 'Th11 2025'
+
   // Format date helper
   function formatDateForDisplay(dateString: string): string {
     try {
@@ -122,7 +128,7 @@ export default function CourseHero({ course }: CourseHeroProps) {
           <div className="flex flex-wrap items-center gap-y-4 gap-x-8 text-white/90">
             <div className="flex items-center gap-2">
               <span className="bg-yellow-500/20 p-1.5 rounded-lg">
-                 <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
               </span>
               <div>
                 <div className="font-bold flex items-center gap-1">
@@ -144,66 +150,72 @@ export default function CourseHero({ course }: CourseHeroProps) {
             </div>
 
             <div className="flex items-center gap-2">
-               <span className="bg-purple-500/20 p-1.5 rounded-lg">
+              <span className="bg-purple-500/20 p-1.5 rounded-lg">
                 <Clock className="w-5 h-5 text-purple-400" />
               </span>
               <div>
-                 <div className="font-bold">{duration}</div>
-                 <div className="text-xs text-white/60">Thời lượng</div>
+                <div className="font-bold">{duration}</div>
+                <div className="text-xs text-white/60">Thời lượng</div>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-               <span className="bg-pink-500/20 p-1.5 rounded-lg">
+              <span className="bg-pink-500/20 p-1.5 rounded-lg">
                 <Calendar className="w-5 h-5 text-pink-400" />
               </span>
               <div>
-                 <div className="font-bold">Cập nhật</div>
-                 <div className="text-xs text-white/60">{updatedDate}</div>
+                <div className="font-bold">Cập nhật</div>
+                <div className="text-xs text-white/60">{updatedDate}</div>
               </div>
             </div>
-             
-             {course.language && (
-                <div className="flex items-center gap-2">
-                   <span className="bg-orange-500/20 p-1.5 rounded-lg">
-                     <BookOpen className="w-5 h-5 text-orange-400" />
-                   </span>
-                   <div>
-                     <div className="font-bold">{course.language}</div>
-                     <div className="text-xs text-white/60">Ngôn ngữ</div>
-                   </div>
+
+            {course.language && (
+              <div className="flex items-center gap-2">
+                <span className="bg-orange-500/20 p-1.5 rounded-lg">
+                  <BookOpen className="w-5 h-5 text-orange-400" />
+                </span>
+                <div>
+                  <div className="font-bold">{course.language}</div>
+                  <div className="text-xs text-white/60">Ngôn ngữ</div>
                 </div>
-             )}
+              </div>
+            )}
           </div>
 
           {/* Instructor Mini Preview */}
           <div className="flex items-center gap-4 pt-4 border-t border-white/10">
-             <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
+              <Link href={profileUrl}>
+                <Avatar className="h-10 w-10 ring-2 ring-brand-purple/50 cursor-pointer hover:ring-brand-pink transition-all">
+                  <SafeImage
+                    src={instructor?.avatar ? (formatImageUrl(instructor.avatar) || "") : "https://github.com/shadcn.png"}
+                    alt={instructor?.name || course.instructorName}
+                    fill
+                    className="object-cover"
+                  />
+                  <AvatarFallback>{(instructor?.name || course.instructorName).charAt(0)}</AvatarFallback>
+                </Avatar>
+              </Link>
+              <div>
+                <div className="text-xs text-white/50">Được tạo bởi</div>
                 <Link href={profileUrl}>
-                   <Avatar className="h-10 w-10 ring-2 ring-brand-purple/50 cursor-pointer hover:ring-brand-pink transition-all">
-                      <AvatarFallback>{course.instructorName.charAt(0)}</AvatarFallback>
-                   </Avatar>
+                  <div className="text-sm font-semibold text-white hover:text-brand-pink cursor-pointer transition-colors">
+                    {instructor?.name || course.instructorName}
+                  </div>
                 </Link>
-                <div>
-                   <div className="text-xs text-white/50">Được tạo bởi</div>
-                   <Link href={profileUrl}>
-                      <div className="text-sm font-semibold text-white hover:text-brand-pink cursor-pointer transition-colors">
-                         {course.instructorName}
-                      </div>
-                   </Link>
-                </div>
-             </div>
-             
-             <div className="flex-1" />
+              </div>
+            </div>
 
-             <div className="flex gap-2">
-                <Button variant="outline" size="icon" className="h-9 w-9 bg-white/5 border-white/10 hover:bg-white/10 text-white hover:text-brand-pink transition-colors">
-                   <Heart className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-9 w-9 bg-white/5 border-white/10 hover:bg-white/10 text-white hover:text-brand-pink transition-colors">
-                   <Share2 className="w-4 h-4" />
-                </Button>
-             </div>
+            <div className="flex-1" />
+
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon" className="h-9 w-9 bg-white/5 border-white/10 hover:bg-white/10 text-white hover:text-brand-pink transition-colors">
+                <Heart className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="h-9 w-9 bg-white/5 border-white/10 hover:bg-white/10 text-white hover:text-brand-pink transition-colors">
+                <Share2 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
