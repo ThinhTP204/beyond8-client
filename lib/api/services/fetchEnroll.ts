@@ -33,6 +33,24 @@ export interface EnrollmentResponse {
   metadata: unknown | null;
 }
 
+export interface MyEnrollmentData {
+  id: string;
+  courseId: string;
+  courseTitle: string;
+  slug: string;
+  courseThumbnailUrl: string | null;
+  instructorId: string;
+  instructorName: string;
+  progressPercent: number;
+}
+
+export interface MyEnrollmentsResponse {
+  isSuccess: boolean;
+  message: string;
+  data: MyEnrollmentData[];
+  metadata: null;
+}
+
 export const fetchEnroll = {
   // Kiểm tra người dùng hiện tại đã đăng ký khoá học hay chưa
   checkEnrollment: async (
@@ -52,6 +70,14 @@ export const fetchEnroll = {
     const response = await apiService.post<EnrollmentResponse, { courseId: string }>(
       "api/v1/enrollments",
       { courseId }
+    );
+    return response.data;
+  },
+
+  // Lấy danh sách các khóa học mà user hiện tại đã đăng ký
+  getMyEnrollments: async (): Promise<MyEnrollmentsResponse> => {
+    const response = await apiService.get<MyEnrollmentsResponse>(
+      "api/v1/enrollments/me"
     );
     return response.data;
   },

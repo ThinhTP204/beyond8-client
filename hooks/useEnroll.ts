@@ -3,6 +3,8 @@ import {
   fetchEnroll,
   EnrollmentResponse,
   CheckEnrollmentResponse,
+  MyEnrollmentsResponse,
+  MyEnrollmentData,
 } from "@/lib/api/services/fetchEnroll";
 import { toast } from "sonner";
 
@@ -76,3 +78,23 @@ export function useEnrollCourse() {
   };
 }
 
+// Hook lấy danh sách các khóa học mà user hiện tại đã đăng ký
+export function useGetMyEnrollments(options?: { enabled?: boolean }) {
+  const { data, isLoading, isError, refetch } = useQuery<
+    MyEnrollmentsResponse,
+    Error,
+    MyEnrollmentData[]
+  >({
+    queryKey: ["enrollments", "me"],
+    queryFn: () => fetchEnroll.getMyEnrollments(),
+    enabled: options?.enabled ?? true,
+    select: (res) => res.data,
+  });
+
+  return {
+    enrollments: data ?? [],
+    isLoading,
+    isError,
+    refetch,
+  };
+}
