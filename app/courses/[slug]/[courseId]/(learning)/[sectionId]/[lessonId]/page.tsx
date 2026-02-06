@@ -9,6 +9,7 @@ import VideoLesson from './components/VideoLesson'
 import LessonInfo from './components/LessonInfo'
 import { Skeleton } from '@/components/ui/skeleton'
 
+
 export default function LessonPage() {
   const params = useParams()
   const searchParams = useSearchParams()
@@ -157,7 +158,7 @@ export default function LessonPage() {
 
   return (
     <div className="w-full max-w-[1450px] mx-auto p-0 lg:p-6">
-      <VideoLesson 
+      <VideoLesson
         title={lesson.title}
         description={lesson.description}
         videoUrl={videoUrl}

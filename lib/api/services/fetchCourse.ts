@@ -223,6 +223,7 @@ export interface LessonDetail {
     videoThumbnailUrl?: string | null
     quizId?: string | null
     hasTextContent?: boolean
+    textContent?: string | null
     [key: string]: unknown // For additional properties
 }
 

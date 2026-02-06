@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Eye, Settings, HelpCircle } from "lucide-react";
+import { Menu, X, Eye, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UnsaveDialog } from "@/components/widget/UnsaveDialog";
 import { useIsMobile } from "@/hooks/useMobile";
@@ -10,7 +10,7 @@ import CompactSectionList from "../content/CompactSectionList";
 import { useGetSectionsByCourseId } from "@/hooks/useSection";
 import ContentEditor, { ContentEditorRef } from "../content/ContentEditor";
 
-import { CoursePreviewDialog } from "../CoursePreviewDialog";
+import { CoursePreviewDialog } from "@/components/widget/CoursePreviewDialog";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface TwoPanelLayoutProps {

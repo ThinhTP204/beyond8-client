@@ -5,7 +5,7 @@ import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CourseDetail } from '@/lib/api/services/fetchCourse'
+import { CourseDetail, LessonDetail } from '@/lib/api/services/fetchCourse'
 import { Lesson, LessonType } from '@/lib/api/services/fetchLesson'
 import { useGetQuizById } from '@/hooks/useQuiz'
 import { useGetLessonDocument } from '@/hooks/useLesson'
@@ -18,7 +18,7 @@ import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 
 interface LessonInfoProps {
   course: CourseDetail
-  currentLesson: Lesson
+  currentLesson: Lesson | LessonDetail
   slug: string
   courseId: string
   onNavigate?: (sectionId: string, lessonId: string) => void
