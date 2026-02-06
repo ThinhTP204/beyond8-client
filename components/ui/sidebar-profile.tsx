@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { BookOpen, Settings, History } from "lucide-react";
+import { BookOpen, Settings, History, Award } from "lucide-react";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/hooks/useMobile";
 import Link from "next/link";
@@ -12,6 +12,12 @@ const sidebarMenuItems = [
     label: "Khóa học của tôi",
     icon: BookOpen,
     value: "mycourse",
+  },
+  {
+    id: "mycertificate",
+    label: "Chứng chỉ của tôi",
+    icon: Award,
+    value: "mycertificate",
   },
   {
     id: "myprofile",
@@ -64,7 +70,7 @@ export default function SidebarProfile({ currentTab }: SidebarProfileProps) {
   // Desktop Sidebar
   return (
     <aside className="w-64 flex-shrink-0">
-      <div className="p-4">
+      <div className="">
         <nav className="space-y-1">
           {sidebarMenuItems.map((item) => {
             const Icon = item.icon;
