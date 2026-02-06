@@ -410,6 +410,11 @@ export const fetchCourse = {
         return response.data;
     },
 
+    getCourseDetailsPreview: async (id: string): Promise<CourseDetailResponse> => {
+        const response = await apiService.get<CourseDetailResponse>(`api/v1/courses/${id}/admin-details`);
+        return response.data;
+    },
+
     updateCourse: async (id: string, courseData: CourseUpdateRequest): Promise<CourseResponse> => {
         const response = await apiService.patch<CourseResponse>(`api/v1/courses/${id}/metadata`, courseData);
         return response.data;

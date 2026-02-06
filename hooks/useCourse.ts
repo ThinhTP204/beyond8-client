@@ -355,3 +355,18 @@ export function useToggleDownloadCourseDocument() {
   };
 }
 
+export function useGetCourseDetailsPreview(id: string) {
+  const { data, isLoading, isError, refetch } = useQuery<CourseDetailResponse, Error, CourseDetail>({
+    queryKey: ["course", "details-preview", id],
+    queryFn: () => fetchCourse.getCourseDetailsPreview(id),
+    select: (data) => data.data,
+    enabled: !!id,
+  });
+
+  return {
+    courseDetailsPreview: data,
+    isLoading,
+    isError,
+    refetch,
+  };
+}
