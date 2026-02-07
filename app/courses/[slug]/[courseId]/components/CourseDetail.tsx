@@ -18,9 +18,10 @@ interface CourseDetailProps {
     avatar?: string
     bio?: string
   }
+  enrollmentId?: string
 }
 
-export default function CourseDetail({ courseData, mode, onLessonSelect, instructor }: CourseDetailProps) {
+export default function CourseDetail({ courseData, mode, onLessonSelect, instructor, enrollmentId }: CourseDetailProps) {
   return (
     <div className="bg-background min-h-screen pb-20">
       {/* Hero Section - Full Width */}
@@ -38,7 +39,7 @@ export default function CourseDetail({ courseData, mode, onLessonSelect, instruc
 
             {/* Curriculum */}
             <div id="curriculum" className="scroll-mt-24">
-              <CourseCurriculum course={courseData} mode={mode} onLessonSelect={onLessonSelect} />
+              <CourseCurriculum course={courseData} mode={mode} onLessonSelect={onLessonSelect} enrollmentId={enrollmentId} />
             </div>
           </div>
 
