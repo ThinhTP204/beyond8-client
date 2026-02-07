@@ -86,7 +86,7 @@ const SectionItem = ({
     >
       <div
         className={cn(
-          "flex items-center gap-2 px-3 py-3.5 cursor-pointer transition-colors hover:bg-gray-100 group",
+          "flex items-center gap-2 px-3 py-3.5 cursor-pointer transition-colors hover:bg-gray-100 group hover:rounded-lg",
           isSelected && !selectedLessonId && "bg-purple-50 hover:bg-purple-100",
           !section.isPublished && "opacity-60 grayscale"
         )}
@@ -161,7 +161,7 @@ const SectionItem = ({
                       onLessonDrop(e, section.id, lesson.id, lessons);
                     }}
                     className={cn(
-                      "flex items-center gap-2 px-4 mx-2 py-2.5 pl-8 cursor-pointer transition-all duration-200 hover:bg-gray-100 group",
+                      "flex items-center gap-2 px-4 mx-2 py-2.5 pl-8 cursor-pointer transition-all duration-200 hover:bg-gray-100 group rounded-lg",
                       selectedLessonId === lesson.id && "bg-purple-100 hover:bg-purple-100 rounded-lg",
                       !(lesson as Lesson).isPublished && "opacity-60 grayscale" // Casting to any if Lesson type doesn't explicitly have it yet in this file context, but it should.
                     )}

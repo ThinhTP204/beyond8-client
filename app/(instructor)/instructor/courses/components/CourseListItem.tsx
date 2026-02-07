@@ -2,21 +2,17 @@ import { Badge } from '@/components/ui/badge'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { CoursePreviewDialog } from '@/components/widget/CoursePreviewDialog'
-import { useSubmitCourseForReview, usePublishCourse, useUnpublishCourse } from '@/hooks/useCourse'
+import { ConfirmDialog } from '@/components/widget/confirm-dialog'
+import { useSubmitCourseForReview, usePublishCourse, useUnpublishCourse, useDeleteCourse } from '@/hooks/useCourse'
 import {
   Star,
   Clock,
-  Users
+  Users,
+  Eye,
+  Trash2
 } from 'lucide-react'
 import { Course, CourseLevel, CourseStatus } from '@/lib/api/services/fetchCourse'
 import SafeImage from '@/components/ui/SafeImage'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { MoreVertical } from 'lucide-react'
 
 interface CourseListItemProps {
   course: Course
@@ -58,9 +54,11 @@ const getStatusColor = (status: CourseStatus) => {
 
 export default function CourseListItem({ course }: CourseListItemProps) {
   const [showPreview, setShowPreview] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const { submitCourseForReview, isPending: isSubmitting } = useSubmitCourseForReview()
   const { publishCourse, isPending: isPublishing } = usePublishCourse()
   const { unpublishCourse, isPending: isUnpublishing } = useUnpublishCourse()
+  const { deleteCourse, isPending: isDeleting } = useDeleteCourse()
 
   const handlePreview = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -88,46 +86,57 @@ export default function CourseListItem({ course }: CourseListItemProps) {
   }
 
   return (
-    <div className="group flex bg-white rounded-xl overflow-hidden border border-border/40 hover:shadow-lg transition-all duration-300 p-3 gap-4">
+    <div className="group flex bg-white rounded-2xl overflow-hidden border border-slate-200/60 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 p-4 gap-5 hover:-translate-y-0.5">
       {/* Image Section */}
-      <div className="relative w-72 shrink-0 aspect-[16/9] rounded-lg overflow-hidden">
+      <div className="relative w-80 shrink-0 aspect-[16/9] rounded-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50 shadow-md">
         <SafeImage
           src={course.thumbnailUrl || '/images/placeholder.jpg'}
           alt={course.title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-105"
         />
 
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
         {/* Overlay Badges */}
-        <div className="absolute top-2 left-2 flex gap-2">
+        <div className="absolute top-2.5 left-2.5 flex gap-2">
           <Badge className={`${getStatusColor(course.status)} text-white border-0 backdrop-blur-sm text-xs h-5 px-1.5`}>
             {getStatusLabel(course.status)}
           </Badge>
         </div>
+
+        {/* Preview Button - Bottom Left */}
+        <button
+          onClick={handlePreview}
+          className="absolute bottom-2.5 left-2.5 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm transition-all duration-300 hover:scale-110"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Content Section */}
       <div className="flex flex-1 flex-col justify-between py-1">
         <div className="flex justify-between items-start">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-3">
-              <h3 className="font-bold text-xl text-primary">
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-4">
+              <h3 className="font-bold text-2xl bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
                 {course.price === 0 ? 'Miễn phí' : formattedPrice}
               </h3>
-              <div className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                <Clock className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-1.5 text-slate-600 bg-gradient-to-br from-slate-100 to-slate-50 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200/50">
+                <Clock className="w-4 h-4" />
                 <span className="text-xs font-semibold">{formatDuration(course.totalDurationMinutes)}</span>
               </div>
-              <Badge variant="outline" className="text-xs font-normal text-slate-500 border-slate-200">
+              <Badge variant="outline" className="text-xs font-medium text-slate-600 border-slate-300 bg-white shadow-sm">
                 {course.categoryName}
               </Badge>
-              <Badge variant="secondary" className="text-xs font-normal bg-slate-100 text-slate-600 hover:bg-slate-200">
+              <Badge variant="secondary" className="text-xs font-medium bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 hover:from-emerald-100 hover:to-teal-100 border border-emerald-200/50 shadow-sm">
                 {getLevelLabel(course.level)}
               </Badge>
             </div>
 
-            <div className="space-y-1">
-              <h3 className="font-semibold text-base text-slate-800 group-hover:text-primary transition-colors">
+            <div className="space-y-1.5 pt-1">
+              <h3 className="font-semibold text-lg text-slate-800 group-hover:text-primary transition-colors leading-snug">
                 {course.title}
               </h3>
               <p className="text-sm text-slate-500">
@@ -154,57 +163,75 @@ export default function CourseListItem({ course }: CourseListItemProps) {
       </div>
 
       {/* Action Section (Right) */}
-      <div className="flex flex-col items-end gap-2 shrink-0 w-auto ml-auto my-1">
-
-        {/* Combine Actions into a clean interface */}
+      <div className="flex flex-col items-end gap-2.5 shrink-0 w-auto ml-auto my-1">
+        {/* Action Buttons - Publication workflow prominently displayed */}
         <div className="flex items-center gap-2">
+          {/* Edit Button */}
           <Button
             variant="outline"
             size="sm"
-            className="h-9 px-4 text-sm font-medium"
+            className="hover:text-black h-9 px-4 text-sm font-medium rounded-xl border-slate-200 hover:bg-slate-50 hover:border-primary/30 transition-all shadow-sm"
             onClick={() => window.location.href = `/instructor/courses/action/${course.id}`}
           >
             Chỉnh sửa
           </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 rounded-md">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handlePreview}>
-                Xem trước
-              </DropdownMenuItem>
+          {/* Primary Status Action - Prominently displayed */}
+          {course.status === CourseStatus.Published ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-4 text-sm font-medium hover:text-red-500 rounded-xl bg-gradient-to-r from-red-50 to-rose-50 text-red-700 hover:from-red-100 hover:to-rose-100 hover:text-black border border-red-200 shadow-sm hover:shadow-md transition-all"
+              onClick={(e) => handleAction(e, () => unpublishCourse({ id: course.id }))}
+              disabled={isUnpublishing}
+            >
+              {isUnpublishing ? "Đang xử lý..." : "Ẩn khóa học"}
+            </Button>
+          ) : course.status === CourseStatus.Approved ? (
+            <Button
+              variant="default"
+              size="sm"
+              className="h-9 px-4 text-sm font-medium rounded-xl bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md transition-all"
+              onClick={(e) => handleAction(e, () => publishCourse({ id: course.id }))}
+              disabled={isPublishing}
+            >
+              {isPublishing ? "Đang xử lý..." : "Công khai"}
+            </Button>
+          ) : course.status === CourseStatus.PendingApproval ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-4 text-sm font-medium rounded-xl text-yellow-600 border-yellow-200 bg-yellow-50 cursor-not-allowed"
+              disabled
+            >
+              Đang chờ duyệt
+            </Button>
+          ) : (
+            <Button
+              variant="default"
+              size="sm"
+              className="h-9 px-4 text-sm font-medium rounded-xl bg-purple-600 hover:bg-purple-700 text-white shadow-sm hover:shadow-md transition-all"
+              onClick={(e) => handleAction(e, () => submitCourseForReview({ id: course.id }))}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Đang xử lý..." : "Nộp duyệt"}
+            </Button>
+          )}
 
-              {course.status === CourseStatus.Published ? (
-                <DropdownMenuItem
-                  onClick={(e) => handleAction(e, () => unpublishCourse({ id: course.id }))}
-                  disabled={isUnpublishing}
-                  className="text-red-600 focus:text-red-600"
-                >
-                  Ẩn khóa học
-                </DropdownMenuItem>
-              ) : course.status === CourseStatus.Approved ? (
-                <DropdownMenuItem
-                  onClick={(e) => handleAction(e, () => publishCourse({ id: course.id }))}
-                  disabled={isPublishing}
-                  className="text-green-600 focus:text-green-600"
-                >
-                  Công khai
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem
-                  onClick={(e) => handleAction(e, () => submitCourseForReview({ id: course.id }))}
-                  disabled={isSubmitting || course.status === CourseStatus.PendingApproval}
-                  className="text-purple-600 focus:text-purple-600"
-                >
-                  {course.status === CourseStatus.PendingApproval ? "Đang chờ duyệt" : "Nộp duyệt"}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Delete Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 w-9 p-0 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setShowDeleteDialog(true)
+            }}
+            disabled={isDeleting}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -217,6 +244,17 @@ export default function CourseListItem({ course }: CourseListItemProps) {
           avatar: "",
           bio: ""
         }}
+      />
+
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Xóa khóa học"
+        description="Bạn có chắc chắn muốn xóa khóa học này? Hành động này không thể hoàn tác!"
+        confirmText="Xóa"
+        cancelText="Hủy"
+        onConfirm={() => deleteCourse({ id: course.id })}
+        variant="destructive"
       />
     </div>
   )

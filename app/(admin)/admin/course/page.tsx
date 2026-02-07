@@ -15,7 +15,6 @@ import { CourseStatus, CourseLevel } from '@/lib/api/services/fetchCourse'
 import { useGetCoursesForAdmin } from '@/hooks/useCourse'
 import { CoursePreviewDialog } from '@/components/widget/CoursePreviewDialog'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { useDebounce } from '@/hooks/useDebounce'
 
 const ITEMS_PER_PAGE = 10
 
@@ -33,33 +32,7 @@ export default function CourseManagementPage() {
   const isDescending = searchParams.get('isDescending')
   const isDescendingPrice = searchParams.get('isDescendingPrice')
   const level = (searchParams.get('level') as CourseLevel) || CourseLevel.All
-  const searchQuery = searchParams.get('search') || ''
-
-  // Derive sortConfig string for UI
-  let sortConfig = 'newest'
-  if (isDescendingPrice === 'true') sortConfig = 'price-desc'
-  else if (isDescendingPrice === 'false') sortConfig = 'price-asc'
-  else if (isDescending === 'false') sortConfig = 'oldest'
-  // Default is 'newest' (isDescending=true)
-
-  // Debounce search query to prevent excessive URL updates 
-  // We need local state for input to allow typing, then sync to URL on debounce
-  const [localSearch, setLocalSearch] = useState(searchQuery)
-  const debouncedSearch = useDebounce(localSearch, 500)
-
-  // Sync debounced search to URL
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (debouncedSearch !== searchQuery) {
-      if (debouncedSearch) {
-        params.set('search', debouncedSearch)
-      } else {
-        params.delete('search')
-      }
-      params.set('pageNumber', '1') // Reset to page 1 on search
-      router.push(`${pathname}?${params.toString()}`, { scroll: false })
-    }
-  }, [debouncedSearch, searchQuery, pathname, router, searchParams])
+  const searchQuery = searchParams.get('keyword') || '' // Changed from 'search' to 'keyword' to match toolbar
 
   // Ensure default params exist in URL (Matching Instructor Page pattern)
   useEffect(() => {
@@ -93,39 +66,6 @@ export default function CourseManagementPage() {
     }
   }, [searchParams, pathname, router])
 
-
-  // Handlers for Toolbar
-  const handleStatusChange = (status: CourseStatus | 'ALL') => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set('status', status)
-    params.set('pageNumber', '1') // Reset to page 1
-    router.push(`${pathname}?${params.toString()}`, { scroll: false })
-  }
-
-  const handleSortChange = (sort: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-    // Reset all sort params first
-    params.delete('isDescending')
-    params.delete('isDescendingPrice')
-
-    if (sort === 'price-desc') {
-      params.set('isDescendingPrice', 'true')
-    } else if (sort === 'price-asc') {
-      params.set('isDescendingPrice', 'false')
-    } else if (sort === 'oldest') {
-      params.set('isDescending', 'false')
-    } else {
-      // newest
-      params.set('isDescending', 'true')
-    }
-
-    params.set('pageNumber', '1') // Reset to page 1
-    router.push(`${pathname}?${params.toString()}`, { scroll: false })
-  }
-
-  const handleRefresh = () => {
-    refetch()
-  }
 
   // Fetch courses with pagination
   const {
@@ -181,16 +121,8 @@ export default function CourseManagementPage() {
       <CourseToolbar
         viewMode={actualViewMode}
         setViewMode={setViewMode}
-        searchQuery={localSearch}
-        setSearchQuery={setLocalSearch}
-        totalCount={totalItems}
-        isMobile={isMobile}
-        onRefresh={handleRefresh}
+        onRefresh={refetch}
         isLoading={isLoading}
-        statusFilter={statusFilter}
-        setStatusFilter={handleStatusChange}
-        sortBy={sortConfig}
-        setSortBy={handleSortChange}
       />
 
       {/* Content */}

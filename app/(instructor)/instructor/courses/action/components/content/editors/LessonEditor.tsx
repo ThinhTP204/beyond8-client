@@ -1157,39 +1157,72 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
                                 {selectedLesson?.type === "Text" && (
                                     <div className="space-y-4">
                                         <h3 className="text-lg font-semibold text-gray-900">Nội dung</h3>
-                                        <div className={`border rounded-lg bg-white shadow-sm transition-all duration-300 ${isFullScreen ? "fixed inset-0 z-50 m-0 h-screen w-screen rounded-none border-0" : "h-[600px]"}`}>
-                                            {editor && (
-                                                <ToolbarProvider editor={editor}>
-                                                    <div className={`flex flex-col h-full overflow-hidden ${isFullScreen ? "bg-white" : "border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-400 transition-all"}`}>
-                                                        <div className="border-b border-gray-100">
-                                                            <EditorToolbar
-                                                                isFullScreen={isFullScreen}
-                                                                onToggleFullScreen={() => setIsFullScreen(!isFullScreen)}
-                                                            />
+                                        {/* Fullscreen Mode */}
+                                        {isFullScreen && (
+                                            <div className="fixed inset-0 z-50 bg-gray-100">
+                                                {editor && (
+                                                    <ToolbarProvider editor={editor}>
+                                                        <div className="flex flex-col h-full overflow-hidden">
+                                                            {/* Toolbar */}
+                                                            <div className="bg-white border-b border-gray-200 shadow-sm">
+                                                                <EditorToolbar
+                                                                    isFullScreen={isFullScreen}
+                                                                    onToggleFullScreen={() => setIsFullScreen(!isFullScreen)}
+                                                                />
+                                                            </div>
+                                                            {/* Editor Content with Gray Background */}
+                                                            <div
+                                                                className="flex-1 overflow-auto cursor-text"
+                                                                onClick={() => {
+                                                                    if (editor && !editor.isFocused) {
+                                                                        editor.chain().focus().run();
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <div className="max-w-5xl mx-auto py-12 px-8">
+                                                                    <div className="bg-white shadow-2xl rounded-lg min-h-[calc(100vh-200px)]">
+                                                                        <EditorContent
+                                                                            editor={editor}
+                                                                            className="[&_.ProseMirror]:min-h-[calc(100vh-200px)] [&_.ProseMirror]:p-12 [&_.ProseMirror]:focus:outline-none"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div
-                                                            className="flex-1 overflow-auto bg-white cursor-text"
-                                                            onClick={() => {
-                                                                if (editor && !editor.isFocused) {
-                                                                    editor.chain().focus().run();
-                                                                }
-                                                            }}
-                                                        >
-                                                            <EditorContent
-                                                                editor={editor}
-                                                                className={`
-                                                                    ${isFullScreen
-                                                                        ? "min-h-full max-w-5xl mx-auto py-12 px-8 [&_.ProseMirror]:min-h-[calc(100vh-150px)] [&_.ProseMirror]:p-0"
-                                                                        : "min-h-[300px] [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:p-4"
-                                                                    } 
-                                                                    [&_.ProseMirror]:focus:outline-none h-full
-                                                                `}
-                                                            />
+                                                    </ToolbarProvider>
+                                                )}
+                                            </div>
+                                        )}
+                                        {/* Normal Mode */}
+                                        {!isFullScreen && (
+                                            <div className="border rounded-lg bg-white shadow-sm h-[600px]">
+                                                {editor && (
+                                                    <ToolbarProvider editor={editor}>
+                                                        <div className="flex flex-col h-full overflow-hidden border border-gray-200 rounded-lg bg-white focus-within:ring-2 focus-within:ring-purple-200 focus-within:border-purple-400 transition-all">
+                                                            <div className="border-b border-gray-100">
+                                                                <EditorToolbar
+                                                                    isFullScreen={isFullScreen}
+                                                                    onToggleFullScreen={() => setIsFullScreen(!isFullScreen)}
+                                                                />
+                                                            </div>
+                                                            <div
+                                                                className="flex-1 overflow-auto bg-white cursor-text"
+                                                                onClick={() => {
+                                                                    if (editor && !editor.isFocused) {
+                                                                        editor.chain().focus().run();
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <EditorContent
+                                                                    editor={editor}
+                                                                    className="min-h-[300px] [&_.ProseMirror]:min-h-[300px] [&_.ProseMirror]:p-4 [&_.ProseMirror]:focus:outline-none h-full"
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </ToolbarProvider>
-                                            )}
-                                        </div>
+                                                    </ToolbarProvider>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

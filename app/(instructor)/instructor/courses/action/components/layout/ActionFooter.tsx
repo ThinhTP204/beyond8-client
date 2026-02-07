@@ -8,6 +8,8 @@ interface ActionFooterProps {
     isFirstStep: boolean
     isLastStep: boolean
     isValid: boolean
+    isSubmitting?: boolean
+    nextLabel?: string
 }
 
 export default function ActionFooter({
@@ -15,7 +17,9 @@ export default function ActionFooter({
     onNext,
     isFirstStep,
     isLastStep,
-    isValid
+    isValid,
+    isSubmitting = false,
+    nextLabel
 }: ActionFooterProps) {
     return (
         <div className="flex items-center justify-between p-4 border-t bg-white mt-auto">
@@ -31,11 +35,11 @@ export default function ActionFooter({
 
             <Button
                 onClick={onNext}
-                disabled={!isValid}
+                disabled={!isValid || isSubmitting}
                 className="font-medium rounded-full"
             >
-                {isLastStep ? 'Nội dung khóa học' : 'Tiếp tục'}
-                {!isLastStep && <ChevronRight className="h-4 w-4 ml-2" />}
+                {isSubmitting ? 'Đang xử lý...' : (nextLabel ? nextLabel : (isLastStep ? 'Tạo khóa học' : 'Tiếp tục'))}
+                {!isLastStep && !isSubmitting && !nextLabel && <ChevronRight className="h-4 w-4 ml-2" />}
             </Button>
         </div>
     )

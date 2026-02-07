@@ -554,4 +554,10 @@ export const fetchCourse = {
         return response.data;
     },
 
+    //Xóa khóa học
+    deleteCourse: async (id: string): Promise<CourseResponse> => {
+        const response = await apiService.delete<CourseResponse>(`api/v1/courses/${id}`);
+        return response.data;
+    },
+
 }

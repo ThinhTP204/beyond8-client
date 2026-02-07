@@ -1,6 +1,3 @@
-'use client'
-
-
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,6 +14,7 @@ import {
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
+import { CourseLevel } from '@/lib/api/services/fetchCourse'
 
 const SUGGESTED_LANGUAGES = [
     "Tiếng Việt", "English", "日本語", "한국어", "简体中文", "繁體中文",
@@ -35,7 +33,7 @@ import { useCategory } from '@/hooks/useCategory'
 interface Step2BasicsProps {
     data: {
         categoryId: string
-        level: string
+        level: CourseLevel
         language: string
     }
     onChange: (data: Partial<Step2BasicsProps['data']>) => void
@@ -131,11 +129,11 @@ export default function Step2Basics({ data, onChange }: Step2BasicsProps) {
                     <div className="flex justify-between items-center">
                         <Label className="text-base font-semibold">Mức độ: <span className="text-purple-600">{
                             {
-                                'Beginner': 'Cơ bản',
-                                'Intermediate': 'Trung bình',
-                                'Advanced': 'Nâng cao',
-                                'Expert': 'Chuyên gia',
-                                'All': 'Tất cả trình độ'
+                                [CourseLevel.Beginner]: 'Cơ bản',
+                                [CourseLevel.Intermediate]: 'Trung bình',
+                                [CourseLevel.Advanced]: 'Nâng cao',
+                                [CourseLevel.Expert]: 'Chuyên gia',
+                                [CourseLevel.All]: 'Tất cả trình độ'
                             }[data.level] || 'Cơ bản'
                         }</span></Label>
                     </div>
@@ -147,12 +145,12 @@ export default function Step2Basics({ data, onChange }: Step2BasicsProps) {
                             max="3"
                             step="1"
                             value={
-                                ['Beginner', 'Intermediate', 'Advanced', 'Expert'].indexOf(data.level) !== -1
-                                    ? ['Beginner', 'Intermediate', 'Advanced', 'Expert'].indexOf(data.level)
+                                [CourseLevel.Beginner, CourseLevel.Intermediate, CourseLevel.Advanced, CourseLevel.Expert].indexOf(data.level) !== -1
+                                    ? [CourseLevel.Beginner, CourseLevel.Intermediate, CourseLevel.Advanced, CourseLevel.Expert].indexOf(data.level)
                                     : 0
                             }
                             onChange={(e) => {
-                                const levels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+                                const levels = [CourseLevel.Beginner, CourseLevel.Intermediate, CourseLevel.Advanced, CourseLevel.Expert];
                                 onChange({ level: levels[parseInt(e.target.value)] });
                             }}
                             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500/20 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-purple-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:hover:bg-purple-700 [&::-webkit-slider-thumb]:transition-colors"
@@ -166,7 +164,7 @@ export default function Step2Basics({ data, onChange }: Step2BasicsProps) {
 
                 <div className="space-y-4">
                     <Label className="text-base font-semibold">Ngôn ngữ</Label>
-                    <Select value={data.language} onValueChange={(value) => onChange({ language: value })}>
+                    <Select value={data.language} onValueChange={(value: string) => onChange({ language: value })}>
                         <SelectTrigger className="h-12 text-base">
                             <SelectValue placeholder="Chọn ngôn ngữ" />
                         </SelectTrigger>

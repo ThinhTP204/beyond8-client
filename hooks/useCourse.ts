@@ -593,3 +593,28 @@ export function useUnpublishCourse() {
     isPending,
   };
 }
+
+export function useDeleteCourse() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ id }: { id: string }) =>
+      fetchCourse.deleteCourse(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["courses", "instructor"],
+      });
+      toast.success("Xóa khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi xóa khóa học!");
+    },
+  });
+
+  return {
+    deleteCourse: mutateAsync,
+    isPending,
+  };
+}

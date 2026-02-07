@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
     Trash2,
-    Home,
+    FolderOpen,
     CheckCircle2,
     Clock,
-    Loader2
+    Loader2,
+    Eye
 } from 'lucide-react'
 import { Course, CourseStatus } from '@/lib/api/services/fetchCourse'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
@@ -82,17 +82,20 @@ export default function CourseGridItem({ course, onPreview }: CourseGridItemProp
     return (
         <>
             <div
-                className="group flex flex-col h-full bg-white rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer border border-border/40"
+                className="group flex flex-col h-full bg-white rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 cursor-pointer border border-slate-200/60 hover:border-primary/30 hover:-translate-y-1"
                 onClick={onPreview}
             >
                 {/* Image Section */}
-                <div className="relative w-full aspect-[4/3] overflow-hidden">
+                <div className="relative w-full aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
                     <SafeImage
                         src={formatImageUrl(course.thumbnailUrl) || ''}
                         alt={course.title}
                         fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-105"
                     />
+
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     {/* Overlay Badges */}
                     <div className="absolute top-3 left-3 flex gap-2">
@@ -100,47 +103,58 @@ export default function CourseGridItem({ course, onPreview }: CourseGridItemProp
                     </div>
 
                     <div className="absolute top-3 right-3">
-                        <Badge variant="secondary" className="backdrop-blur-md bg-white/90 text-primary font-semibold shadow-sm">
+                        <Badge variant="secondary" className="backdrop-blur-lg bg-white/95 text-primary font-semibold shadow-lg border border-white/50">
                             {course.categoryName}
                         </Badge>
                     </div>
+
+                    {/* Preview Button - Bottom Left */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onPreview?.()
+                        }}
+                        className="absolute bottom-3 left-3 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm transition-all duration-300 hover:scale-110"
+                    >
+                        <Eye className="w-4 h-4" />
+                    </button>
                 </div>
 
                 {/* Content Section */}
-                <div className="flex flex-col flex-1 p-4 gap-4">
+                <div className="flex flex-col flex-1 p-5 gap-4 bg-gradient-to-b from-white to-slate-50/30">
 
                     {/* Price & Title */}
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                         <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-bold text-xl text-primary truncate">
+                            <h3 className="font-bold text-2xl bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
                                 {formattedPrice}
                             </h3>
-                            <div className="flex items-center gap-1 text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
-                                <Clock className="w-3.5 h-3.5" />
+                            <div className="flex items-center gap-1.5 text-slate-600 bg-gradient-to-br from-slate-100 to-slate-50 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200/50">
+                                <Clock className="w-4 h-4" />
                                 <span className="text-xs font-semibold">{course.totalDurationMinutes} phút</span>
                             </div>
                         </div>
 
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50/50 w-fit px-2 py-0.5 rounded-full">
-                                <Home className="w-3 h-3" />
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-gradient-to-r from-emerald-50 to-teal-50 w-fit px-3 py-1 rounded-full border border-emerald-200/50 shadow-sm">
+                                <FolderOpen className="w-3.5 h-3.5" />
                                 <span>{course.level}</span>
-                                <span className="mx-1">•</span>
-                                <span>{course.instructorName}</span>
+                                <span className="mx-1 text-emerald-400">•</span>
+                                <span className="truncate max-w-[120px]">{course.instructorName}</span>
                             </div>
-                            <h3 className="font-semibold text-base line-clamp-2 min-h-[3rem] text-slate-800 group-hover:text-primary transition-colors">
+                            <h3 className="font-semibold text-base line-clamp-2 min-h-[3rem] text-slate-800 group-hover:text-primary transition-colors leading-snug">
                                 {course.title}
                             </h3>
                         </div>
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="mt-auto pt-2 grid grid-cols-2 gap-2 items-center">
+                    <div className="mt-auto pt-3 grid grid-cols-2 gap-2 items-center border-t border-slate-100">
                         {course.status === CourseStatus.PendingApproval && (
                             <>
                                 <Button
                                     variant="secondary"
-                                    className="w-full h-9 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-200"
+                                    className="w-full h-9 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 hover:from-emerald-100 hover:to-teal-100 hover:text-black border border-emerald-200 shadow-sm hover:shadow-md transition-all"
                                     onClick={handleApproveClick}
                                     disabled={isApproving || isRejecting}
                                 >
@@ -149,7 +163,7 @@ export default function CourseGridItem({ course, onPreview }: CourseGridItemProp
                                 </Button>
                                 <Button
                                     variant="destructive"
-                                    className="w-full h-9 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800 border border-red-200 shadow-none"
+                                    className="w-full h-9 rounded-xl bg-gradient-to-r from-red-50 to-rose-50 text-red-700 hover:from-red-100 hover:to-rose-100 hover:text-black border border-red-200 shadow-sm hover:shadow-md transition-all"
                                     onClick={handleRejectClick}
                                     disabled={isApproving || isRejecting}
                                 >
@@ -159,7 +173,7 @@ export default function CourseGridItem({ course, onPreview }: CourseGridItemProp
                             </>
                         )}
                         <div className="col-span-2">
-                            <Button variant="outline" className="w-full h-9 rounded-lg">
+                            <Button variant="outline" className="w-full h-9 rounded-xl border-slate-200 hover:bg-slate-50 hover:border-primary/30 transition-all shadow-sm">
                                 Xem chi tiết
                             </Button>
                         </div>

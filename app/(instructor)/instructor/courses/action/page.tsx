@@ -44,7 +44,8 @@ const pageTransition = {
   duration: 0.3,
 };
 
-export function CourseAction({ initialData, isEditMode = false }: CourseActionProps) {
+// Rename prop to avoid confusion, or just use it for initial state
+export function CourseAction({ initialData, isEditMode: initialIsEditMode = false }: CourseActionProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -52,6 +53,9 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
   const { createCourse, isPending } = useCreateCourse();
   const { updateCourse } = useUpdateCourse();
   const isMobile = useIsMobile();
+
+  // Initialize isEdit state
+  const [isEdit, setIsEdit] = useState(initialIsEditMode);
 
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -104,7 +108,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
         shortDescription: data.shortDescription || "",
         description: data.shortDescription || "", // Mapping issue: API result might not have full desc? check fetchCourse
         categoryId: data.categoryId || "",
-        level: data.level || "",
+        level: data.level || CourseLevel.Beginner,
         language: data.language || "Tiếng Việt",
         outcomes: data.outcomes && data.outcomes.length > 0 ? data.outcomes : [""],
         requirements: data.requirements && data.requirements.length > 0 ? data.requirements : [""],
@@ -118,7 +122,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
       shortDescription: "",
       description: "",
       categoryId: "",
-      level: "",
+      level: CourseLevel.Beginner,
       language: "Tiếng Việt",
       outcomes: [""],
       requirements: [""],
@@ -136,6 +140,9 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [pendingViewMode, setPendingViewMode] = useState<"info" | "content" | null>(null);
 
+  // New state to track created course ID
+  const [createdCourseId, setCreatedCourseId] = useState<string | null>(null);
+
   // Validation Logic (Same as before)
   const isInfoValid = formData.title.length >= 5 && formData.shortDescription.length >= 10;
   const isBasicsValid = !!(formData.categoryId && formData.level && formData.language);
@@ -150,7 +157,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
 
   const handleSave = async () => {
 
-    if (!isEditMode) {
+    if (!isEdit) {
       // Create
       const response = await createCourse({
         ...formData,
@@ -161,14 +168,24 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
       }); // Note: description missing from formData initial state type but used in submit?
       // Fixed formData to match CourseRequest in hook
       if (response.isSuccess && response.data) {
-        const newCourseId = response.data[0]?.id;
+        let newCourseId = "";
+        if (Array.isArray(response.data)) {
+          newCourseId = response.data[0]?.id;
+        } else {
+          // Fallback if data is a single object
+          newCourseId = (response.data as Course)?.id;
+        }
         if (newCourseId) {
-          router.push(`/instructor/courses/action/${newCourseId}`);
+          // Success! Set the ID but DO NOT redirect yet.
+          setCreatedCourseId(newCourseId);
+          // Update saved data to prevent "Unsaved changes" warning
+          setSavedData(formData);
+          setIsEdit(true);
         }
       }
     } else {
       await updateCourse({
-        id: initialData!.id,
+        id: initialData?.id || createdCourseId!,
         courseData: {
           ...formData,
           level: formData.level as CourseLevel,
@@ -193,14 +210,20 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
   };
 
   const handleNext = () => {
+    // Logic for redirecting immediately after creation removed to allow editing flow
+    // if (createdCourseId) {
+    //   router.push(`/instructor/courses/action/${createdCourseId}?tab=content`);
+    //   return;
+    // }
+
     if (currentStep === 3) {
       setCurrentStep(4);
     } else if (currentStep === 4) {
-      if (isEditMode) {
+      if (isEdit) {
         setCurrentStep(5);
       } else {
-        // Last step: Switch to Content mode (Manage Course)
-        handleViewModeChange("content");
+        // Last step: Create course
+        handleSave();
       }
     } else if (currentStep === 5) {
       handleViewModeChange("content");
@@ -222,10 +245,10 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
 
   return (
     <>
-      {viewMode === "content" && initialData?.id ? (
+      {viewMode === "content" && (initialData?.id || createdCourseId) ? (
         // Two-panel layout for content mode
         <TwoPanelLayout
-          courseId={initialData.id}
+          courseId={initialData?.id || createdCourseId!}
           onBackToInfo={() => handleViewModeChange("info")}
         />
       ) : (
@@ -237,7 +260,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
               currentStep={currentStep}
               onStepClick={setCurrentStep}
               stepsValidity={sidebarValidity}
-              isEditMode={isEditMode}
+              isEditMode={isEdit}
               viewMode={viewMode}
             />
           )}
@@ -251,10 +274,10 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
               totalSteps={5}
               onSave={handleSave}
               isSubmitting={isPending}
-              isEditMode={isEditMode}
+              isEditMode={isEdit}
               viewMode={viewMode}
               onChangeViewMode={handleViewModeChange}
-              disableContent={!isEditMode && !initialData?.id} // Only enable content if edit mode or ID exists
+              disableContent={!isEdit && !initialData?.id} // Only enable content if edit mode or ID exists
               isDirty={isDirty}
             />
 
@@ -277,7 +300,7 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
                             <Step1_Title
                               data={formData}
                               onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
-                              isEditMode={isEditMode}
+                              isEditMode={isEdit}
                             />
                           )}
                           {currentStep === 2 && (
@@ -299,8 +322,8 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
                               onChange={(data) => setFormData((prev) => ({ ...prev, ...data }))}
                             />
                           )}
-                          {currentStep === 5 && initialData?.id && (
-                            <Step5_Documents courseId={initialData.id} />
+                          {currentStep === 5 && (initialData?.id || createdCourseId) && (
+                            <Step5_Documents courseId={initialData?.id || createdCourseId!} />
                           )}
                         </>
                       )}
@@ -315,8 +338,14 @@ export function CourseAction({ initialData, isEditMode = false }: CourseActionPr
                 onBack={handleBack}
                 onNext={handleNext}
                 isFirstStep={currentStep === 1}
-                isLastStep={isEditMode ? currentStep === 5 : currentStep === 4}
+                isLastStep={isEdit ? currentStep === 5 : currentStep === 4}
                 isValid={isCurrentStepValid()}
+                isSubmitting={isPending}
+                nextLabel={
+                  (isEdit && currentStep === 5)
+                    ? "Soạn nội dung khóa học"
+                    : undefined
+                }
               />
             )}
 
