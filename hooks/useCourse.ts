@@ -7,10 +7,14 @@ import {
   CourseParams,
   CourseRequest,
   CourseResponse,
+  CourseReview,
+  CourseReviewListResponse,
+  CourseReviewParams,
   CourseSummary,
   CourseSummaryResponse,
   CourseUpdateRequest,
   CreateCourseDocumentRequest,
+  CreateCourseReviewRequest,
   PublicCourseParams,
   PublicCourseResponse,
   SearchCourseParams,
@@ -422,6 +426,80 @@ export function useSubmitCourseForReview() {
   };
 }
 
+// Course Reviews Hooks
+export function useGetCourseReviews(params: CourseReviewParams) {
+  const { data, isLoading, refetch, isFetching, isError } = useQuery<
+    CourseReviewListResponse,
+    Error,
+    {
+      reviews: CourseReview[];
+      count: number;
+      page: number;
+      pageSize: number;
+      totalPages: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    }
+  >({
+    queryKey: ["course-reviews", params.courseId, params.pageNumber, params.pageSize, params.isDescending],
+    queryFn: () => fetchCourse.getCourseReviews(params),
+    select: (data) => ({
+      reviews: data.data,
+      count: data.metadata?.totalItems ?? data.data.length ?? 0,
+      page: data.metadata?.pageNumber ?? 1,
+      pageSize: data.metadata?.pageSize ?? (params.pageSize ?? 10),
+      totalPages: data.metadata?.totalPages ?? 1,
+      hasNextPage: data.metadata?.hasNextPage ?? false,
+      hasPreviousPage: data.metadata?.hasPreviousPage ?? false,
+    }),
+    placeholderData: keepPreviousData,
+    enabled: !!params.courseId,
+  });
+
+  return {
+    reviews: data?.reviews ?? [],
+    count: data?.count ?? 0,
+    page: data?.page ?? 1,
+    pageSize: data?.pageSize ?? 10,
+    totalPages: data?.totalPages ?? 0,
+    hasNextPage: data?.hasNextPage ?? false,
+    hasPreviousPage: data?.hasPreviousPage ?? false,
+    isLoading,
+    refetch,
+    isFetching,
+    isError,
+  };
+}
+
+export function useCreateCourseReview() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: (review: CreateCourseReviewRequest) => fetchCourse.createCourseReview(review),
+    onSuccess: (data, variables) => {
+      // Invalidate course reviews for the specific course
+      queryClient.invalidateQueries({
+        queryKey: ["course-reviews", variables.courseId],
+      });
+      // Also invalidate course details to refresh rating
+      queryClient.invalidateQueries({
+        queryKey: ["course", "summary", variables.courseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["course", "details", variables.courseId],
+      });
+      toast.success("Đánh giá khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Đánh giá khóa học thất bại!");
+    },
+  });
+
+  return {
+    createReview: mutateAsync,
+    isPending,
+  };
+}
+
 export function useApproveCourse() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
@@ -448,7 +526,7 @@ export function useRejectCourse() {
   const queryClient = useQueryClient();
   const { mutateAsync, isPending } = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string | null }) =>
-      fetchCourse.rejectCourse(id, reason),
+      fetchCourse.rejectCourse(id, reason ?? ""),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["course"],
@@ -515,4 +593,3 @@ export function useUnpublishCourse() {
     isPending,
   };
 }
-
