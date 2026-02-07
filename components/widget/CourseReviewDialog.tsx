@@ -67,7 +67,6 @@ export default function CourseReviewDialog({
     const isChanging = rating !== null
     setRating(value)
 
-    // Only animate if this is the first time selecting a rating
     if (!isChanging && starsContainerRef.current && textareaContainerRef.current) {
       const timeline = gsap.timeline()
       
@@ -98,7 +97,6 @@ export default function CourseReviewDialog({
       return
     }
     
-    // Animate step transition
     if (stepContentRef.current) {
       gsap.fromTo(
         stepContentRef.current,
@@ -111,7 +109,6 @@ export default function CourseReviewDialog({
   }
 
   const handleBack = () => {
-    // Animate step transition
     if (stepContentRef.current) {
       gsap.fromTo(
         stepContentRef.current,
@@ -139,7 +136,6 @@ export default function CourseReviewDialog({
         instructorQuality,
         valueForMoney,
       })
-      toast.success('Đánh giá thành công!')
       handleClose()
     } catch (error) {
       console.log(error)
@@ -148,7 +144,6 @@ export default function CourseReviewDialog({
   }
 
   const handleClose = () => {
-    // Reset form
     setStep('review')
     setRating(null)
     setReview('')
@@ -186,7 +181,6 @@ export default function CourseReviewDialog({
     }
   }
 
-  // Handle initial state and back navigation
   useEffect(() => {
     if (!open) return
     
