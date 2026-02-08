@@ -26,7 +26,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
-import DocumentUploadDialog from "@/components/widget/DocumentUploadDialog";
+import DocumentUploadDialog from "@/components/widget/document/DocumentUploadDialog";
 import {
     useGetLessonDocument,
     useCreateLessonDocument,

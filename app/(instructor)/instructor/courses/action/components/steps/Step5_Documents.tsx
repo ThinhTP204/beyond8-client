@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { FileText, Upload, Eye, Loader2, Trash2, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import DocumentUploadDialog from '@/components/widget/DocumentUploadDialog'
+import DocumentUploadDialog from '@/components/widget/document/DocumentUploadDialog'
 import { useMediaDocumentCourse } from '@/hooks/useMedia'
 import { useCreateCourseDocument, useGetCourseDocument, useDeleteCourseDocument, useToggleDownloadCourseDocument } from '@/hooks/useCourse'
 import { format } from 'date-fns'

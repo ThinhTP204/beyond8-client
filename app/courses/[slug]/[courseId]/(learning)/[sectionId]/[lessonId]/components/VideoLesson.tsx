@@ -10,7 +10,8 @@ import {
   Controls,
   useMediaState,
   Menu,
-  useVideoQualityOptions
+  useVideoQualityOptions,
+  Poster
 } from '@vidstack/react'
 import type { MediaPlayerInstance } from '@vidstack/react'
 import '@vidstack/react/player/styles/base.css'
@@ -19,9 +20,10 @@ import {
   Pause,
   Maximize,
   Minimize,
-  Monitor,
-  MonitorX,
+  Lightbulb,
+  LightbulbOff,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 // Custom Play Button Component with Animation
 function CustomPlayButton() {
@@ -68,36 +70,55 @@ function CustomFullscreenButton() {
   )
 }
 
-// Focus Mode Button Component
-function FocusModeButton({ isFocusMode, onToggle }: { isFocusMode: boolean; onToggle: () => void }) {
+// Theater Mode Button Component
+function TheaterModeButton({ isTheaterMode, onToggle }: { isTheaterMode: boolean; onToggle: () => void }) {
   return (
     <button
       onClick={onToggle}
       className="group p-2 hover:bg-white/10 rounded-md transition-colors"
-      title={isFocusMode ? "Thoát chế độ tập trung" : "Chế độ tập trung"}
+      title={isTheaterMode ? "Tắt chế độ rạp chiếu" : "Chế độ rạp chiếu"}
     >
-      {isFocusMode ? (
-        <MonitorX className="w-5 h-5 text-white/90 group-hover:text-white" />
+      {isTheaterMode ? (
+        <LightbulbOff className="w-5 h-5 text-white/90 group-hover:text-white" />
       ) : (
-        <Monitor className="w-5 h-5 text-white/90 group-hover:text-white" />
+        <Lightbulb className="w-5 h-5 text-white/90 group-hover:text-white" />
       )}
     </button>
   )
 }
 
 // Video Quality Menu Component
-function VideoQualitySubmenu() {
+function VideoQualitySubmenu({
+  variants,
+  currentSrc,
+  onQualityChange,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  variants?: any[]
+  currentSrc?: string
+  onQualityChange?: (url: string) => void
+}) {
   const options = useVideoQualityOptions({ auto: true, sort: 'descending' })
   const currentQualityHeight = options.selectedQuality?.height
-  const hint =
-    options.selectedValue !== 'auto' && currentQualityHeight
+
+  // Logic hiển thị hint
+  let hint = ''
+  if (variants && variants.length > 0) {
+    // Manual mode
+    const activeVariant = variants.find(v => v.Url === currentSrc)
+    hint = activeVariant ? (activeVariant.Quality === 'master' ? 'Auto' : activeVariant.Quality) : 'Auto'
+  } else {
+    // Vidstack auto mode
+    hint = options.selectedValue !== 'auto' && currentQualityHeight
       ? `${currentQualityHeight}p`
       : `Auto${currentQualityHeight ? ` (${currentQualityHeight}p)` : ''}`
+  }
+
 
   return (
     <Menu.Root>
       <Menu.Button
-        disabled={options.disabled}
+        disabled={!variants && options.disabled}
         className="group px-3 py-2 hover:bg-white/10 rounded-md transition-colors text-white/90 hover:text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {hint}
@@ -107,18 +128,34 @@ function VideoQualitySubmenu() {
         placement="top"
         offset={12}
       >
-        <Menu.RadioGroup value={options.selectedValue} className="space-y-1">
-          {options.map(({ label, value, bitrateText, select }) => (
-            <Menu.Radio
-              value={value}
-              onSelect={select}
-              key={value}
-              className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-[checked]:bg-brand-purple/20 data-[checked]:text-brand-purple"
-            >
-              <span>{label}</span>
-              {bitrateText && <span className="text-xs text-white/50 ml-2">{bitrateText}</span>}
-            </Menu.Radio>
-          ))}
+        <Menu.RadioGroup value={currentSrc || options.selectedValue} className="space-y-1">
+          {variants && variants.length > 0 ? (
+            // Render variants manual
+            variants.map((variant) => (
+              <Menu.Radio
+                value={variant.Url}
+                onSelect={() => onQualityChange?.(variant.Url)}
+                key={variant.Url}
+                className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-[checked]:bg-brand-purple/20 data-[checked]:text-brand-purple"
+              >
+                <span>{variant.Quality === 'master' ? 'Auto' : variant.Quality}</span>
+                {variant.Resolution && <span className="text-xs text-white/50 ml-2">{variant.Resolution}</span>}
+              </Menu.Radio>
+            ))
+          ) : (
+            // Fallback to Vidstack
+            options.map(({ label, value, bitrateText, select }) => (
+              <Menu.Radio
+                value={value}
+                onSelect={select}
+                key={value}
+                className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-[checked]:bg-brand-purple/20 data-[checked]:text-brand-purple"
+              >
+                <span>{label}</span>
+                {bitrateText && <span className="text-xs text-white/50 ml-2">{bitrateText}</span>}
+              </Menu.Radio>
+            ))
+          )}
         </Menu.RadioGroup>
       </Menu.Content>
     </Menu.Root>
@@ -153,23 +190,32 @@ interface VideoLessonProps {
   title: string
   description?: string | null
   videoUrl?: string
+  thumbnailUrl?: string | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  variants?: any[]
   durationSeconds?: number | null
 }
 
-export default function VideoLesson({ title, description, videoUrl, durationSeconds }: VideoLessonProps) {
+export default function VideoLesson({ title, description, videoUrl, thumbnailUrl, variants, durationSeconds }: VideoLessonProps) {
   const [isMounted, setIsMounted] = useState(false)
-  const [isFocusMode, setIsFocusMode] = useState(false)
+  const [isTheaterMode, setIsTheaterMode] = useState(false)
+  const [currentSrc, setCurrentSrc] = useState(videoUrl)
   const playerRef = React.useRef<MediaPlayerInstance>(null)
 
   useEffect(() => {
-    //eslint-disable-next-line
+    // eslint-disable-next-line
     setIsMounted(true)
   }, [])
 
+  // Sync currentSrc with videoUrl when prop changes (lesson change)
+  useEffect(() => {
+    setCurrentSrc(videoUrl)
+  }, [videoUrl])
+
   // Ensure currentTime starts at 0 when video URL or duration changes
+  // Note: Only reset if the *base* videoUrl changes (lesson changes), not when switching quality manually
   useEffect(() => {
     if (!playerRef.current) return
-
     const player = playerRef.current
 
     const resetCurrentTime = () => {
@@ -182,26 +228,48 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
       }
     }
 
-    // Reset immediately và thêm vài lần sau để bắt kịp async updates của player
+    // Only reset if we just mounted OR if videoUrl text prop changed (likely new lesson loaded)
+    // We do NOT want to reset when currentSrc changes due to quality switch
+    // This is tricky. Let's rely on [videoUrl] changing (which means lesson changed)
     resetCurrentTime()
     const resetTimer1 = setTimeout(resetCurrentTime, 50)
-    const resetTimer2 = setTimeout(resetCurrentTime, 200)
 
     return () => {
       clearTimeout(resetTimer1)
-      clearTimeout(resetTimer2)
     }
-  }, [durationSeconds, videoUrl])
 
-  // Handle ESC key to exit focus mode
+  }, [videoUrl, durationSeconds])
+
+  const handleQualityChange = (newUrl: string) => {
+    if (playerRef.current) {
+      // Save current time
+      const currentTime = playerRef.current.currentTime;
+      const paused = playerRef.current.paused;
+
+      setCurrentSrc(newUrl)
+
+      // Restore time after short delay to allow src load
+      // Note: Vidstack might handle 'src' change gracefully, but let's be safe
+      setTimeout(() => {
+        if (playerRef.current) {
+          playerRef.current.currentTime = currentTime;
+          if (!paused) playerRef.current.play();
+        }
+      }, 100)
+    } else {
+      setCurrentSrc(newUrl)
+    }
+  }
+
+  // Handle ESC key to exit theater mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isFocusMode) {
-        setIsFocusMode(false)
+      if (e.key === 'Escape' && isTheaterMode) {
+        setIsTheaterMode(false)
       }
     }
 
-    if (isFocusMode) {
+    if (isTheaterMode) {
       document.addEventListener('keydown', handleKeyDown)
       document.body.style.overflow = 'hidden'
     } else {
@@ -212,7 +280,7 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
     }
-  }, [isFocusMode])
+  }, [isTheaterMode])
 
   if (!isMounted) {
     return (
@@ -222,7 +290,7 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
     )
   }
 
-  const finalUrl = videoUrl;
+  const finalUrl = currentSrc || videoUrl;
 
   if (!finalUrl) {
     return (
@@ -236,98 +304,28 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
 
   return (
     <>
-      {/* Focus Mode Overlay */}
-      {isFocusMode && (
+      {/* Backdrop for Theater Mode */}
+      {isTheaterMode && (
         <div
-          className="fixed inset-0 bg-black/95 z-[9998] flex items-center justify-center p-4 animate-in fade-in duration-300"
-          onClick={() => setIsFocusMode(false)}
-        >
-          <div
-            className="w-full max-w-7xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Video Player in Focus Mode */}
-            <div className="w-full group relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 bg-black aspect-video">
-              <MediaPlayer
-                key={finalUrl}
-                ref={playerRef}
-                title={title}
-                src={finalUrl}
-                playsInline
-                aspectRatio="16/9"
-                load="eager"
-                className="w-full h-full"
-              >
-                <MediaProvider />
-
-                {/* Center Play Button Overlay */}
-                <CenterPlayButton />
-
-                {/* Pro Max Controls Overlay */}
-                <Controls.Root className="absolute inset-0 z-30 flex flex-col justify-end bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 data-[visible]:opacity-100 pointer-events-none">
-
-                  <div className="p-4 md:p-6 w-full space-y-4 pointer-events-auto">
-
-                    {/* Progress Bar (TimeSlider) */}
-                    <div className="flex items-center gap-3">
-                      <TimeSlider.Root className="group/slider relative flex items-center select-none touch-none w-full h-4 cursor-pointer">
-                        <TimeSlider.Track className="relative bg-white/20 rounded-full w-full h-1 group-hover/slider:h-2 transition-all duration-300 overflow-hidden">
-                          {/* Đoạn đã xem */}
-                          <TimeSlider.TrackFill
-                            className="bg-primary absolute left-0 top-0 h-full rounded-full"
-                            style={{ width: 'var(--slider-fill)' }}
-                          />
-                          {/* Đoạn đã buffer */}
-                          <TimeSlider.Progress
-                            className="bg-white/30 absolute left-0 top-0 h-full rounded-full"
-                            style={{ width: 'var(--slider-progress)' }}
-                          />
-                        </TimeSlider.Track>
-                        <TimeSlider.Thumb
-                          className="absolute top-1/2 w-4 h-4 bg-white rounded-full shadow-lg ring-2 ring-brand-purple opacity-0 group-hover/slider:opacity-100 transition-opacity duration-200 pointer-events-none"
-                          style={{ left: 'var(--slider-fill)', transform: 'translate(-50%, -50%)' }}
-                        />
-                        {/* Preview implementation would go here if thumbnails available */}
-                      </TimeSlider.Root>
-                      <TimeDisplay durationSeconds={durationSeconds} />
-                    </div>
-
-                    {/* Bottom Bar: Play | Volume | Spacer | Title | Settings | Fullscreen */}
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <CustomPlayButton />
-
-                        <div className="hidden md:block">
-                          <h3 className="text-white text-sm font-medium line-clamp-1 max-w-[200px]">
-                            {description || title}
-                          </h3>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <VideoQualitySubmenu />
-
-                        <FocusModeButton
-                          isFocusMode={isFocusMode}
-                          onToggle={() => setIsFocusMode(!isFocusMode)}
-                        />
-
-                        <CustomFullscreenButton />
-                      </div>
-                    </div>
-                  </div>
-
-                </Controls.Root>
-              </MediaPlayer>
-            </div>
-          </div>
-        </div>
+          className="fixed inset-0 bg-black/95 z-[60] animate-in fade-in duration-300 backdrop-blur-sm"
+          onClick={() => setIsTheaterMode(false)}
+        />
       )}
 
-      {/* Normal Video Player */}
-      <div className="w-full mb-8 group relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/10 bg-black aspect-video">
+      {/* Placeholder to prevent layout shift */}
+      {isTheaterMode && <div className="w-full aspect-video mb-8" aria-hidden="true" />}
+
+      {/* Video Player Container */}
+      <div
+        className={cn(
+          "w-full group relative overflow-hidden ring-1 ring-white/10 bg-black aspect-video transition-all duration-300 ease-in-out",
+          isTheaterMode
+            ? "fixed inset-0 z-[70] m-auto w-full max-w-6xl h-fit max-h-screen rounded-none md:rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+            : "mb-8 rounded-2xl shadow-2xl"
+        )}
+      >
         <MediaPlayer
-          key={finalUrl}
+          key={finalUrl} // Still key by finalUrl to force player reload on quality switch if needed, but we handle restore
           ref={playerRef}
           title={title}
           src={finalUrl}
@@ -336,7 +334,23 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
           load="eager"
           className="w-full h-full"
         >
-          <MediaProvider />
+          <MediaProvider>
+            <Poster className="vds-poster object-cover w-full h-full absolute inset-0 block opacity-0 data-[visible]:opacity-100 transition-opacity duration-200" src={thumbnailUrl || undefined} alt={title} />
+          </MediaProvider>
+
+          {/* Click to Play/Pause Overlay */}
+          <div
+            className="absolute inset-0 z-10 cursor-pointer"
+            onClick={() => {
+              if (playerRef.current) {
+                if (playerRef.current.paused) {
+                  playerRef.current.play()
+                } else {
+                  playerRef.current.pause()
+                }
+              }
+            }}
+          />
 
           {/* Center Play Button Overlay */}
           <CenterPlayButton />
@@ -383,11 +397,15 @@ export default function VideoLesson({ title, description, videoUrl, durationSeco
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <VideoQualitySubmenu />
+                  <VideoQualitySubmenu
+                    variants={variants}
+                    currentSrc={currentSrc}
+                    onQualityChange={handleQualityChange}
+                  />
 
-                  <FocusModeButton
-                    isFocusMode={isFocusMode}
-                    onToggle={() => setIsFocusMode(!isFocusMode)}
+                  <TheaterModeButton
+                    isTheaterMode={isTheaterMode}
+                    onToggle={() => setIsTheaterMode(!isTheaterMode)}
                   />
 
                   <CustomFullscreenButton />

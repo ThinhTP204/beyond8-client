@@ -10,7 +10,7 @@ import VideoLesson from './components/VideoLesson'
 import TextLesson from './components/TextLesson'
 import LessonInfo from './components/LessonInfo'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatHls } from '@/lib/utils/formatHls'
+import { formatHls, getHlsVariants } from '@/lib/utils/formatHls'
 import { useUserById } from '@/hooks/useUserProfile'
 
 
@@ -95,7 +95,7 @@ export default function LessonPage() {
   }
 
   // Resolve video URL from lesson (support hlsVariants & original URL, nhiều dạng dữ liệu)
-  const resolveVideoUrlFromLesson = (lesson: AnyLesson): string | undefined => {
+  const resolveVideoUrlFromLesson = (lesson: AnyLesson): { url: string | undefined; variants: ReturnType<typeof getHlsVariants> } | undefined => {
     // Chỉ xử lý cho bài học video
     if (lesson.type !== 'Video') return undefined
 
@@ -112,39 +112,50 @@ export default function LessonPage() {
     }
 
     const resolvedFromHls = formatHls(rawHlsVariants ?? null)
+    const variants = getHlsVariants(rawHlsVariants ?? null)
 
     const final = resolvedFromHls ?? originalUrl
 
-    return final
+    return { url: final, variants }
   }
 
-  const videoUrl = resolveVideoUrlFromLesson(lesson)
+  const { url: videoUrl, variants } = resolveVideoUrlFromLesson(lesson) || {}
 
   return (
     <div className="w-full max-w-[1450px] mx-auto p-0 lg:p-6">
       {lesson.type === 'Video' && (
-        <VideoLesson
-          title={lesson.title}
-          description={lesson.description}
-          videoUrl={videoUrl}
-          durationSeconds={
-            'durationSeconds' in lesson ? lesson.durationSeconds : null
-          }
-        />
+        <>
+          <VideoLesson
+            title={lesson.title}
+            description={lesson.description}
+            videoUrl={videoUrl}
+            thumbnailUrl={'videoThumbnailUrl' in lesson ? lesson.videoThumbnailUrl : null}
+            variants={variants}
+            durationSeconds={
+              'durationSeconds' in lesson ? lesson.durationSeconds : null
+            }
+          />
+          <LessonInfo
+            course={course}
+            currentLesson={lesson as Lesson}
+            slug={slug}
+            courseId={courseId}
+          />
+        </>
       )}
       {lesson.type === 'Text' && (
-        <TextLesson
-          title={lesson.title}
-          content={'textContent' in lesson ? lesson.textContent : null}
-        />
-      )}
-      {mode === 'details' && courseDetails && (
-        <LessonInfo
-          course={courseDetails}
-          currentLesson={lesson as Lesson}
-          slug={slug}
-          courseId={courseId}
-        />
+        <>
+          <LessonInfo
+            course={course}
+            currentLesson={lesson as Lesson}
+            slug={slug}
+            courseId={courseId}
+          />
+          <TextLesson
+            title={lesson.title}
+            content={'textContent' in lesson ? lesson.textContent : null}
+          />
+        </>
       )}
     </div>
   )

@@ -5,15 +5,17 @@ import Link from 'next/link'
 import SafeImage from '@/components/ui/SafeImage'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CourseDetail } from '@/lib/api/services/fetchCourse'
+import { CourseDetail, CourseSummary } from '@/lib/api/services/fetchCourse'
 import { Lesson, LessonType } from '@/lib/api/services/fetchLesson'
-import { useGetQuizById, useGetQuizOverview } from '@/hooks/useQuiz'
+import { useGetQuizOverview } from '@/hooks/useQuiz'
 import { useGetLessonDocument } from '@/hooks/useLesson'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 import { LessonSummary } from '@/lib/api/services/fetchCourse'
+import { useState } from 'react'
+import DocumentViewDialog from '@/components/widget/document/DocumentViewDialog'
 
 interface LessonInfoProps {
-  course: CourseDetail
+  course: CourseDetail | CourseSummary
   currentLesson: Lesson | LessonSummary
   slug: string
   courseId: string
@@ -43,11 +45,13 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
   // Fetch lesson documents
   const { lessonDocuments, isLoading: isLoadingDocuments } = useGetLessonDocument(currentLesson.id)
 
+  const [selectedDoc, setSelectedDoc] = useState<{ url: string; title: string, isDownloadable: boolean } | null>(null)
+
   return (
     <div className="px-4 lg:px-0 pb-20">
       <div className="w-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+          <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-black to-gray-700">
             {currentLesson.title}
           </h1>
 
@@ -56,20 +60,20 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
               onNavigate ? (
                 <Button
                   variant="outline"
-                  className="border-white/10 bg-white/5 hover:bg-white/10 hover:text-white text-white/70"
+                  className="border-gray-200 bg-white hover:bg-gray-50 hover:text-black text-gray-600"
                   onClick={() => onNavigate(prevLesson.sectionId, prevLesson.id)}
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" /> Bài trước
                 </Button>
               ) : (
                 <Link href={`/courses/${slug}/${courseId}/${prevLesson.sectionId}/${prevLesson.id}`}>
-                  <Button variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 hover:text-white text-white/70">
+                  <Button variant="outline" className="border-gray-200 bg-white hover:bg-gray-50 hover:text-black text-gray-600">
                     <ChevronLeft className="w-4 h-4 mr-2" /> Bài trước
                   </Button>
                 </Link>
               )
             ) : (
-              <Button disabled variant="outline" className="border-white/10 bg-transparent text-white/30">
+              <Button disabled variant="outline" className="border-gray-200 bg-transparent text-gray-300">
                 <ChevronLeft className="w-4 h-4 mr-2" /> Bài trước
               </Button>
             )}
@@ -98,31 +102,31 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="bg-white/5 border border-white/10 w-full justify-start h-auto p-1 rounded-xl mb-6">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-brand-purple data-[state=active]:text-white text-white/60 py-2.5 px-6 rounded-lg transition-all">
+          <TabsList className="bg-gray-100 border border-gray-200 w-full justify-start h-auto p-1 rounded-xl mb-6">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-brand-purple data-[state=active]:text-white text-gray-600 py-2.5 px-6 rounded-lg transition-all">
               Tổng quan
             </TabsTrigger>
-            <TabsTrigger value="resources" className="data-[state=active]:bg-brand-purple data-[state=active]:text-white text-white/60 py-2.5 px-6 rounded-lg transition-all">
+            <TabsTrigger value="resources" className="data-[state=active]:bg-brand-purple data-[state=active]:text-white text-gray-600 py-2.5 px-6 rounded-lg transition-all">
               Tài liệu
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="data-[state=active]:bg-brand-purple data-[state=active]:text-white text-white/60 py-2.5 px-6 rounded-lg transition-all">
+            <TabsTrigger value="reviews" className="data-[state=active]:bg-brand-purple data-[state=active]:text-white text-gray-600 py-2.5 px-6 rounded-lg transition-all">
               Hỏi đáp
             </TabsTrigger>
-            <TabsTrigger value="notes" className="data-[state=active]:bg-brand-purple data-[state=active]:text-white text-white/60 py-2.5 px-6 rounded-lg transition-all">
+            <TabsTrigger value="notes" className="data-[state=active]:bg-brand-purple data-[state=active]:text-white text-gray-600 py-2.5 px-6 rounded-lg transition-all">
               Ghi chú
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 animate-in fade-in-50 duration-300">
-            <div className="prose prose-invert max-w-none">
-              <h3 className="text-xl font-semibold mb-4 text-white">Mô tả
+            <div className="prose prose-gray max-w-none">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Mô tả
                 {currentLesson.type === LessonType.Quiz ? (
                   <span className="text-brand-pink"> (Bài kiểm tra)</span>
                 ) : (
                   <span className="text-brand-pink"> (Bài học)</span>
                 )}
               </h3>
-              <p className="text-white/70 text-lg leading-relaxed">
+              <p className="text-gray-700 text-lg leading-relaxed">
                 {currentLesson.description || "Chào mừng bạn đến với bài học này. Hãy xem video kỹ lưỡng và đừng quên làm bài tập thực hành cuối bài."}
               </p>
 
@@ -136,36 +140,36 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-magenta/20 text-brand-pink text-xs font-bold mb-2 border border-brand-magenta/20">
                           <Trophy className="w-3 h-3" /> Bài kiểm tra
                         </div>
-                        <h4 className="text-2xl font-bold text-white mb-2">{quizOverview.title}</h4>
-                        <p className="text-white/60">{quizOverview.description || "Hãy hoàn thành bài kiểm tra để đánh giá kiến thức của bạn."}</p>
+                        <h4 className="text-2xl font-bold text-gray-900 mb-2">{quizOverview.title}</h4>
+                        <p className="text-gray-600">{quizOverview.description || "Hãy hoàn thành bài kiểm tra để đánh giá kiến thức của bạn."}</p>
                       </div>
                       {/* Only show badge if needed */}
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                      <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
-                        <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
+                      <div className="p-4 rounded-xl bg-white/60 border border-gray-200 backdrop-blur-md">
+                        <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                           <Clock className="w-4 h-4" /> Thời gian
                         </div>
-                        <div className="text-xl font-bold text-white">{quizOverview.timeLimitMinutes} phút</div>
+                        <div className="text-xl font-bold text-gray-900">{quizOverview.timeLimitMinutes} phút</div>
                       </div>
-                      <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
-                        <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
+                      <div className="p-4 rounded-xl bg-white/60 border border-gray-200 backdrop-blur-md">
+                        <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                           <HelpCircle className="w-4 h-4" /> Câu hỏi
                         </div>
-                        <div className="text-xl font-bold text-white">{quizOverview.questionCount} câu</div>
+                        <div className="text-xl font-bold text-gray-900">{quizOverview.questionCount} câu</div>
                       </div>
-                      <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
-                        <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
+                      <div className="p-4 rounded-xl bg-white/60 border border-gray-200 backdrop-blur-md">
+                        <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                           <Target className="w-4 h-4" /> Điểm đạt
                         </div>
-                        <div className="text-xl font-bold text-white">{quizOverview.passScorePercent}%</div>
+                        <div className="text-xl font-bold text-gray-900">{quizOverview.passScorePercent}%</div>
                       </div>
-                      <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
-                        <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
+                      <div className="p-4 rounded-xl bg-white/60 border border-gray-200 backdrop-blur-md">
+                        <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
                           <Play className="w-4 h-4" /> Số lần làm
                         </div>
-                        <div className="text-xl font-bold text-white">3 lần</div>
+                        <div className="text-xl font-bold text-gray-900">3 lần</div>
                       </div>
                     </div>
 
@@ -173,7 +177,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                       <Button size="lg" className="bg-brand-gradient hover:opacity-90 text-white font-bold px-8 shadow-lg shadow-brand-purple/20 border-none">
                         <Play className="w-5 h-5 mr-2 fill-current" /> Bắt đầu làm bài
                       </Button>
-                      <Button size="lg" variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-white">
+                      <Button size="lg" variant="outline" className="border-gray-200 bg-white hover:bg-gray-50 text-gray-900">
                         Xem lịch sử làm bài
                       </Button>
                     </div>
@@ -182,14 +186,14 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
               )}
 
               {isQuizLesson && !quizOverview && isLoadingQuiz && (
-                <div className="my-8 h-48 rounded-2xl bg-white/5 animate-pulse flex items-center justify-center">
-                  <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+                <div className="my-8 h-48 rounded-2xl bg-gray-100 animate-pulse flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 text-gray-300 animate-spin" />
                 </div>
               )}
 
-              <div className="my-8 p-6 rounded-2xl bg-white/5 border border-white/10">
-                <h4 className="font-semibold text-white mb-2">Mục tiêu bài học:</h4>
-                <ul className="list-disc list-inside space-y-2 text-white/70">
+              <div className="my-8 p-6 rounded-2xl bg-gray-50 border border-gray-200">
+                <h4 className="font-semibold text-gray-900 mb-2">Mục tiêu bài học:</h4>
+                <ul className="list-disc list-inside space-y-2 text-gray-700">
                   <li>Hiểu được khái niệm cơ bản về chủ đề.</li>
                   <li>Biết cách áp dụng kiến thức vào thực tế.</li>
                   <li>Nắm vững các thuật ngữ chuyên ngành.</li>
@@ -199,25 +203,25 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
 
             </div>
 
-            <div className="flex items-center gap-4 py-8 border-t border-white/10">
-              <div className="flex items-center gap-2 text-white/50">
+            <div className="flex items-center gap-4 py-8 border-t border-gray-200">
+              <div className="flex items-center gap-2 text-gray-500">
                 <SafeImage
                   src={instructor?.avatar ? (formatImageUrl(instructor.avatar) || "") : "https://github.com/shadcn.png"}
                   alt="Instructor"
                   width={40}
                   height={40}
-                  className="w-10 h-10 rounded-full object-cover border border-white/20"
+                  className="w-10 h-10 rounded-full object-cover border border-gray-200"
                 />
                 <div>
-                  <div className="text-sm font-medium text-white">Giảng viên</div>
+                  <div className="text-sm font-medium text-gray-900">Giảng viên</div>
                   <div className="text-xs">{instructor?.name || course.instructorName}</div>
                 </div>
               </div>
               <div className="ml-auto flex gap-2">
-                <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10">
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-black hover:bg-gray-100">
                   <ThumbsUp className="w-4 h-4 mr-2" /> Thích
                 </Button>
-                <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10">
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-black hover:bg-gray-100">
                   <Share2 className="w-4 h-4 mr-2" /> Chia sẻ
                 </Button>
               </div>
@@ -227,27 +231,35 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
           <TabsContent value="resources" className="animate-in fade-in-50 duration-300">
             {isLoadingDocuments ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
+                <Loader2 className="w-8 h-8 text-gray-300 animate-spin" />
               </div>
             ) : lessonDocuments.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {lessonDocuments.map(doc => (
-                  <Link href={doc.lessonDocumentUrl} key={doc.id} target="_blank" rel="noopener noreferrer">
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-brand-pink/50 transition-colors cursor-pointer group flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                        <FileText className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-white group-hover:text-brand-pink transition-colors truncate" title={doc.title}>{doc.title}</h4>
-                        <p className="text-xs text-white/50 truncate" title={doc.description || ""}>{doc.description || "Tài liệu bài học"}</p>
-                      </div>
-                      {doc.isDownloadable && <Download className="w-5 h-5 text-white/30 ml-auto group-hover:text-white transition-colors shrink-0" />}
+                  <div
+                    key={doc.id}
+                    onClick={() => setSelectedDoc({ url: doc.lessonDocumentUrl, title: doc.title, isDownloadable: doc.isDownloadable })}
+                    className="p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-brand-pink/50 transition-colors cursor-pointer group flex items-center gap-4"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                      <FileText className="w-5 h-5" />
                     </div>
-                  </Link>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 group-hover:text-brand-pink transition-colors truncate" title={doc.title}>{doc.title}</h4>
+                      <p className="text-xs text-gray-500 truncate" title={doc.description || ""}>{doc.description || "Tài liệu bài học"}</p>
+                    </div>
+                    {doc.isDownloadable && (
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <a href={doc.lessonDocumentUrl} download target="_blank" rel="noopener noreferrer">
+                          <Download className="w-5 h-5 text-gray-400 ml-auto group-hover:text-gray-900 transition-colors shrink-0 hover:text-brand-pink" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 text-white/50">
+              <div className="text-center py-12 text-gray-400">
                 <FileText className="w-12 h-12 mx-auto mb-3 opacity-20" />
                 <p>Không có tài liệu nào cho bài học này.</p>
               </div>
@@ -255,7 +267,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
           </TabsContent>
 
           <TabsContent value="reviews">
-            <div className="flex flex-col items-center justify-center py-12 text-center text-white/50">
+            <div className="flex flex-col items-center justify-center py-12 text-center text-gray-400">
               <MessageCircle className="w-12 h-12 mb-4 opacity-20" />
               <p>Chưa có câu hỏi nào cho bài học này.</p>
               <Button variant="link" className="text-brand-pink mt-2">Đặt câu hỏi đầu tiên</Button>
@@ -263,12 +275,20 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
           </TabsContent>
 
           <TabsContent value="notes">
-            <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
-              <p className="text-white/60">Tính năng ghi chú đang được phát triển.</p>
+            <div className="p-6 rounded-2xl bg-gray-50 border border-gray-200 text-center">
+              <p className="text-gray-600">Tính năng ghi chú đang được phát triển.</p>
             </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      <DocumentViewDialog
+        open={!!selectedDoc}
+        onOpenChange={(open) => !open && setSelectedDoc(null)}
+        url={selectedDoc?.url || null}
+        title={selectedDoc?.title}
+        isDownloadable={selectedDoc?.isDownloadable}
+      />
     </div>
   )
 }

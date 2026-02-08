@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { CourseDetail, SectionDetail, LessonType } from '@/lib/api/services/fetchCourse'
 import { cn } from '@/lib/utils'
 import { Lesson } from '@/lib/api/services/fetchLesson'
+import DocumentViewDialog from '@/components/widget/document/DocumentViewDialog'
 
 interface LessonSidebarProps {
   course: CourseDetail
@@ -38,6 +39,7 @@ export default function LessonSidebar({
   const params = useParams() as { slug: string; courseId: string; sectionId?: string; lessonId?: string }
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
   const [isDocumentsExpanded, setIsDocumentsExpanded] = useState(false)
+  const [selectedDoc, setSelectedDoc] = useState<{ url: string; title: string, isDownloadable: boolean } | null>(null)
 
   // Determine effective IDs (prop takes precedence over params)
   const currentLessonId = propLessonId || params.lessonId
@@ -99,12 +101,12 @@ export default function LessonSidebar({
             exit={isMobile ? { x: '100%' } : { width: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={cn(
-              "fixed inset-y-0 right-0 z-40 bg-[#12121a] border-l border-white/10 w-[85vw] sm:w-[400px] shadow-2xl lg:relative lg:block lg:shadow-none flex flex-col h-full",
+              "fixed inset-y-0 right-0 z-40 bg-white border-l border-gray-200 w-[85vw] sm:w-[500px] shadow-2xl lg:relative lg:block lg:shadow-none flex flex-col h-full",
               isMobile && "top-[64px]"
             )}
           >
-            <div className="flex items-center justify-between p-4 border-b border-white/10 shrink-0">
-              <h3 className="font-bold text-lg text-white">Nội dung khóa học</h3>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0">
+              <h3 className="font-bold text-lg text-black">Nội dung khóa học</h3>
             </div>
 
             <div
@@ -113,22 +115,22 @@ export default function LessonSidebar({
               <div className="space-y-4">
                 {/* Course Documents */}
                 {course.documents && course.documents.length > 0 && (
-                  <div className="border border-white/10 rounded-lg overflow-hidden">
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
                     <button
                       onClick={() => setIsDocumentsExpanded(!isDocumentsExpanded)}
-                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center gap-2 flex-1 text-left">
                         <FileText className="w-4 h-4 text-brand-pink" />
-                        <span className="text-sm font-medium text-white/90">
+                        <span className="text-sm font-medium text-gray-900">
                           Tài liệu khóa học
                         </span>
-                        <span className="text-xs text-white/50">
+                        <span className="text-xs text-gray-500">
                           ({course.documents.length})
                         </span>
                       </div>
                       <span className={cn(
-                        "text-white/50 transition-transform",
+                        "text-gray-500 transition-transform",
                         isDocumentsExpanded && "rotate-90"
                       )}>
                         ▶
@@ -136,37 +138,34 @@ export default function LessonSidebar({
                     </button>
 
                     {isDocumentsExpanded && (
-                      <div className="border-t border-white/10 p-2 space-y-2">
+                      <div className="border-t border-gray-200 p-2 space-y-2">
                         {course.documents.map((doc) => (
-                          <div key={doc.id} className="flex items-center justify-between p-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">
+                          <div
+                            key={doc.id}
+                            onClick={() => setSelectedDoc({ url: doc.courseDocumentUrl, title: doc.title, isDownloadable: doc.isDownloadable })}
+                            className="flex items-center justify-between p-2.5 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group"
+                          >
                             <div className="flex items-center gap-3 overflow-hidden">
                               <div className="w-8 h-8 rounded-lg bg-brand-pink/10 flex items-center justify-center text-brand-pink shrink-0">
                                 <FileText className="w-4 h-4" />
                               </div>
                               <div className="min-w-0">
-                                <div className="font-medium text-sm text-white/90 truncate">{doc.title}</div>
-                                {doc.description && <div className="text-xs text-white/50 truncate">{doc.description}</div>}
+                                <div className="font-medium text-sm text-gray-900 truncate group-hover:text-brand-pink transition-colors">{doc.title}</div>
+                                {doc.description && <div className="text-xs text-gray-500 truncate">{doc.description}</div>}
                               </div>
                             </div>
-                            {doc.isDownloadable ? (
-                              <a
-                                href={doc.courseDocumentUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-2 hover:bg-white/10 rounded-full text-white/70 hover:text-brand-pink transition-colors"
-                                title="Tải xuống"
-                              >
-                                <Download className="w-4 h-4" />
-                              </a>
-                            ) : (
-                              <a
-                                href={doc.courseDocumentUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs font-medium text-brand-pink hover:underline px-2"
-                              >
-                                Xem
-                              </a>
+                            {doc.isDownloadable && (
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <a
+                                  href={doc.courseDocumentUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 hover:bg-gray-200 rounded-full text-gray-600 hover:text-brand-pink transition-colors block"
+                                  title="Tải xuống"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </a>
+                              </div>
                             )}
                           </div>
                         ))}
@@ -178,21 +177,21 @@ export default function LessonSidebar({
                 {/* Sections List */}
                 <div className="space-y-2">
                   {course.sections.map((section) => (
-                    <div key={section.id} className="border border-white/10 rounded-lg overflow-hidden">
+                    <div key={section.id} className="border border-gray-200 rounded-lg overflow-hidden">
                       <button
                         onClick={() => toggleSection(section.id)}
-                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+                        className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
                       >
                         <div className="flex items-center gap-2 flex-1 text-left">
-                          <span className="text-sm font-medium text-white/90">
+                          <span className="text-sm font-medium text-gray-900">
                             {section.orderIndex}. {section.title}
                           </span>
-                          <span className="text-xs text-white/50">
+                          <span className="text-xs text-gray-500">
                             ({section.lessons.length} bài)
                           </span>
                         </div>
                         <span className={cn(
-                          "text-white/50 transition-transform",
+                          "text-gray-500 transition-transform",
                           expandedSections[section.id] && "rotate-90"
                         )}>
                           ▶
@@ -200,14 +199,14 @@ export default function LessonSidebar({
                       </button>
 
                       {expandedSections[section.id] && (
-                        <div className="border-t border-white/10">
+                        <div className="border-t border-gray-200">
                           {section.lessons.map((lesson) => {
                             const isActive = currentLessonId === lesson.id
                             const lessonUrl = getLessonUrl(section, lesson)
                             const canAccessLesson = isEnrolled || lesson.isPreview
 
                             const renderLessonIcon = () => {
-                              if (!canAccessLesson) return <Lock className="h-4 w-4 text-white/30" />
+                              if (!canAccessLesson) return <Lock className="h-4 w-4 text-gray-400" />
 
                               switch (lesson.type) {
                                 case LessonType.Video:
@@ -230,12 +229,12 @@ export default function LessonSidebar({
                                   <div
                                     className={cn(
                                       "text-sm truncate",
-                                      isActive ? "text-white font-medium" : "text-white/70"
+                                      isActive ? "text-black font-medium" : "text-gray-700"
                                     )}
                                   >
                                     {lesson.orderIndex}. {lesson.title}
                                   </div>
-                                  <div className="text-xs text-white/50 mt-0.5">
+                                  <div className="text-xs text-gray-500 mt-0.5">
                                     {lesson.durationSeconds
                                       ? `${Math.floor(lesson.durationSeconds / 60)}:${String(
                                         lesson.durationSeconds % 60
@@ -256,9 +255,9 @@ export default function LessonSidebar({
                                     key={lesson.id}
                                     onClick={() => onNavigate(section.id, lesson.id)}
                                     className={cn(
-                                      "block px-4 py-2.5 hover:bg-white/5 transition-colors border-l-2 cursor-pointer",
+                                      "block px-4 py-2.5 hover:bg-gray-50 transition-colors border-l-2 cursor-pointer",
                                       isActive
-                                        ? "border-brand-pink bg-white/5"
+                                        ? "border-brand-pink bg-brand-pink/5"
                                         : "border-transparent"
                                     )}
                                   >
@@ -271,9 +270,9 @@ export default function LessonSidebar({
                                   key={lesson.id}
                                   href={lessonUrl}
                                   className={cn(
-                                    "block px-4 py-2.5 hover:bg-white/5 transition-colors border-l-2",
+                                    "block px-4 py-2.5 hover:bg-gray-50 transition-colors border-l-2",
                                     isActive
-                                      ? "border-brand-pink bg-white/5"
+                                      ? "border-brand-pink bg-brand-pink/5"
                                       : "border-transparent"
                                   )}
                                 >
@@ -288,7 +287,7 @@ export default function LessonSidebar({
                                 className={cn(
                                   "block px-4 py-2.5 border-l-2 cursor-not-allowed opacity-60",
                                   isActive
-                                    ? "border-brand-pink bg-white/5"
+                                    ? "border-brand-pink bg-brand-pink/5"
                                     : "border-transparent"
                                 )}
                                 aria-disabled="true"
@@ -300,16 +299,16 @@ export default function LessonSidebar({
 
                           {/* Section Assignment */}
                           {('assignmentId' in section && section.assignmentId) && (
-                            <div className="block px-4 py-2.5 border-l-2 border-transparent hover:bg-white/5 transition-colors cursor-pointer opacity-70 hover:opacity-100">
+                            <div className="block px-4 py-2.5 border-l-2 border-transparent hover:bg-gray-50 transition-colors cursor-pointer opacity-70 hover:opacity-100">
                               <div className="flex items-center gap-2">
                                 <div className="flex-shrink-0">
                                   <ClipboardCheck className="h-4 w-4 text-amber-500" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="text-sm text-white/70 truncate">
+                                  <div className="text-sm text-gray-700 truncate">
                                     Bài tập cuối chương
                                   </div>
-                                  <div className="text-xs text-white/50 mt-0.5">
+                                  <div className="text-xs text-gray-500 mt-0.5">
                                     Bắt buộc
                                   </div>
                                 </div>
@@ -332,12 +331,20 @@ export default function LessonSidebar({
         <motion.button
           initial={{ marginRight: -50 }}
           animate={{ marginRight: 0 }}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-[#12121a] border border-white/10 border-r-0 rounded-l-xl p-2 text-white/70 hover:text-brand-pink shadow-lg hover:pr-4 transition-all"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-30 bg-white border border-gray-200 border-r-0 rounded-l-xl p-2 text-gray-700 hover:text-brand-pink shadow-lg hover:pr-4 transition-all"
           onClick={onOpen}
         >
           <ChevronLeft className="w-6 h-6" />
         </motion.button>
       )}
+      {/* Document Viewer Dialog */}
+      <DocumentViewDialog
+        open={!!selectedDoc}
+        onOpenChange={(open: boolean) => !open && setSelectedDoc(null)}
+        url={selectedDoc?.url || null}
+        title={selectedDoc?.title}
+        isDownloadable={selectedDoc?.isDownloadable}
+      />
     </>
   )
 }
