@@ -7,13 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CourseDetail } from '@/lib/api/services/fetchCourse'
 import { Lesson, LessonType } from '@/lib/api/services/fetchLesson'
-import { useGetQuizById } from '@/hooks/useQuiz'
+import { useGetQuizById, useGetQuizOverview } from '@/hooks/useQuiz'
 import { useGetLessonDocument } from '@/hooks/useLesson'
-
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { formatImageUrl } from '@/lib/utils/formatImageUrl'
 import { LessonSummary } from '@/lib/api/services/fetchCourse'
 
@@ -43,7 +38,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
   const isQuizLesson = currentLesson.type === LessonType.Quiz;
   const quizId = isQuizLesson && 'quizId' in currentLesson ? currentLesson.quizId : null;
 
-  const { quiz, isLoading: isLoadingQuiz } = useGetQuizById(quizId || "")
+  const { quizOverview, isLoading: isLoadingQuiz } = useGetQuizOverview(quizId || "")
 
   // Fetch lesson documents
   const { lessonDocuments, isLoading: isLoadingDocuments } = useGetLessonDocument(currentLesson.id)
@@ -131,7 +126,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                 {currentLesson.description || "Chào mừng bạn đến với bài học này. Hãy xem video kỹ lưỡng và đừng quên làm bài tập thực hành cuối bài."}
               </p>
 
-              {isQuizLesson && quiz && (
+              {isQuizLesson && quizOverview && (
                 <div className="my-8 p-6 rounded-2xl bg-gradient-to-br from-brand-purple/20 to-brand-magenta/10 border border-brand-purple/30 backdrop-blur-sm relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-brand-purple/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
@@ -141,8 +136,8 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-magenta/20 text-brand-pink text-xs font-bold mb-2 border border-brand-magenta/20">
                           <Trophy className="w-3 h-3" /> Bài kiểm tra
                         </div>
-                        <h4 className="text-2xl font-bold text-white mb-2">{quiz.title}</h4>
-                        <p className="text-white/60">{quiz.description || "Hãy hoàn thành bài kiểm tra để đánh giá kiến thức của bạn."}</p>
+                        <h4 className="text-2xl font-bold text-white mb-2">{quizOverview.title}</h4>
+                        <p className="text-white/60">{quizOverview.description || "Hãy hoàn thành bài kiểm tra để đánh giá kiến thức của bạn."}</p>
                       </div>
                       {/* Only show badge if needed */}
                     </div>
@@ -152,19 +147,19 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                         <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
                           <Clock className="w-4 h-4" /> Thời gian
                         </div>
-                        <div className="text-xl font-bold text-white">{quiz.timeLimitMinutes} phút</div>
+                        <div className="text-xl font-bold text-white">{quizOverview.timeLimitMinutes} phút</div>
                       </div>
                       <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
                           <HelpCircle className="w-4 h-4" /> Câu hỏi
                         </div>
-                        <div className="text-xl font-bold text-white">{quiz.questionCount} câu</div>
+                        <div className="text-xl font-bold text-white">{quizOverview.questionCount} câu</div>
                       </div>
                       <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
                           <Target className="w-4 h-4" /> Điểm đạt
                         </div>
-                        <div className="text-xl font-bold text-white">{quiz.passScorePercent}%</div>
+                        <div className="text-xl font-bold text-white">{quizOverview.passScorePercent}%</div>
                       </div>
                       <div className="p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur-md">
                         <div className="flex items-center gap-2 text-white/50 text-sm mb-1">
@@ -186,7 +181,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                 </div>
               )}
 
-              {isQuizLesson && !quiz && isLoadingQuiz && (
+              {isQuizLesson && !quizOverview && isLoadingQuiz && (
                 <div className="my-8 h-48 rounded-2xl bg-white/5 animate-pulse flex items-center justify-center">
                   <Loader2 className="w-8 h-8 text-white/30 animate-spin" />
                 </div>
@@ -201,51 +196,7 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                 </ul>
               </div>
 
-              {currentLesson.type === LessonType.Text && (
-                <div className="my-8 p-6 rounded-2xl bg-white/5 border border-white/10">
-                  <h3 className="text-xl font-semibold mb-4 text-white">Nội dung bài học</h3>
-                  <div className="space-y-4">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        p: ({ children }) => <p className="text-white/70 text-base leading-relaxed mb-4 break-words">{children}</p>,
-                        h1: ({ children }) => <h1 className="text-3xl font-bold text-white mt-8 mb-4">{children}</h1>,
-                        h2: ({ children }) => <h2 className="text-2xl font-bold text-white mt-6 mb-3">{children}</h2>,
-                        h3: ({ children }) => <h3 className="text-xl font-semibold text-white mt-5 mb-2">{children}</h3>,
-                        strong: ({ children }) => <strong className="font-bold text-white">{children}</strong>,
-                        em: ({ children }) => <em className="italic text-white/80">{children}</em>,
-                        ul: ({ children }) => <ul className="list-disc list-inside space-y-2 text-white/70 mb-4 ml-4 break-words">{children}</ul>,
-                        ol: ({ children }) => <ol className="list-decimal list-inside space-y-2 text-white/70 mb-4 ml-4 break-words">{children}</ol>,
-                        li: ({ children }) => <li className="text-white/70 break-words">{children}</li>,
-                        blockquote: ({ children }) => <blockquote className="border-l-4 border-brand-purple/50 pl-4 italic text-white/60 my-4">{children}</blockquote>,
-                        a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand-pink hover:underline">{children}</a>,
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        code: ({ inline, className, children, ...props }: any) => {
-                          const match = /language-(\w+)/.exec(className || '')
-                          return !inline && match ? (
-                            <SyntaxHighlighter
-                              {...props}
-                              style={vscDarkPlus}
-                              language={match[1]}
-                              PreTag="div"
-                              className="rounded-lg !bg-[#1e1e1e] !p-4 my-4 border border-white/10 text-sm shadow-xl overflow-x-auto"
-                              showLineNumbers={false}
-                            >
-                              {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                          ) : (
-                            <code className="bg-white/10 text-brand-pink px-1.5 py-0.5 rounded text-sm font-mono break-all" {...props}>
-                              {children}
-                            </code>
-                          )
-                        }
-                      }}
-                    >
-                      {currentLesson.textContent || ""}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-              )}
+
             </div>
 
             <div className="flex items-center gap-4 py-8 border-t border-white/10">

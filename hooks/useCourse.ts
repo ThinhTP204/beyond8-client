@@ -196,12 +196,17 @@ export function useGetCourseById(id: string) {
   };
 }
 
-export function useGetCourseSummary(id: string) {
+export function useGetCourseSummary(
+  id: string,
+  options?: {
+    enabled?: boolean;
+  }
+) {
   const { data, isLoading, isError, refetch } = useQuery<CourseSummaryResponse, Error, CourseSummary>({
     queryKey: ["course", "summary", id],
     queryFn: () => fetchCourse.getCourseSummary(id),
     select: (data) => data.data,
-    enabled: !!id,
+    enabled: options?.enabled ?? !!id,
   });
 
   return {

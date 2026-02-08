@@ -20,6 +20,7 @@ interface LessonSidebarProps {
   onOpen: () => void
   currentLessonId?: string
   onNavigate?: (sectionId: string, lessonId: string) => void
+  mode?: 'default' | 'preview'
 }
 
 export default function LessonSidebar({
@@ -31,7 +32,8 @@ export default function LessonSidebar({
   isMobile,
   onOpen,
   currentLessonId: propLessonId,
-  onNavigate
+  onNavigate,
+  mode = 'default'
 }: LessonSidebarProps) {
   const params = useParams() as { slug: string; courseId: string; sectionId?: string; lessonId?: string }
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
@@ -77,7 +79,13 @@ export default function LessonSidebar({
   }
 
   const getLessonUrl = (section: SectionDetail, lesson: Lesson) => {
-    return `/courses/${slug}/${courseId}/${section.id}/${lesson.id}`
+    let baseUrl = `/courses/${slug}/${courseId}/${section.id}/${lesson.id}`
+
+    if (lesson.type === LessonType.Quiz) {
+      baseUrl += `/quiz-attempt?quizId=${lesson.quizId}`
+    }
+
+    return mode === 'preview' ? `${baseUrl}?source=summary` : baseUrl
   }
 
   return (

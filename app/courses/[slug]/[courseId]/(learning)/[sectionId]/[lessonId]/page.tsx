@@ -7,43 +7,49 @@ import type { Lesson } from '@/lib/api/services/fetchLesson'
 import { useAuth } from '@/hooks/useAuth'
 import { useCheckEnrollment } from '@/hooks/useEnroll'
 import VideoLesson from './components/VideoLesson'
+import TextLesson from './components/TextLesson'
 import LessonInfo from './components/LessonInfo'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatHls } from '@/lib/utils/formatHls'
+import { useUserById } from '@/hooks/useUserProfile'
 
 
 export default function LessonPage() {
   const params = useParams()
-  const searchParams = useSearchParams()
   const router = useRouter()
   const courseId = params?.courseId as string
   const slug = params?.slug as string
   const sectionId = params?.sectionId as string
   const lessonId = params?.lessonId as string
   const { isAuthenticated } = useAuth()
-  const mode = searchParams.get('source') === 'summary' ? 'summary' : 'details'
-
-  // Kiểm tra enrollment (để chặn xem bài không phải preview nếu chưa enroll)
+  // 1. Kiểm tra enrollment
   const {
     isEnrolled,
+    isLoading: isCheckingEnroll
   } = useCheckEnrollment(courseId, {
     enabled: !!courseId && isAuthenticated,
   })
 
-  // Fetch course data cho màn học bài
+  // 2. Xác định mode tương tự layout
+  const shouldFetchDetails = isAuthenticated && !isCheckingEnroll && isEnrolled
+  const shouldFetchSummary = !isAuthenticated || (!isCheckingEnroll && !isEnrolled)
+
+  // 3. Fetch data tương ứng
   const {
     courseDetails,
     isLoading: isLoadingDetails,
     isError: isErrorDetails,
   } = useGetCourseDetails(courseId || "", {
-    enabled: !!courseId && mode === 'details',
+    enabled: !!courseId && shouldFetchDetails,
   })
 
   const {
     courseSummary,
     isLoading: isLoadingSummary,
     isError: isErrorSummary,
-  } = useGetCourseSummary(courseId || "")
+  } = useGetCourseSummary(courseId || "", {
+    enabled: !!courseId && shouldFetchSummary,
+  })
 
   // Check if params exist
   if (!courseId || !slug || !sectionId || !lessonId) {
@@ -51,9 +57,11 @@ export default function LessonPage() {
     return null
   }
 
-  const isLoading = mode === 'details' ? isLoadingDetails : isLoadingSummary
-  const isError = mode === 'details' ? isErrorDetails : isErrorSummary
-  const course = (mode === 'details' ? courseDetails : courseSummary) as CourseDetail | CourseSummary
+  // 4. Determine final state
+  const mode = shouldFetchDetails ? 'details' : 'summary'
+  const isLoading = isCheckingEnroll || (shouldFetchDetails ? isLoadingDetails : isLoadingSummary)
+  const isError = shouldFetchDetails ? isErrorDetails : isErrorSummary
+  const course = (shouldFetchDetails ? courseDetails : courseSummary) as CourseDetail | CourseSummary
 
   if (isLoading) {
     return (
@@ -122,6 +130,12 @@ export default function LessonPage() {
           durationSeconds={
             'durationSeconds' in lesson ? lesson.durationSeconds : null
           }
+        />
+      )}
+      {lesson.type === 'Text' && (
+        <TextLesson
+          title={lesson.title}
+          content={'textContent' in lesson ? lesson.textContent : null}
         />
       )}
       {mode === 'details' && courseDetails && (

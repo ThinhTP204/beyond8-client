@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useGetCourseDetails, useGetCourseSummary } from '@/hooks/useCourse'
 import { useAuth } from '@/hooks/useAuth'
 import { useCheckEnrollment } from '@/hooks/useEnroll'
@@ -9,36 +9,43 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const params = useParams()
-  const searchParams = useSearchParams()
   const router = useRouter()
   const courseId = params?.courseId as string
   const slug = params?.slug as string
   const sectionId = params?.sectionId as string
   const { isAuthenticated } = useAuth()
-  const mode = searchParams.get('source') === 'summary' ? 'summary' : 'details'
 
-  // Fetch course data từ API cho layout learning (dùng cho cả preview và học viên đã enroll).
-  // Hook phải được gọi trước mọi early return khác.
+  // 1. Kiểm tra enrollment trước
+  const {
+    isEnrolled,
+    isLoading: isCheckingEnroll
+  } = useCheckEnrollment(courseId, {
+    enabled: !!courseId && isAuthenticated,
+  })
+
+  // 2. Xác định mode dựa trên enrollment
+  // Nếu chưa login -> summary
+  // Nếu đang check enroll -> chưa quyết định (đợi)
+  // Nếu đã enroll -> details
+  // Nếu chưa enroll -> summary
+  const shouldFetchDetails = isAuthenticated && !isCheckingEnroll && isEnrolled
+  const shouldFetchSummary = !isAuthenticated || (!isCheckingEnroll && !isEnrolled)
+
+  // 3. Fetch data tương ứng
   const {
     courseDetails,
     isLoading: isLoadingDetails,
     isError: isErrorDetails,
   } = useGetCourseDetails(courseId, {
-    enabled: !!courseId && mode === 'details',
+    enabled: !!courseId && shouldFetchDetails,
   })
 
   const {
     courseSummary,
     isLoading: isLoadingSummary,
     isError: isErrorSummary,
-  } = useGetCourseSummary(courseId)
-
-  // Kiểm tra enrollment (dùng cho sidebar / quyền truy cập lesson), nhưng
-  // KHÔNG chặn xem video preview nếu chưa enroll.
-  const {
-    isEnrolled,
-  } = useCheckEnrollment(courseId, {
-    enabled: !!courseId && isAuthenticated,
+  } = useGetCourseSummary(courseId, {
+    enabled: !!courseId && shouldFetchSummary,
   })
 
   // Check if params exist
@@ -47,9 +54,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return null
   }
 
-  const isLoading = mode === 'details' ? isLoadingDetails : isLoadingSummary
-  const isError = mode === 'details' ? isErrorDetails : isErrorSummary
-  const course = (mode === 'details' ? courseDetails : courseSummary)
+  // 4. Determine final state
+  // Nếu đang check enroll hoặc đang fetch data tương ứng -> Loading
+  const isLoading = isCheckingEnroll || (shouldFetchDetails ? isLoadingDetails : isLoadingSummary)
+  const isError = shouldFetchDetails ? isErrorDetails : isErrorSummary
+  const course = shouldFetchDetails ? courseDetails : courseSummary
 
   if (isLoading) {
     return (
@@ -71,7 +80,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <LearningLayoutClient 
+    <LearningLayoutClient
       courseId={courseId}
       slug={slug}
       course={course}
