@@ -5,6 +5,7 @@ import HeroSection from './components/HeroSection'
 import CoursesSection from './components/courses/CoursesSection'
 import {Footer} from '@/components/layout/Footer'
 import { PricingSection } from './components/PricingSection'
+import FloatingActionButtons from './components/FloatingActionButtons'
 
 export default function LandingPage() {
   return (
@@ -24,6 +25,9 @@ export default function LandingPage() {
 
       {/* Footer */}
       <Footer />
+
+      {/* Floating Action Buttons - Only on Landing Page */}
+      <FloatingActionButtons />
     </div>
   )
 }

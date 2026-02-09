@@ -653,3 +653,25 @@ export function usePublishCourses() {
     isPending,
   };
 }
+
+// Get top 10 most popular courses
+export function useGetMostPopularCourses() {
+  const { data, isLoading, refetch, isFetching, isError } = useQuery<
+    PublicCourseResponse,
+    Error,
+    Course[]
+  >({
+    queryKey: ["courses", "most-popular", "top-10"],
+    queryFn: () => fetchCourse.getMostPopularCourses(),
+    select: (data) => data.data,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  return {
+    courses: data ?? [],
+    isLoading,
+    refetch,
+    isFetching,
+    isError,
+  };
+}

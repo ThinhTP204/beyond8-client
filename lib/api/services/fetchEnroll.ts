@@ -53,6 +53,38 @@ export interface MyEnrollmentsResponse {
   metadata: null;
 }
 
+export interface LessonProgress {
+  lessonId: string;
+  title: string;
+  order: number;
+  isCompleted: boolean;
+}
+
+export interface SectionProgress {
+  sectionId: string;
+  title: string;
+  order: number;
+  isCompleted: boolean;
+  lessons: LessonProgress[];
+}
+
+export interface CurriculumProgressData {
+  enrollmentId: string;
+  courseId: string;
+  courseTitle: string;
+  progressPercent: number;
+  completedLessons: number;
+  totalLessons: number;
+  sections: SectionProgress[];
+}
+
+export interface CurriculumProgressResponse {
+  isSuccess: boolean;
+  message: string;
+  data: CurriculumProgressData;
+  metadata: null;
+}
+
 export const fetchEnroll = {
   // Kiểm tra người dùng hiện tại đã đăng ký khoá học hay chưa
   checkEnrollment: async (
@@ -80,6 +112,16 @@ export const fetchEnroll = {
   getMyEnrollments: async (): Promise<MyEnrollmentsResponse> => {
     const response = await apiService.get<MyEnrollmentsResponse>(
       "api/v1/enrollments/me"
+    );
+    return response.data;
+  },
+
+  // Lấy curriculum progress của enrollment
+  getCurriculumProgress: async (
+    enrollmentId: string
+  ): Promise<CurriculumProgressResponse> => {
+    const response = await apiService.get<CurriculumProgressResponse>(
+      `api/v1/enrollments/${enrollmentId}/curriculum-progress`
     );
     return response.data;
   },

@@ -8,7 +8,7 @@ import { Footer } from '@/components/layout/Footer'
 import { useGetCourseSummary, useGetCourseDetails } from '@/hooks/useCourse'
 import { useAuth } from '@/hooks/useAuth'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useCheckEnrollment } from '@/hooks/useEnroll'
+import { useCheckEnrollment, useGetMyEnrollments } from '@/hooks/useEnroll'
 
 export default function CourseDetailPage() {
   const params = useParams()
@@ -105,7 +105,6 @@ function CourseSummarySection({ courseId, slug }: { courseId: string; slug: stri
     return <NotFound />
   }
 
-  // Verify slug matches (giữ nguyên logic cũ)
   if (courseSummary.slug && courseSummary.slug !== slug) {
     // Có thể redirect sang slug đúng nếu cần
   }
@@ -120,6 +119,10 @@ function CourseDetailsSection({ courseId, slug }: { courseId: string; slug: stri
     isError,
   } = useGetCourseDetails(courseId)
 
+  const { enrollments } = useGetMyEnrollments()
+  const enrollment = enrollments.find(e => e.courseId === courseId)
+  const enrollmentId = enrollment?.id
+
   if (isLoading) {
     return <CourseContentSkeleton />
   }
@@ -128,10 +131,9 @@ function CourseDetailsSection({ courseId, slug }: { courseId: string; slug: stri
     return <NotFound />
   }
 
-  // Verify slug matches (giữ nguyên logic cũ)
   if (courseDetails.slug && courseDetails.slug !== slug) {
     // Có thể redirect sang slug đúng nếu cần
   }
 
-  return <CourseDetail courseData={courseDetails} mode="details" />
+  return <CourseDetail courseData={courseDetails} mode="details" enrollmentId={enrollmentId} />
 }

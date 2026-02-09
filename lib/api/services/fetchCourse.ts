@@ -558,5 +558,10 @@ export const fetchCourse = {
         const response = await apiService.post<PublicCourseResponse>(`api/v1/courses/publish/bulk`, ids);
         return response.data;
     },
+    // Get top 10 most popular courses
+    getMostPopularCourses: async (): Promise<PublicCourseResponse> => {
+        const response = await apiService.get<PublicCourseResponse>("api/v1/courses/most-popular/top-10");
+        return response.data;
+    },
 
 }

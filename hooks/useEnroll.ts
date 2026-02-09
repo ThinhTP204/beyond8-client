@@ -5,6 +5,8 @@ import {
   CheckEnrollmentResponse,
   MyEnrollmentsResponse,
   MyEnrollmentData,
+  CurriculumProgressResponse,
+  CurriculumProgressData,
 } from "@/lib/api/services/fetchEnroll";
 import { toast } from "sonner";
 
@@ -93,6 +95,30 @@ export function useGetMyEnrollments(options?: { enabled?: boolean }) {
 
   return {
     enrollments: data ?? [],
+    isLoading,
+    isError,
+    refetch,
+  };
+}
+
+// Hook lấy curriculum progress của enrollment
+export function useGetCurriculumProgress(
+  enrollmentId?: string,
+  options?: { enabled?: boolean }
+) {
+  const { data, isLoading, isError, refetch } = useQuery<
+    CurriculumProgressResponse,
+    Error,
+    CurriculumProgressData
+  >({
+    queryKey: ["enrollments", "curriculum-progress", enrollmentId],
+    queryFn: () => fetchEnroll.getCurriculumProgress(enrollmentId as string),
+    enabled: options?.enabled ?? !!enrollmentId,
+    select: (res) => res.data,
+  });
+
+  return {
+    curriculumProgress: data,
     isLoading,
     isError,
     refetch,

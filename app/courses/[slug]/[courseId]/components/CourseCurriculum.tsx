@@ -9,6 +9,7 @@ import {
   ClipboardList,
   ListChecks,
   ClipboardCheck,
+  Check,
 } from 'lucide-react'
 import {
   Accordion,
@@ -19,18 +20,15 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CourseSummary, CourseDetail as CourseDetailType, LessonType } from '@/lib/api/services/fetchCourse'
+import { useGetCurriculumProgress } from '@/hooks/useEnroll'
 
 interface CourseCurriculumProps {
   course: CourseSummary | CourseDetailType
-  /**
-   * summary: trang public dùng useGetCourseSummary -> chỉ cho xem bài preview
-   * preview: instructor preview -> truy cập tất cả
-   */
   mode?: 'summary' | 'details' | 'preview'
   onLessonSelect?: (sectionId: string, lessonId: string) => void
+  enrollmentId?: string
 }
 
-// Format duration from minutes to readable string
 const formatDuration = (minutes: number | null | undefined): string => {
   if (!minutes) return '0m'
   const hours = Math.floor(minutes / 60)
@@ -43,12 +41,26 @@ const formatDuration = (minutes: number | null | undefined): string => {
   return `${mins}m`
 }
 
-export default function CourseCurriculum({ course, mode = 'summary', onLessonSelect }: CourseCurriculumProps) {
+export default function CourseCurriculum({ course, mode = 'summary', onLessonSelect, enrollmentId }: CourseCurriculumProps) {
   const totalLessons = course.totalLessons || course.sections.reduce((sum, section) => sum + section.lessons.length, 0)
   const totalDuration = formatDuration(course.totalDurationMinutes)
   const params = useParams()
   const slug = params?.slug as string || 'course-slug'
   const courseId = params?.courseId as string || course.id
+
+  const { curriculumProgress } = useGetCurriculumProgress(enrollmentId, {
+    enabled: !!enrollmentId && mode === 'details'
+  })
+
+  const sectionProgressMap = new Map(
+    curriculumProgress?.sections.map(section => [section.sectionId, section]) || []
+  )
+  const lessonProgressMap = new Map<string, { isCompleted: boolean }>()
+  curriculumProgress?.sections.forEach(section => {
+    section.lessons.forEach(lesson => {
+      lessonProgressMap.set(lesson.lessonId, { isCompleted: lesson.isCompleted })
+    })
+  })
 
   return (
     <Card className="border-none shadow-none bg-transparent">
@@ -76,7 +88,14 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                     {index + 1}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-lg text-brand-dark">{section.title}</div>
+                    <div className="font-semibold text-lg text-brand-dark flex items-center gap-2">
+                      {section.title}
+                      {sectionProgressMap.get(section.id)?.isCompleted && (
+                        <Badge variant="outline" className="text-[10px] border-green-500 text-green-600 bg-green-50">
+                          Hoàn thành
+                        </Badge>
+                      )}
+                    </div>
                     {section.description && (
                       <div className="text-sm text-muted-foreground mt-1 font-normal line-clamp-1">
                         {section.description}
@@ -114,8 +133,19 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                     const canClick =
                       mode === 'details' || mode === 'preview' ? true : lesson.isPreview
 
+                    const lessonProgress = lessonProgressMap.get(lesson.id)
+                    const isLessonCompleted = lessonProgress?.isCompleted || false
+
                     const renderLessonIcon = () => {
-                      // Nếu không click được (bị khóa) thì luôn hiện icon ổ khóa
+                      // Nếu lesson đã hoàn thành, hiển thị icon tick xanh với background xanh nhạt
+                      if (isLessonCompleted) {
+                        return (
+                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                            <Check className="w-4 h-4" />
+                          </div>
+                        )
+                      }
+
                       if (!canClick) {
                         return (
                           <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
@@ -124,7 +154,6 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                         )
                       }
 
-                      // Bài học truy cập được: hiển thị icon theo type
                       switch (lesson.type) {
                         case LessonType.Video:
                           return (
