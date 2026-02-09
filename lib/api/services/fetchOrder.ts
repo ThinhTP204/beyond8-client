@@ -8,12 +8,19 @@ export interface CartItem {
   instructorId: string;
   instructorName: string;
   originalPrice: number;
+  discountPercent: number | null;
+  discountAmount: number | null;
+  discountEndsAt: string | null;
+  finalPrice: number;
+  hasDiscount: boolean;
 }
 
 export interface CartData {
   id: string;
   userId: string;
   items: CartItem[];
+  originalTotal: number;
+  totalDiscount: number;
   subTotal: number;
   totalItems: number;
 }
