@@ -24,7 +24,8 @@ import {
     CheckCircle2,
     X,
     Edit,
-    Eye
+    Eye,
+    Upload
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -36,6 +37,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { useMediaAssignment } from "@/hooks/useMedia"
+import { toast } from "sonner"
 
 interface AssignmentDialogProps {
     open: boolean
@@ -96,6 +99,27 @@ export function AssignmentDialog({
             }))
             setCustomFileType("")
         }
+    }
+
+    const { uploadRubricAssignment, isUploadingRubricAssignment } = useMediaAssignment()
+
+    const handleRubricUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0]
+            uploadRubricAssignment(file, {
+                onSuccess: (data) => {
+                    setFormData(prev => ({
+                        ...prev,
+                        rubricUrl: data.fileUrl
+                    }))
+                    toast.success("Tải lên Rubric thành công!")
+                },
+                onError: () => {
+                    toast.error("Tải lên Rubric thất bại!")
+                }
+            })
+        }
+        e.target.value = ''
     }
 
     // Reset form when assignment changes (e.g., when opening a different assignment)
@@ -414,6 +438,75 @@ export function AssignmentDialog({
                                                 </span>
                                             </div>
                                         )}
+                                    </div>
+
+                                    <Separator />
+
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium text-gray-700">
+                                            Rubric chấm điểm
+                                        </Label>
+                                        {isEditMode ? (
+                                            <div className="flex items-center gap-2">
+                                                {formData.rubricUrl ? (
+                                                    <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-100 rounded-lg w-full">
+                                                        <FileText className="w-4 h-4 text-blue-500" />
+                                                        <span className="text-sm text-gray-700 flex-1 truncate">
+                                                            {formData.rubricUrl.split('/').pop()}
+                                                        </span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-6 w-6 text-gray-400 hover:text-red-500"
+                                                            onClick={() => setFormData({ ...formData, rubricUrl: null })}
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex-1">
+                                                        <input
+                                                            type="file"
+                                                            id="rubric-upload-edit"
+                                                            className="hidden"
+                                                            accept=".pdf,.doc,.docx,.xlsx,.xls"
+                                                            onChange={handleRubricUpload}
+                                                            disabled={isUploadingRubricAssignment}
+                                                        />
+                                                        <Label
+                                                            htmlFor="rubric-upload-edit"
+                                                            className="flex items-center justify-center gap-2 w-full p-2 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                                        >
+                                                            {isUploadingRubricAssignment ? (
+                                                                <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                                                            ) : (
+                                                                <Upload className="w-4 h-4 text-gray-400" />
+                                                            )}
+                                                            <span className="text-sm text-gray-600">
+                                                                {isUploadingRubricAssignment ? "Đang tải lên..." : "Tải lên Rubric"}
+                                                            </span>
+                                                        </Label>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            assignment.rubricUrl ? (
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="w-4 h-4 text-blue-500" />
+                                                    <a
+                                                        href={assignment.rubricUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-sm text-blue-600 hover:underline truncate"
+                                                    >
+                                                        {assignment.rubricUrl.split('/').pop()}
+                                                    </a>
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-gray-500 italic">Chưa có rubric</p>
+                                            )
+                                        )}
+                                        {isEditMode && <p className="text-[10px] text-gray-500">Hỗ trợ: PDF, DOC, DOCX, EXCEL</p>}
                                     </div>
                                 </CardContent>
                             </Card>

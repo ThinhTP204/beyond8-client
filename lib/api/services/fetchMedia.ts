@@ -448,6 +448,90 @@ export const mediaService = {
     return mediaResponse.data;
   },
 
+  //Lấy presigned URL để upload submission assignment
+  getSubmissionAssignmentPresignedUrl: async (
+    request: PresignedUrlRequest
+  ): Promise<ApiResponse<PresignedUrlResponse>> => {
+    const response = await apiService.post<ApiResponse<PresignedUrlResponse>>(
+      "api/v1/media/assignment-submission/presigned-url",
+      request
+    );
+    return response.data;
+  },
+
+  //Lấy presigned URL để upload rubric assignment
+  getRubricAssignmentPresignedUrl: async (
+    request: PresignedUrlRequest
+  ): Promise<ApiResponse<PresignedUrlResponse>> => {
+    const response = await apiService.post<ApiResponse<PresignedUrlResponse>>(
+      "api/v1/media/assignment-rubric/presigned-url",
+      request
+    );
+    return response.data;
+  },
+
+  uploadSubmissionAssignment: async (file: File): Promise<MediaFile> => {
+    const presignedResponse = await mediaService.getSubmissionAssignmentPresignedUrl({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      metadata: null,
+    });
+
+    if (!presignedResponse.isSuccess || !presignedResponse.data) {
+      throw new Error(presignedResponse.message || "Không thể lấy URL tải lên bài nộp");
+    }
+
+    const { fileId, presignedUrl } = presignedResponse.data;
+
+    await mediaService.uploadToPresignedUrl(presignedUrl, file);
+
+    const confirmResponse = await mediaService.confirmUpload({ fileId });
+
+    if (!confirmResponse.isSuccess || !confirmResponse.data) {
+      throw new Error(confirmResponse.message || "Không thể xác nhận tải lên bài nộp");
+    }
+
+    const mediaResponse = await mediaService.getMediaFile(fileId);
+
+    if (!mediaResponse.isSuccess || !mediaResponse.data) {
+      throw new Error(mediaResponse.message || "Không thể lấy thông tin file bài nộp");
+    }
+
+    return mediaResponse.data;
+  },
+
+  uploadRubricAssignment: async (file: File): Promise<MediaFile> => {
+    const presignedResponse = await mediaService.getRubricAssignmentPresignedUrl({
+      fileName: file.name,
+      contentType: file.type,
+      size: file.size,
+      metadata: null,
+    });
+
+    if (!presignedResponse.isSuccess || !presignedResponse.data) {
+      throw new Error(presignedResponse.message || "Không thể lấy URL tải lên rubric");
+    }
+
+    const { fileId, presignedUrl } = presignedResponse.data;
+
+    await mediaService.uploadToPresignedUrl(presignedUrl, file);
+
+    const confirmResponse = await mediaService.confirmUpload({ fileId });
+
+    if (!confirmResponse.isSuccess || !confirmResponse.data) {
+      throw new Error(confirmResponse.message || "Không thể xác nhận tải lên rubric");
+    }
+
+    const mediaResponse = await mediaService.getMediaFile(fileId);
+
+    if (!mediaResponse.isSuccess || !mediaResponse.data) {
+      throw new Error(mediaResponse.message || "Không thể lấy thông tin file rubric");
+    }
+
+    return mediaResponse.data;
+  },
+
   //Tạo presigned URL để download file
   getUrlDownloadMedia: async ({ cloudFrontUrl }: { cloudFrontUrl: string }): Promise<ApiResponse<DownloadMediaResponse>> => {
     const response = await apiService.get<ApiResponse<DownloadMediaResponse>>(
@@ -455,4 +539,6 @@ export const mediaService = {
     );
     return response.data;
   },
+
+
 };

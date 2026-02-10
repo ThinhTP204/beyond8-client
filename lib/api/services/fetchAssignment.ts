@@ -65,7 +65,50 @@ export interface Assignment {
     attachmentUrls: Attachment[]
     submissionType: SubmissionType | string
     gradingMode: GradingMode | string
+}
 
+export interface SubmissionAssigment {
+    id: string
+    studentId: string
+    assignmentId: string
+    submissionNumber: number
+    submittedAt: string
+    textContent: string
+    fileUrls: string[]
+    aiScore: number | null
+    aiFeedback: string | null
+    finalScore: number | null
+    instructorFeedback: string | null
+    gradedBy: string | null
+    gradedAt: string | null
+    status: string
+    submissionType: SubmissionType | string
+    createdAt: string
+    updatedAt: string | null
+}
+
+export interface SubmissionAssigmentRequest {
+    textContent: string
+    fileUrls: string[]
+}
+
+export interface GradeAssignmentRequest {
+    finalScore: number
+    instructorFeedback: string | null
+}
+
+export interface SubmissionAssigmentResponse {
+    isSuccess: boolean
+    message: string
+    data: SubmissionAssigment
+    metadata: null | unknown
+}
+
+export interface GetSubmissionAssigmentResponse {
+    isSuccess: boolean
+    message: string
+    data: SubmissionAssigment[]
+    metadata: null | unknown
 }
 
 export interface ParamsAssignment {
@@ -140,5 +183,38 @@ export const assignmentService = {
     deleteAssignment: async (id: string): Promise<AssignmentResponse> => {
         const response = await apiService.delete<AssignmentResponse>(`api/v1/assignments/${id}`)
         return response.data
-    }
+    },
+
+    //Lấy assignment theo ID cho học sinh
+    getAssignmentByIdForStudent: async (id: string): Promise<AssignmentResponse> => {
+        const response = await apiService.get<AssignmentResponse>(`api/v1/assignments/${id}/student`)
+        return response.data
+    },
+
+    //Tạo submission cho assignment
+    submitAssignment: async (assignmentId: string, data: SubmissionAssigmentRequest): Promise<SubmissionAssigmentResponse> => {
+        const response = await apiService.post<SubmissionAssigmentResponse, SubmissionAssigmentRequest>(`api/v1/assignment-submissions/${assignmentId}`, data)
+        return response.data
+    },
+
+
+    //Lấy danh sách submission theo assignment ID
+    getSubmissionAssigment: async (assignmentId: string): Promise<GetSubmissionAssigmentResponse> => {
+        const response = await apiService.get<GetSubmissionAssigmentResponse>(`api/v1/assignment-submissions/assignment/${assignmentId}/student`)
+        return response.data
+    },
+
+    //Chấm điểm submission bởi giảng viên
+    gradeAssignment: async (submissionId: string, data: GradeAssignmentRequest): Promise<SubmissionAssigmentResponse> => {
+        const response = await apiService.patch<SubmissionAssigmentResponse, GradeAssignmentRequest>(`api/v1/assignment-submissions/${submissionId}/instructor-grade`, data)
+        return response.data
+    },
+
+    //Lấy danh sách tất cả submission
+    getAllSubmission: async (): Promise<GetSubmissionAssigmentResponse> => {
+        const response = await apiService.get<GetSubmissionAssigmentResponse>(`api/v1/assignment-submissions/instructor​`)
+        return response.data
+    },
+
+
 }

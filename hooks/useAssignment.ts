@@ -6,7 +6,11 @@ import {
     UpdateAssignmentRequest,
     AssignmentResponse,
     GetAssignmentResponse,
-    ParamsAssignment
+    ParamsAssignment,
+    SubmissionAssigmentResponse,
+    SubmissionAssigmentRequest,
+    GradeAssignmentRequest,
+    GetSubmissionAssigmentResponse
 } from "@/lib/api/services/fetchAssignment"
 
 export function useCreateAssignment(courseId: string) {
@@ -114,5 +118,100 @@ export function useDeleteAssignment(courseId: string) {
         error: mutation.error,
         isSuccess: mutation.isSuccess,
         data: mutation.data,
+    }
+}
+
+export function useGetAssignmentByIdForStudent(id: string) {
+    const { data, isLoading, error, refetch, isFetching } = useQuery<AssignmentResponse, Error>({
+        queryKey: ["assignments", id],
+        queryFn: () => assignmentService.getAssignmentByIdForStudent(id),
+        enabled: !!id,
+    })
+
+    return {
+        assignment: data?.data,
+        isLoading,
+        error,
+        refetch,
+        isFetching,
+    }
+}
+
+export function useSubmitAssignment(assignmentId: string) {
+    const queryClient = useQueryClient()
+    const mutation = useMutation<SubmissionAssigmentResponse, Error, SubmissionAssigmentRequest>({
+        mutationFn: (data: SubmissionAssigmentRequest) => assignmentService.submitAssignment(assignmentId, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["assignments"] })
+            queryClient.invalidateQueries({ queryKey: ["assignments", assignmentId] })
+            toast.success("Nộp bài tập thành công!")
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || "Nộp bài tập thất bại!")
+        },
+    })
+
+    return {
+        submitAssignment: mutation.mutate,
+        submitAssignmentAsync: mutation.mutateAsync,
+        isPending: mutation.isPending,
+        error: mutation.error,
+        isSuccess: mutation.isSuccess,
+        data: mutation.data,
+    }
+}
+
+export function useGradeAssignment(submissionId: string) {
+    const queryClient = useQueryClient()
+    const mutation = useMutation<SubmissionAssigmentResponse, Error, GradeAssignmentRequest>({
+        mutationFn: (data: GradeAssignmentRequest) => assignmentService.gradeAssignment(submissionId, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["assignments"] })
+            queryClient.invalidateQueries({ queryKey: ["assignments", submissionId] })
+            toast.success("Chấm điểm bài tập thành công!")
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || "Chấm điểm bài tập thất bại!")
+        },
+    })
+
+    return {
+        gradeAssignment: mutation.mutate,
+        gradeAssignmentAsync: mutation.mutateAsync,
+        isPending: mutation.isPending,
+        error: mutation.error,
+        isSuccess: mutation.isSuccess,
+        data: mutation.data,
+    }
+}
+
+export function useGetSubmissionByStudent(assignmentId: string) {
+    const { data, isLoading, error, refetch, isFetching } = useQuery<GetSubmissionAssigmentResponse, Error>({
+        queryKey: ["assignments", assignmentId, "submissions"],
+        queryFn: () => assignmentService.getSubmissionAssigment(assignmentId),
+        enabled: !!assignmentId,
+    })
+
+    return {
+        submissions: data?.data,
+        isLoading,
+        error,
+        refetch,
+        isFetching,
+    }
+}
+
+export function useGetAllSubmissionByInstructor() {
+    const { data, isLoading, error, refetch, isFetching } = useQuery<GetSubmissionAssigmentResponse, Error>({
+        queryKey: ["assignments", "submissions"],
+        queryFn: () => assignmentService.getAllSubmission(),
+    })
+
+    return {
+        submissions: data?.data,
+        isLoading,
+        error,
+        refetch,
+        isFetching,
     }
 }

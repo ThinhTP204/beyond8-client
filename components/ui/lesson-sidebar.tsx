@@ -298,7 +298,10 @@ export default function LessonSidebar({
 
                           {/* Section Assignment */}
                           {('assignmentId' in section && section.assignmentId) && (
-                            <div className="block px-3 py-3 rounded-xl hover:bg-amber-50/50 transition-colors cursor-pointer opacity-80 hover:opacity-100 group/assign">
+                            <Link
+                              href={`/courses/${slug}/${courseId}/${section.id}/${section.lessons[section.lessons.length - 1]?.id}/asm-attempt/${section.assignmentId}`}
+                              className="block px-3 py-3 rounded-xl hover:bg-amber-50/50 transition-colors cursor-pointer opacity-80 hover:opacity-100 group/assign"
+                            >
                               <div className="flex items-center gap-3">
                                 <div className="flex-shrink-0 w-8 flex justify-center">
                                   <ClipboardCheck className="h-5 w-5 text-amber-500 group-hover/assign:scale-110 transition-transform" />
@@ -312,7 +315,7 @@ export default function LessonSidebar({
                                   </div>
                                 </div>
                               </div>
-                            </div>
+                            </Link>
                           )}
                         </div>
                       )}

@@ -146,6 +146,52 @@ export function useMediaDocumentCourse() {
   };
 }
 
+export function useMediaAssignment() {
+  const queryClient = useQueryClient();
+
+  const uploadSubmissionAssignmentMutation = useMutation({
+    mutationFn: async (file: File) => {
+      return await mediaService.uploadSubmissionAssignment(file);
+    },
+    onSuccess: (data: MediaFile) => {
+      toast.success("Upload bài nộp thành công!");
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      return data;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Upload bài nộp thất bại!");
+    },
+  });
+
+  const uploadRubricAssignmentMutation = useMutation({
+    mutationFn: async (file: File) => {
+      return await mediaService.uploadRubricAssignment(file);
+    },
+    onSuccess: (data: MediaFile) => {
+      toast.success("Upload rubric thành công!");
+      queryClient.invalidateQueries({ queryKey: ["media"] });
+      return data;
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Upload rubric thất bại!");
+    },
+  });
+
+  return {
+    uploadSubmissionAssignment: uploadSubmissionAssignmentMutation.mutate,
+    uploadSubmissionAssignmentAsync: uploadSubmissionAssignmentMutation.mutateAsync,
+    isUploadingSubmissionAssignment: uploadSubmissionAssignmentMutation.isPending,
+    uploadSubmissionAssignmentError: uploadSubmissionAssignmentMutation.error,
+    uploadedSubmissionAssignment: uploadSubmissionAssignmentMutation.data,
+
+    uploadRubricAssignment: uploadRubricAssignmentMutation.mutate,
+    uploadRubricAssignmentAsync: uploadRubricAssignmentMutation.mutateAsync,
+    isUploadingRubricAssignment: uploadRubricAssignmentMutation.isPending,
+    uploadRubricAssignmentError: uploadRubricAssignmentMutation.error,
+    uploadedRubricAssignment: uploadRubricAssignmentMutation.data,
+  };
+}
+
 export function useGetDownloadMediaUrl(cloudFrontUrl: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["media", cloudFrontUrl],
