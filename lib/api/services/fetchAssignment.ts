@@ -100,14 +100,39 @@ export interface GradeAssignmentRequest {
 export interface SubmissionAssigmentResponse {
     isSuccess: boolean
     message: string
-    data: SubmissionAssigment
+    data: SubmissionAssigment[]
     metadata: null | unknown
+}
+
+export interface AssignmentSummary {
+    assignmentId: string
+    assignmentTitle: string
+    totalSubmissions: number
+    ungradedSubmissions: number
+    submissions: SubmissionAssigment[]
 }
 
 export interface GetSubmissionAssigmentResponse {
     isSuccess: boolean
     message: string
-    data: SubmissionAssigment[]
+    data: AssignmentSummary[]
+    metadata: null | unknown
+}
+
+export interface SubmissionAssigmentSummary {
+    sectionId: string
+    totalSubmissions: number
+    ungradedSubmissions: number
+}
+
+export interface GetSubmissionAssigmentSummaryResponse {
+    isSuccess: boolean
+    message: string
+    data: {
+        sections: SubmissionAssigmentSummary[]
+        totalUngradedSections: number
+        totalAssignments: number
+    }
     metadata: null | unknown
 }
 
@@ -199,8 +224,8 @@ export const assignmentService = {
 
 
     //Lấy danh sách submission theo assignment ID
-    getSubmissionAssigment: async (assignmentId: string): Promise<GetSubmissionAssigmentResponse> => {
-        const response = await apiService.get<GetSubmissionAssigmentResponse>(`api/v1/assignment-submissions/assignment/${assignmentId}/student`)
+    getSubmissionAssigment: async (assignmentId: string): Promise<SubmissionAssigmentResponse> => {
+        const response = await apiService.get<SubmissionAssigmentResponse>(`api/v1/assignment-submissions/assignment/${assignmentId}/student`)
         return response.data
     },
 
@@ -210,11 +235,16 @@ export const assignmentService = {
         return response.data
     },
 
-    //Lấy danh sách tất cả submission
-    getAllSubmission: async (): Promise<GetSubmissionAssigmentResponse> => {
-        const response = await apiService.get<GetSubmissionAssigmentResponse>(`api/v1/assignment-submissions/instructor​`)
+    //Lấy tổng quan submissions theo sections cho giảng viên
+    getSubmissionOverviewByCourse: async (courseId: string): Promise<GetSubmissionAssigmentSummaryResponse> => {
+        const response = await apiService.get<GetSubmissionAssigmentSummaryResponse>(`api/v1/assignment-submissions/course/${courseId}/summary`)
         return response.data
     },
 
+    //Lấy chi tiết các assignments và submissions theo section ID
+    getSubmissionOverviewBySection: async (sectionId: string): Promise<GetSubmissionAssigmentResponse> => {
+        const response = await apiService.get<GetSubmissionAssigmentResponse>(`/api/v1/assignment-submissions/courses/sections/${sectionId}`)
+        return response.data
+    },
 
 }

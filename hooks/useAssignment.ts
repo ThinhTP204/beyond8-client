@@ -10,7 +10,8 @@ import {
     SubmissionAssigmentResponse,
     SubmissionAssigmentRequest,
     GradeAssignmentRequest,
-    GetSubmissionAssigmentResponse
+    GetSubmissionAssigmentResponse,
+    GetSubmissionAssigmentSummaryResponse
 } from "@/lib/api/services/fetchAssignment"
 
 export function useCreateAssignment(courseId: string) {
@@ -186,7 +187,7 @@ export function useGradeAssignment(submissionId: string) {
 }
 
 export function useGetSubmissionByStudent(assignmentId: string) {
-    const { data, isLoading, error, refetch, isFetching } = useQuery<GetSubmissionAssigmentResponse, Error>({
+    const { data, isLoading, error, refetch, isFetching } = useQuery<SubmissionAssigmentResponse, Error>({
         queryKey: ["assignments", assignmentId, "submissions"],
         queryFn: () => assignmentService.getSubmissionAssigment(assignmentId),
         enabled: !!assignmentId,
@@ -201,10 +202,27 @@ export function useGetSubmissionByStudent(assignmentId: string) {
     }
 }
 
-export function useGetAllSubmissionByInstructor() {
+export function useGetSubmissionSumary(courseId: string) {
+    const { data, isLoading, error, refetch, isFetching } = useQuery<GetSubmissionAssigmentSummaryResponse, Error>({
+        queryKey: ["assignments", courseId, "submissions", "summary"],
+        queryFn: () => assignmentService.getSubmissionOverviewByCourse(courseId),
+        enabled: !!courseId,
+    })
+
+    return {
+        submissions: data?.data,
+        isLoading,
+        error,
+        refetch,
+        isFetching,
+    }
+}
+
+export function useGetSubmissionSumaryBySection(sectionId: string) {
     const { data, isLoading, error, refetch, isFetching } = useQuery<GetSubmissionAssigmentResponse, Error>({
-        queryKey: ["assignments", "submissions"],
-        queryFn: () => assignmentService.getAllSubmission(),
+        queryKey: ["assignments", sectionId, "submissions", "summary"],
+        queryFn: () => assignmentService.getSubmissionOverviewBySection(sectionId),
+        enabled: !!sectionId,
     })
 
     return {

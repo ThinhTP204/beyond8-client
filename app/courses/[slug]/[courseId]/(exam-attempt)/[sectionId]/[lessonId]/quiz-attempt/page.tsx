@@ -19,7 +19,7 @@ export default function QuizAttemptOverviewPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const quizId = searchParams.get('quizId')
-  
+
   const slug = params?.slug as string
   const courseId = params?.courseId as string
   const sectionId = params?.sectionId as string
@@ -53,15 +53,15 @@ export default function QuizAttemptOverviewPage() {
 
   const handleStartQuiz = async () => {
     if (!quizId) return
-    
+
     try {
       const inProgressResult = await checkInProgress()
-      
+
       if (inProgressResult.data?.hasInProgress) {
         setShowInProgressDialog(true)
         return
       }
-      
+
       const result = await startQuizAttempt(quizId)
       if (result.isSuccess && result.data) {
         router.push(`/courses/${slug}/${courseId}/${sectionId}/${lessonId}/quiz-attempt/${quizId}`)
@@ -105,7 +105,7 @@ export default function QuizAttemptOverviewPage() {
         <Button
           variant="outline"
           className="rounded-2xl border-brand-magenta/20 text-brand-magenta hover:bg-brand-magenta/10 hover:text-brand-magenta"
-          onClick={() => router.push(`/courses/${slug}/${courseId}`)}
+          onClick={() => router.back()}
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
           Quay lại bài học
@@ -125,7 +125,7 @@ export default function QuizAttemptOverviewPage() {
           />
         </div>
       </div>
-      
+
       <QuizAttemptFooter />
 
       {/* In-Progress Quiz Dialog */}

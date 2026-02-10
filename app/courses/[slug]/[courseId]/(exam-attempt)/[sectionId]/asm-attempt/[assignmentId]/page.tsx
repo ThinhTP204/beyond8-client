@@ -19,6 +19,7 @@ export default function AssignmentAttemptPage() {
   const { submissions, isLoading: isLoadingSubmission } = useGetSubmissionByStudent(assignmentId)
   const { submitAssignment, isPending: isSubmitting } = useSubmitAssignment(assignmentId)
 
+  // Take the first submission (latest attempt) from the list
   const submission = submissions && submissions.length > 0 ? submissions[0] : undefined
 
   const handleSubmit = (data: { textContent: string; fileUrls: string[] }) => {
@@ -63,7 +64,7 @@ export default function AssignmentAttemptPage() {
           Quay lại bài học
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           <div className="space-y-6">
             <AssignmentOverview assignment={assignment} />
           </div>

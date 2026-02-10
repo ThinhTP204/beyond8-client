@@ -30,6 +30,7 @@ const navItems = [
   { name: "Tổng quan", href: "/instructor/dashboard" },
   { name: "Khóa học của tôi", href: "/instructor/courses" },
   { name: "Ví của tôi", href: "/instructor/wallet" },
+  { name: "Chấm bài", href: "/instructor/grading" },
 ];
 
 export function InstructorHeader() {
@@ -165,23 +166,23 @@ export function InstructorHeader() {
 
         {/* Right: User Menu */}
         <div className="flex items-center gap-2">
-          
+
           {isAuthenticated ? (
             <>
-             {!isMobile && (
-            <Link href="/supscription">
-              <div className="relative group cursor-pointer mr-2">
-                <Button 
-                  className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
-                  variant="ghost"
-                >
-                  <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Gói Pro Max</span>
-                </Button>
-              </div>
-            </Link>
-          )}
-            {subscription?.subscriptionPlan && !isMobile && (
+              {!isMobile && (
+                <Link href="/supscription">
+                  <div className="relative group cursor-pointer mr-2">
+                    <Button
+                      className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
+                      variant="ghost"
+                    >
+                      <Crown className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                      <span className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Gói Pro Max</span>
+                    </Button>
+                  </div>
+                </Link>
+              )}
+              {subscription?.subscriptionPlan && !isMobile && (
                 <div className="flex items-center">
                   {/* <Badge 
                     variant="outline" 
@@ -226,13 +227,13 @@ export function InstructorHeader() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                 <Button variant="ghost" size="icon" className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}>
+                  <Button variant="ghost" size="icon" className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}>
                     <Menu className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                      {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 w-3 h-3 flex z-10">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white"></span>
-                        </span>                    )}
+                    {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 flex z-10">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white"></span>
+                      </span>)}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -273,8 +274,8 @@ export function InstructorHeader() {
                           <Bell className="h-4 w-4" />
                         </div>
                         Thông báo
-                        </div> 
-                        <div>
+                      </div>
+                      <div>
                         {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
                           <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
                             <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white text-[10px] font-bold text-white">
@@ -282,7 +283,7 @@ export function InstructorHeader() {
                             </span>
                           </span>
                         )}
-                        </div>                   
+                      </div>
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">

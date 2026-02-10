@@ -2,7 +2,6 @@ import { Assignment } from '@/lib/api/services/fetchAssignment'
 import { Calendar, FileText, Clock, Paperclip, Target } from 'lucide-react'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import Link from 'next/link'
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import DocumentViewDialog from '@/components/widget/document/DocumentViewDialog'
@@ -25,7 +24,7 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
         return `${mins} phút`
     }
 
-    const [showRubric, setShowRubric] = React.useState(false)
+    const [viewDoc, setViewDoc] = React.useState<{ url: string, title: string } | null>(null)
 
     return (
         <>
@@ -86,11 +85,11 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setShowRubric(true)}
+                                    onClick={() => setViewDoc({ url: assignment.rubricUrl!, title: `Rubric: ${assignment.title}` })}
                                     className="h-8 text-brand-purple border-brand-purple/20 hover:bg-brand-purple/10"
                                 >
                                     <FileText className="w-3.5 h-3.5 mr-1.5" />
-                                    Xem chi tiết
+                                    Xem tiêu chí đánh giá
                                 </Button>
                             )}
                         </div>
@@ -107,12 +106,10 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
                             </h4>
                             <div className="grid grid-cols-1 gap-2">
                                 {assignment.attachmentUrls.map((attachment, index) => (
-                                    <Link
+                                    <div
                                         key={index}
-                                        href={attachment.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:border-brand-purple/30 hover:shadow-sm transition-all group"
+                                        onClick={() => setViewDoc({ url: attachment.url, title: attachment.name })}
+                                        className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:border-brand-purple/30 hover:shadow-sm transition-all group cursor-pointer"
                                     >
                                         <div className="p-2 rounded-md bg-gray-50 text-gray-500 group-hover:bg-brand-purple/10 group-hover:text-brand-purple transition-colors">
                                             <FileText className="w-4 h-4" />
@@ -120,7 +117,7 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
                                         <span className="text-sm font-medium text-gray-700 group-hover:text-brand-purple truncate">
                                             {attachment.name}
                                         </span>
-                                    </Link>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -129,10 +126,10 @@ export default function AssignmentOverview({ assignment }: AssignmentOverviewPro
             </div>
 
             <DocumentViewDialog
-                open={showRubric}
-                onOpenChange={setShowRubric}
-                url={formatImageUrl(assignment.rubricUrl) || ''}
-                title={`Rubric: ${assignment.title}`}
+                open={!!viewDoc}
+                onOpenChange={(open) => !open && setViewDoc(null)}
+                url={formatImageUrl(viewDoc?.url) || ''}
+                title={viewDoc?.title || ''}
                 isDownloadable={true}
             />
         </>

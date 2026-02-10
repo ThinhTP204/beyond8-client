@@ -253,7 +253,7 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
 
                   {/* Section Assignment */}
                   {('assignmentId' in section && section.assignmentId) && (
-                    <div className="block cursor-pointer">
+                    <Link href={`/courses/${slug}/${courseId}/${section.id}/asm-attempt/${section.assignmentId}`} className="block cursor-pointer">
                       <div className="flex items-center gap-4 px-6 py-3.5 hover:bg-muted/30 transition-colors group border-t border-dashed">
                         <div className="shrink-0">
                           <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors">
@@ -274,7 +274,7 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   )}
                 </div>
               </AccordionContent>

@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
-import { Upload, FileText, CheckCircle2, X, Loader2, AlertCircle, Paperclip } from 'lucide-react'
+import { Upload, FileText, CheckCircle2, X, Loader2, AlertCircle, Paperclip, Sparkles, UserCircle, Download } from 'lucide-react'
 import { useMediaAssignment } from '@/hooks/useMedia'
 import { toast } from 'sonner'
-import Link from 'next/link'
+import { AiFeedbackDisplay } from '@/app/(instructor)/instructor/grading/components/AiFeedbackDisplay'
+import { formatImageUrl } from '@/lib/utils/formatImageUrl'
+import DownloadableFileItem from '@/components/widget/assignment/DownloadableFileItem'
 
 interface AssignmentSubmissionProps {
     assignment: Assignment
@@ -163,76 +165,142 @@ export default function AssignmentSubmission({
                 </div>
 
                 <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                    {/* Status Banner */}
-                    <div className="p-6 border-b border-gray-200 bg-gray-50/50">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-gray-500">Trạng thái</span>
-                            <Badge variant={submission.status === 'Graded' ? "default" : "secondary"}
-                                className={submission.status === 'Graded'
-                                    ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200 px-3 py-1"
-                                    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-200 px-3 py-1"}>
-                                {submission.status === 'Graded' ? 'Đã chấm điểm' : 'Đã nộp bài'}
-                            </Badge>
-                        </div>
-
-                        {submission.status === 'Graded' && (
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                                <div className="flex flex-col gap-1 items-center justify-center py-2">
-                                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wider">Điểm số</span>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-5xl font-bold text-brand-purple">{submission.finalScore}</span>
-                                        <span className="text-xl text-gray-400 font-medium">/ {assignment.totalPoints}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {submission.instructorFeedback && (
-                            <div className="mt-4 bg-white p-4 rounded-xl border border-gray-200">
-                                <span className="text-sm font-semibold text-gray-900 block mb-2">Nhận xét của giảng viên</span>
-                                <p className="text-gray-700 text-sm leading-relaxed">
-                                    {submission.instructorFeedback}
-                                </p>
-                            </div>
-                        )}
+                    {/* Status Header */}
+                    <div className="p-6 border-b border-gray-200 bg-gray-50/50 flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-500">Trạng thái</span>
+                        <Badge variant={submission.status === 'Graded' ? "default" : "secondary"}
+                            className={submission.status === 'Graded'
+                                ? "bg-green-100 text-green-700 hover:bg-green-200 border-green-200 px-3 py-1"
+                                : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-200 px-3 py-1"}>
+                            {submission.status === 'Graded' ? 'Đã chấm điểm' : 'Đã nộp bài'}
+                        </Badge>
                     </div>
 
-                    <div className="p-6 space-y-6">
-                        {submission.textContent && (
-                            <div className="space-y-2">
-                                <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                                    <FileText className="w-4 h-4 text-gray-400" />
-                                    Nội dung đã nộp
-                                </h4>
-                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-100 text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">
-                                    {submission.textContent}
-                                </div>
-                            </div>
-                        )}
+                    <div className={`p-6 grid grid-cols-1 ${submission.aiFeedback ? 'lg:grid-cols-2' : ''} gap-6`}>
+                        {/* Left Column: Score, Instructor Feedback, Submitted Content */}
+                        <div className="space-y-6">
+                            {submission.status === 'Graded' && (
+                                <>
+                                    <div className="text-center py-4 bg-white rounded-xl border border-gray-100 shadow-sm">
+                                        <span className="text-sm font-medium text-gray-500 uppercase tracking-wider block mb-2">Điểm số</span>
+                                        <div className="flex items-baseline justify-center gap-2">
+                                            <span className="text-5xl font-bold text-brand-purple">{submission.finalScore}</span>
+                                            <span className="text-xl text-gray-400 font-medium">/ {assignment.totalPoints}</span>
+                                        </div>
+                                    </div>
 
-                        {submission.fileUrls && submission.fileUrls.length > 0 && (
-                            <div className="space-y-3">
-                                <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                                    <Paperclip className="w-4 h-4 text-gray-400" />
-                                    File đính kèm
-                                </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {submission.fileUrls.map((url, index) => (
-                                        <Link
-                                            key={index}
-                                            href={url}
-                                            target="_blank"
-                                            className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 hover:border-brand-purple/50 hover:shadow-sm transition-all group"
-                                        >
-                                            <div className="p-2 bg-gray-100 rounded-md text-gray-500 group-hover:bg-brand-purple/10 group-hover:text-brand-purple transition-colors">
-                                                <FileText className="w-4 h-4" />
+                                    {submission.instructorFeedback && (
+                                        <div className="bg-white p-5 rounded-xl border border-brand-purple/10 shadow-sm">
+                                            <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                                                <UserCircle className="w-4 h-4 text-brand-purple" />
+                                                Nhận xét của giảng viên
+                                            </h4>
+                                            <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                                                {submission.instructorFeedback}
                                             </div>
-                                            <span className="text-sm font-medium text-gray-700 group-hover:text-brand-purple truncate">
-                                                File đính kèm {index + 1}
-                                            </span>
-                                        </Link>
-                                    ))}
-                                </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {/* Submitted Content Section */}
+                            <div className="space-y-6 pt-4 border-t border-gray-100">
+                                <h3 className="text-lg font-semibold text-gray-900">Nội dung đã nộp</h3>
+                                {(!submission.textContent && (!submission.fileUrls || submission.fileUrls.length === 0)) ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <FileText className="w-12 h-12 mx-auto text-gray-200 mb-3" />
+                                        <p className="italic">Không tìm thấy nội dung bài nộp.</p>
+                                        <p className="text-xs mt-1">Nếu bạn vừa nộp bài, vui lòng tải lại trang.</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {submission.textContent && (
+                                            <div className="space-y-2">
+                                                <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                                    <FileText className="w-4 h-4 text-gray-400" />
+                                                    Nội dung văn bản
+                                                </h4>
+                                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-100 text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">
+                                                    {submission.textContent}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {submission.fileUrls && submission.fileUrls.length > 0 && (
+                                            <div className="space-y-3">
+                                                <h4 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                                    <Paperclip className="w-4 h-4 text-gray-400" />
+                                                    File đính kèm
+                                                </h4>
+                                                <div className="grid grid-cols-1 gap-3">
+                                                    {submission.fileUrls.map((url, index) => (
+                                                        <DownloadableFileItem key={index} url={formatImageUrl(url) || url}>
+                                                            {({ signedUrl, isLoading }) => (
+                                                                <a
+                                                                    href={isLoading ? '#' : (signedUrl || formatImageUrl(url) || url)}
+                                                                    target={isLoading ? undefined : "_blank"}
+                                                                    rel="noreferrer"
+                                                                    onClick={(e) => {
+                                                                        if (isLoading || (!signedUrl && !formatImageUrl(url))) {
+                                                                            e.preventDefault();
+                                                                            if (!isLoading) toast.error("Không thể mở file này.");
+                                                                        }
+                                                                    }}
+                                                                    className={`flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200 transition-all group ${isLoading ? 'opacity-70 cursor-wait' : 'hover:border-brand-purple/50 hover:shadow-sm cursor-pointer'}`}
+                                                                >
+                                                                    <div className="p-2 bg-gray-100 rounded-md text-gray-500 group-hover:bg-brand-purple/10 group-hover:text-brand-purple transition-colors">
+                                                                        {isLoading ? (
+                                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                                        ) : (
+                                                                            <FileText className="w-4 h-4" />
+                                                                        )}
+                                                                    </div>
+                                                                    <span className="flex-1 text-sm font-medium text-gray-700 group-hover:text-brand-purple truncate">
+                                                                        File đính kèm {index + 1}
+                                                                    </span>
+                                                                    {!isLoading && (
+                                                                        <div className="p-2 text-gray-400 group-hover:text-brand-purple group-hover:bg-brand-purple/10 rounded-full transition-colors">
+                                                                            <Download className="w-4 h-4" />
+                                                                        </div>
+                                                                    )}
+                                                                </a>
+                                                            )}
+                                                        </DownloadableFileItem>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right Column: AI Feedback */}
+                        {(submission.aiFeedback || submission.aiScore !== null) && (
+                            <div className="space-y-6">
+                                {submission.aiScore !== null && (
+                                    <div className="text-center py-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+                                        <span className="text-sm font-medium text-gray-500 uppercase tracking-wider block mb-2">Điểm AI chấm</span>
+                                        <div className="flex items-baseline justify-center gap-2">
+                                            <span className="text-5xl font-bold text-blue-600">{submission.aiScore}</span>
+                                            <span className="text-xl text-gray-400 font-medium">/ {assignment.totalPoints}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {submission.aiFeedback && (
+                                    <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                                                <Sparkles className="w-4 h-4 text-blue-500" />
+                                                Đánh giá chi tiết từ AI
+                                            </h4>
+                                        </div>
+                                        <div>
+                                            <AiFeedbackDisplay feedbackJson={submission.aiFeedback} />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -247,7 +315,7 @@ export default function AssignmentSubmission({
                 <div className="flex items-center justify-between px-6 pt-4">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 mb-1">
-                            {isResubmitting ? 'Nộp lại bài tập' : 'Nộp bài tập'}
+                            {isResubmitting ? '' : 'Nộp bài tập'}
                         </h2>
                         <p className="text-sm text-muted-foreground">Vui lòng hoàn thành bài tập và nộp trước thời hạn</p>
                     </div>
@@ -357,6 +425,7 @@ export default function AssignmentSubmission({
                     </div>
                 </div>
             </div>
+
         </div>
     )
 }

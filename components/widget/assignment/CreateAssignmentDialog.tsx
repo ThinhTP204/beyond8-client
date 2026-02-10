@@ -27,7 +27,7 @@ import {
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { SubmissionType, GradingMode } from "@/lib/api/services/fetchAssignment"
+import { SubmissionType, GradingMode, Attachment } from "@/lib/api/services/fetchAssignment"
 import {
     Select,
     SelectContent,
@@ -35,7 +35,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { useMediaAssignment } from "@/hooks/useMedia"
+import { useMediaAssignment, useMediaDocumentCourse } from "@/hooks/useMedia"
 import { toast } from "sonner"
 
 interface CreateAssignmentDialogProps {
@@ -55,10 +55,12 @@ export function CreateAssignmentDialog({
 }: CreateAssignmentDialogProps) {
     const { createAssignmentAsync, isPending } = useCreateAssignment(courseId)
     const { uploadRubricAssignment, isUploadingRubricAssignment } = useMediaAssignment()
+    const { uploadDocumentCourse, isUploadingDocumentCourse } = useMediaDocumentCourse()
 
     // Form state
     const [title, setTitle] = useState(`Bài tập cho ${sectionTitle}`)
     const [description, setDescription] = useState("")
+    const [attachmentUrls, setAttachmentUrls] = useState<Attachment[]>([])
     const [submissionType, setSubmissionType] = useState<SubmissionType>(SubmissionType.Text)
     const [gradingMode, setGradingMode] = useState<GradingMode>(GradingMode.AiAssisted)
     const [totalPoints, setTotalPoints] = useState(100)
@@ -102,14 +104,42 @@ export function CreateAssignmentDialog({
         e.target.value = ''
     }
 
+    const handleAttachmentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0]
+            uploadDocumentCourse(file, {
+                onSuccess: (data) => {
+                    setAttachmentUrls(prev => [...prev, {
+                        name: data.originalFileName,
+                        url: data.fileUrl
+                    }])
+                    // toast.success("Tải lên tài liệu đính kèm thành công!") // Already handled in hook
+                },
+                onError: () => {
+                    // toast.error("Tải lên tài liệu đính kèm thất bại!") // Already handled in hook
+                }
+            })
+        }
+        e.target.value = ''
+    }
+
+    const removeAttachment = (indexToRemove: number) => {
+        setAttachmentUrls(prev => prev.filter((_, index) => index !== indexToRemove))
+    }
+
     const handleSubmit = async () => {
+        if (!rubricUrl) {
+            toast.error("Vui lòng tải lên tài liệu chấm điểm!")
+            return
+        }
+
         try {
             const response = await createAssignmentAsync({
                 courseId,
                 sectionId,
                 title,
                 description,
-                attachmentUrls: [],
+                attachmentUrls,
                 submissionType,
                 allowedFileTypes: (submissionType === SubmissionType.File || submissionType === SubmissionType.Both) ? allowedFileTypes : [],
                 maxTextLength: (submissionType === SubmissionType.Text || submissionType === SubmissionType.Both) ? maxTextLength : null,
@@ -132,6 +162,7 @@ export function CreateAssignmentDialog({
                 setAllowedFileTypes([".pdf", ".doc", ".docx"])
                 setCustomFileType("")
                 setRubricUrl(null)
+                setAttachmentUrls([])
             }
         } catch (error) {
             console.error("Failed to create assignment", error)
@@ -172,7 +203,7 @@ export function CreateAssignmentDialog({
                                 </CardHeader>
                                 <CardContent className="p-5 space-y-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="title" className="text-base font-semibold text-gray-900">
+                                        <Label htmlFor="title" className="text-sm font-semibold text-gray-900">
                                             Tên bài tập <span className="text-red-500">*</span>
                                         </Label>
                                         <div className="relative">
@@ -191,8 +222,8 @@ export function CreateAssignmentDialog({
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label htmlFor="description" className="text-sm font-medium text-gray-700">
-                                            Mô tả / Hướng dẫn
+                                        <Label htmlFor="description" className="text-sm font-semibold text-gray-900">
+                                            Mô tả / Hướng dẫn <span className="text-red-500">*</span>
                                         </Label>
                                         <div className="relative">
                                             <Textarea
@@ -206,6 +237,64 @@ export function CreateAssignmentDialog({
                                             <span className="absolute right-3 bottom-3 text-xs text-gray-400 font-medium pointer-events-none">
                                                 {description.length}/500
                                             </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label className="text-sm font-medium text-gray-700">
+                                            Tài liệu đính kèm
+                                        </Label>
+                                        <div className="space-y-3">
+                                            {attachmentUrls.length > 0 && (
+                                                <div className="space-y-2">
+                                                    {attachmentUrls.map((attachment, index) => (
+                                                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 border rounded-lg group hover:bg-gray-100 transition-colors">
+                                                            <div className="flex items-center gap-2 overflow-hidden">
+                                                                <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                                                                <a
+                                                                    href={attachment.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-sm text-gray-700 truncate hover:text-blue-600 hover:underline"
+                                                                >
+                                                                    {attachment.name}
+                                                                </a>
+                                                            </div>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-6 w-6 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                onClick={() => removeAttachment(index)}
+                                                            >
+                                                                <X className="w-3 h-3" />
+                                                            </Button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    id="attachment-upload"
+                                                    className="hidden"
+                                                    onChange={handleAttachmentUpload}
+                                                    disabled={isUploadingDocumentCourse}
+                                                />
+                                                <Label
+                                                    htmlFor="attachment-upload"
+                                                    className={`flex items-center justify-center gap-2 w-full p-3 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition-all ${isUploadingDocumentCourse ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                >
+                                                    {isUploadingDocumentCourse ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                                                    ) : (
+                                                        <Upload className="w-4 h-4 text-gray-400" />
+                                                    )}
+                                                    <span className="text-sm text-gray-600">
+                                                        {isUploadingDocumentCourse ? "Đang tải lên..." : "Thêm tài liệu đính kèm"}
+                                                    </span>
+                                                </Label>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -376,7 +465,7 @@ export function CreateAssignmentDialog({
 
                                     <div className="space-y-2">
                                         <Label className="text-sm font-medium text-gray-700">
-                                            Rubric chấm điểm
+                                            Tiêu chí đánh giá <span className="text-red-500">*</span>
                                         </Label>
                                         <div className="flex items-center gap-2">
                                             {rubricUrl ? (
@@ -414,7 +503,7 @@ export function CreateAssignmentDialog({
                                                             <Upload className="w-4 h-4 text-gray-400" />
                                                         )}
                                                         <span className="text-sm text-gray-600">
-                                                            {isUploadingRubricAssignment ? "Đang tải lên..." : "Tải lên Rubric"}
+                                                            {isUploadingRubricAssignment ? "Đang tải lên..." : "Tải lên tài liệu chấm điểm"}
                                                         </span>
                                                     </Label>
                                                 </div>
@@ -434,7 +523,7 @@ export function CreateAssignmentDialog({
                     </Button>
                     <Button
                         onClick={handleSubmit}
-                        disabled={!title || isPending}
+                        disabled={!title || !rubricUrl || isPending}
                         className="rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-600 hover:from-blue-700 hover:via-blue-600 hover:to-cyan-700 text-white shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 px-6 transition-all duration-200 transform hover:scale-105"
                     >
                         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
