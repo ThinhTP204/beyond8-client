@@ -1,5 +1,6 @@
 import {
   Course,
+  CourseCertificateConfigResponse,
   CourseDetail,
   CourseDetailResponse,
   CourseDocument,
@@ -18,6 +19,8 @@ import {
   PublicCourseParams,
   PublicCourseResponse,
   SearchCourseParams,
+  UpdateCourseCertificateConfigRequest,
+  UpdateCourseDiscountRequest,
   UpdateCourseDocumentRequest,
   fetchCourse,
 } from "@/lib/api/services/fetchCourse";
@@ -675,3 +678,67 @@ export function useGetMostPopularCourses() {
     isError,
   };
 }
+
+export function useUpdateCourseDiscount() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateCourseDiscountRequest }) =>
+      fetchCourse.updateCourseDiscount(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      toast.success("Cập nhật giảm giá khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi cập nhật giảm giá khóa học!");
+    },
+  });
+
+  return {
+    updateCourseDiscount: mutateAsync,
+    isPending,
+  };
+}
+
+export function useGetCourseCertificateConfig(courseId: string) {
+  const { data, isLoading, refetch, isFetching, isError } = useQuery<CourseCertificateConfigResponse, Error>({
+    queryKey: ["course-certificate-config", courseId],
+    queryFn: () => fetchCourse.getCourseCertificateConfig(courseId),
+    enabled: !!courseId,
+  });
+
+  return {
+    courseCertificateConfig: data?.data,
+    isLoading,
+    refetch,
+    isFetching,
+    isError,
+  };
+}
+
+export function useUpdateCourseCertificateConfig() {
+  const queryClient = useQueryClient();
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: ({ courseId, data }: { courseId: string; data: UpdateCourseCertificateConfigRequest }) =>
+      fetchCourse.updateCourseCertificateConfig(courseId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["course"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["course-certificate-config"],
+      });
+      toast.success("Cập nhật cấu hình điều kiện cấp chứng chỉ khóa học thành công!");
+    },
+    onError: (error: ApiError) => {
+      toast.error(error?.message || "Lỗi khi cập nhật cấu hình điều kiện cấp chứng chỉ khóa học!");
+    },
+  });
+
+  return {
+    updateCourseCertificateConfig: mutateAsync,
+    isPending,
+  };
+}
+

@@ -22,7 +22,10 @@ import Step2_Basics from "./components/steps/Step2_Basics";
 import Step3_Goals from "./components/steps/Step3_Goals";
 import Step4_MediaPricing from "./components/steps/Step4_MediaPricing";
 import Step5_Documents from "./components/steps/Step5_Documents";
+import Step6_Discount from "./components/steps/Step6_Discount";
+import Step7_CertificateConfig from "./components/steps/Step7_CertificateConfig";
 import ActionFooter from "./components/layout/ActionFooter";
+import { CourseStatus } from "@/lib/api/services/fetchCourse";
 
 // Since we moved `create` to `action`, the relative imports might need adjustment
 // I am assuming the components inside `action/components` are still the original ones from `create/components`.
@@ -153,7 +156,7 @@ export function CourseAction({ initialData, isEditMode: initialIsEditMode = fals
   );
   const isMediaValid = formData.price >= 0 && !!formData.thumbnailUrl;
 
-  const sidebarValidity = [isInfoValid, isBasicsValid, isGoalsValid, isMediaValid, true];
+  const sidebarValidity = [isInfoValid, isBasicsValid, isGoalsValid, isMediaValid, true, true, true];
 
   const handleSave = async () => {
 
@@ -262,6 +265,7 @@ export function CourseAction({ initialData, isEditMode: initialIsEditMode = fals
               stepsValidity={sidebarValidity}
               isEditMode={isEdit}
               viewMode={viewMode}
+              courseStatus={initialData?.status}
             />
           )}
 
@@ -325,6 +329,19 @@ export function CourseAction({ initialData, isEditMode: initialIsEditMode = fals
                           {currentStep === 5 && (initialData?.id || createdCourseId) && (
                             <Step5_Documents courseId={initialData?.id || createdCourseId!} />
                           )}
+                          {currentStep === 7 && (initialData?.id || createdCourseId) && (
+                            <Step7_CertificateConfig courseId={initialData?.id || createdCourseId!} />
+                          )}
+                          {currentStep === 6 && (initialData?.id || createdCourseId) && initialData?.status === CourseStatus.Published && (
+                            <Step6_Discount
+                              courseId={initialData?.id || createdCourseId!}
+                              initialData={{
+                                discountPercent: initialData?.discountPercent || null,
+                                discountAmount: initialData?.discountAmount || null,
+                                discountEndsAt: initialData?.discountEndsAt || null,
+                              }}
+                            />
+                          )}
                         </>
                       )}
                     </motion.div>
@@ -338,13 +355,19 @@ export function CourseAction({ initialData, isEditMode: initialIsEditMode = fals
                 onBack={handleBack}
                 onNext={handleNext}
                 isFirstStep={currentStep === 1}
-                isLastStep={isEdit ? currentStep === 5 : currentStep === 4}
+                isLastStep={
+                  isEdit
+                    ? (initialData?.status === CourseStatus.Published ? currentStep === 6 : currentStep === 7)
+                    : currentStep === 4
+                }
                 isValid={isCurrentStepValid()}
                 isSubmitting={isPending}
                 nextLabel={
-                  (isEdit && currentStep === 5)
+                  (isEdit && currentStep === 7)
                     ? "Soạn nội dung khóa học"
-                    : undefined
+                    : (isEdit && currentStep === 6 && initialData?.status === CourseStatus.Published)
+                      ? "Soạn nội dung khóa học"
+                      : undefined
                 }
               />
             )}

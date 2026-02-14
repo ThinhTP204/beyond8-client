@@ -97,7 +97,7 @@ export function CreateAssignmentDialog({
             uploadRubricAssignment(file, {
                 onSuccess: (data) => {
                     setRubricUrl(data.fileUrl)
-                    toast.success("Tải lên Rubric thành công!")
+                    //toast.success("Tải lên Rubric thành công!")
                 },
                 onError: () => {
                     toast.error("Tải lên Rubric thất bại!")

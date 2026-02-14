@@ -291,6 +291,23 @@ export interface UpdateCourseDocumentRequest {
     isDownloadable?: boolean
 }
 
+export interface UpdateCourseDiscountRequest {
+    discountAmount: number | null
+    discountEndsAt: string | null
+    discountPercent: number | null
+}
+
+export interface CourseCertificateConfigResponse {
+    isSuccess: boolean
+    message: string
+    data: {
+        courseId: string
+        assignmentAverageMinPercent: number | null
+        quizAverageMinPercent: number | null
+    }
+    metadata: Metadata | null
+}
+
 export interface CourseDocumentResponse {
     isSuccess: boolean
     message: string
@@ -335,6 +352,11 @@ export interface CreateCourseReviewRequest {
     contentQuality: number | null
     instructorQuality: number | null
     valueForMoney: number | null
+}
+
+export interface UpdateCourseCertificateConfigRequest {
+    assignmentAverageMinPercent: number | null
+    quizAverageMinPercent: number | null
 }
 
 export interface CourseReviewResponse {
@@ -565,4 +587,21 @@ export const fetchCourse = {
         return response.data;
     },
 
+    //Đặt hoặc cập nhật giảm giá khóa học (phần trăm hoặc số tiền; thời hạn tùy chọn)
+    updateCourseDiscount: async (id: string, data: UpdateCourseDiscountRequest): Promise<CourseResponse> => {
+        const response = await apiService.patch<CourseResponse>(`api/v1/courses/${id}/discount`, data);
+        return response.data;
+    },
+
+    //Cập nhật cấu hình điều kiện cấp chứng chỉ theo khóa học 
+    updateCourseCertificateConfig: async (courseId: string, data: UpdateCourseCertificateConfigRequest): Promise<CourseCertificateConfigResponse> => {
+        const response = await apiService.put<CourseCertificateConfigResponse>(`api/v1/certificates/courses/${courseId}/eligibility-config`, data);
+        return response.data;
+    },
+
+    //Lấy cấu hình điều kiện cấp chứng chỉ theo khóa học 
+    getCourseCertificateConfig: async (courseId: string): Promise<CourseCertificateConfigResponse> => {
+        const response = await apiService.get<CourseCertificateConfigResponse>(`api/v1/certificates/courses/${courseId}/eligibility-config`);
+        return response.data;
+    },
 }

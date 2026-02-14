@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { User, BookOpen, Image as ImageIcon, LayoutList, Paperclip } from 'lucide-react'
+import { User, BookOpen, Image as ImageIcon, LayoutList, Paperclip, Tag, Award } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { CourseStatus } from '@/lib/api/services/fetchCourse'
 
 interface CourseActionSidebarProps {
     currentStep: number
@@ -12,6 +13,7 @@ interface CourseActionSidebarProps {
     stepsValidity: boolean[]
     isEditMode?: boolean
     viewMode?: 'info' | 'content'
+    courseStatus?: CourseStatus
 }
 
 const infoSteps = [
@@ -50,7 +52,8 @@ export default function CourseActionSidebar({
     onStepClick,
     stepsValidity,
     isEditMode = false,
-    viewMode = 'info'
+    viewMode = 'info',
+    courseStatus
 }: CourseActionSidebarProps) {
     const steps = useMemo(() => {
         if (viewMode === 'info') {
@@ -60,13 +63,27 @@ export default function CourseActionSidebar({
                 baseSteps.push({
                     id: 5,
                     title: 'Tài liệu khóa học',
-                    icon: Paperclip, // Reusing icon or pick a file icon if available
+                    icon: Paperclip,
+                })
+                // Add Certificate Config step in edit mode
+                baseSteps.push({
+                    id: 7,
+                    title: 'Điều kiện chứng chỉ',
+                    icon: Award,
+                })
+            }
+            // Add Discount step if course is published
+            if (isEditMode && courseStatus === CourseStatus.Published) {
+                baseSteps.push({
+                    id: 6,
+                    title: 'Giảm giá',
+                    icon: Tag,
                 })
             }
             return baseSteps
         }
         return contentSteps
-    }, [viewMode, isEditMode])
+    }, [viewMode, isEditMode, courseStatus])
     const [isCollapsed, setIsCollapsed] = useState(false)
 
     const isAccessible = (stepId: number) => {

@@ -333,7 +333,8 @@ export default function CourseCurriculum({ course, mode = 'summary', onLessonSel
 
                   {/* Section Assignment */}
                   {('assignmentId' in section && section.assignmentId) && (() => {
-                    const isAssignmentLocked = mode !== 'preview' && effectiveEnrollmentId && lockedLessonIds.has(section.assignmentId!)
+                    // Lock assignment if user hasn't enrolled OR if lessons in the section aren't completed
+                    const isAssignmentLocked = mode !== 'preview' && (!effectiveEnrollmentId || lockedLessonIds.has(section.assignmentId!))
                     const assignmentProgress = assignmentProgressMap.get(section.assignmentId!)
                     const isAssignmentPassed = assignmentProgress?.isPassed || false
 
