@@ -43,6 +43,40 @@ export interface ClearCartResponse {
   metadata: null;
 }
 
+export interface BuyNowPreviewRequest {
+  courseId: string;
+  instructorCouponCode: string | null;
+  couponCode: string | null;
+}
+
+export interface BuyNowPreviewItem {
+  courseId: string;
+  courseTitle: string;
+  originalPrice: number;
+  instructorDiscount: number;
+  finalPrice: number;
+  instructorCouponCode: string | null;
+  instructorCouponApplied: boolean;
+}
+
+export interface BuyNowPreviewData {
+  item: BuyNowPreviewItem;
+  subTotal: number;
+  subTotalAfterInstructorDiscount: number;
+  instructorDiscountAmount: number;
+  systemDiscountAmount: number;
+  totalDiscountAmount: number;
+  totalAmount: number;
+  isFree: boolean;
+}
+
+export interface BuyNowPreviewResponse {
+  isSuccess: boolean;
+  message: string;
+  data: BuyNowPreviewData;
+  metadata: null;
+}
+
 export interface BuyNowRequest {
   courseId: string;
   instructorCouponCode: string | null;
@@ -54,6 +88,44 @@ export interface BuyNowResponse {
   isSuccess: boolean;
   message: string;
   data: OrderData;
+  metadata: null;
+}
+
+export interface CheckoutPreviewItem {
+  courseId: string;
+  instructorCouponCode: string | null;
+}
+
+export interface CheckoutPreviewRequest {
+  items: CheckoutPreviewItem[];
+  couponCode: string | null;
+}
+
+export interface CheckoutPreviewItemData {
+  courseId: string;
+  courseTitle: string;
+  originalPrice: number;
+  instructorDiscount: number;
+  finalPrice: number;
+  instructorCouponCode: string | null;
+  instructorCouponApplied: boolean;
+}
+
+export interface CheckoutPreviewData {
+  items: CheckoutPreviewItemData[];
+  subTotal: number;
+  subTotalAfterInstructorDiscount: number;
+  instructorDiscountAmount: number;
+  systemDiscountAmount: number;
+  totalDiscountAmount: number;
+  totalAmount: number;
+  isFree: boolean;
+}
+
+export interface CheckoutPreviewResponse {
+  isSuccess: boolean;
+  message: string;
+  data: CheckoutPreviewData;
   metadata: null;
 }
 
@@ -204,10 +276,28 @@ export const fetchOrder = {
     return response.data;
   },
 
+  // Preview mua ngay khóa học
+  buyNowPreview: async (request: BuyNowPreviewRequest): Promise<BuyNowPreviewResponse> => {
+    const response = await apiService.post<BuyNowPreviewResponse, BuyNowPreviewRequest>(
+      "api/v1/orders/buy-now/preview",
+      request
+    );
+    return response.data;
+  },
+
   // Mua ngay khóa học
   buyNow: async (request: BuyNowRequest): Promise<BuyNowResponse> => {
     const response = await apiService.post<BuyNowResponse, BuyNowRequest>(
       "api/v1/orders/buy-now",
+      request
+    );
+    return response.data;
+  },
+
+  // Preview thanh toán giỏ hàng
+  checkoutPreview: async (request: CheckoutPreviewRequest): Promise<CheckoutPreviewResponse> => {
+    const response = await apiService.post<CheckoutPreviewResponse, CheckoutPreviewRequest>(
+      "api/v1/orders/preview",
       request
     );
     return response.data;
