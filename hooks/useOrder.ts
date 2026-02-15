@@ -7,14 +7,18 @@ import {
   ClearCartResponse,
   BuyNowRequest,
   BuyNowResponse,
+  BuyNowPreviewRequest,
+  BuyNowPreviewResponse,
   CheckoutRequest,
   CheckoutResponse,
+  CheckoutPreviewRequest,
+  CheckoutPreviewResponse,
   ProcessPaymentRequest,
   ProcessPaymentResponse,
   PaymentParams,
   PaymentItem,
   GetMyPaymentsResponse,
-} from "@/lib/api/services/fetchOrder";
+}from "@/lib/api/services/fetchOrder";
 import { toast } from "sonner";
 
 interface UseGetCartOptions {
@@ -146,6 +150,26 @@ export function useClearCart() {
   };
 }
 
+// Hook preview mua ngay khóa học
+export function useBuyNowPreview() {
+  const { mutateAsync, isPending, data }= useMutation<
+    BuyNowPreviewResponse,
+    Error,
+    BuyNowPreviewRequest
+  >({
+    mutationFn: (request: BuyNowPreviewRequest) => fetchOrder.buyNowPreview(request),
+    onError: (error) => {
+      toast.error(error.message || "Không thể tải thông tin đơn hàng!");
+    },
+  });
+
+  return {
+    previewBuyNow: mutateAsync,
+    isPending,
+    previewData: data?.data,
+  };
+}
+
 // Hook mua ngay khóa học
 export function useBuyNow() {
   const queryClient = useQueryClient();
@@ -176,6 +200,26 @@ export function useBuyNow() {
   return {
     buyNow: mutateAsync,
     isPending,
+  };
+}
+
+// Hook preview thanh toán giỏ hàng
+export function useCheckoutPreview() {
+  const { mutateAsync, isPending, data }= useMutation<
+    CheckoutPreviewResponse,
+    Error,
+    CheckoutPreviewRequest
+  >({
+    mutationFn: (request: CheckoutPreviewRequest) => fetchOrder.checkoutPreview(request),
+    onError: (error) => {
+      toast.error(error.message || "Không thể tải thông tin đơn hàng!");
+    },
+  });
+
+  return {
+    previewCheckout: mutateAsync,
+    isPending,
+    previewData: data?.data,
   };
 }
 
