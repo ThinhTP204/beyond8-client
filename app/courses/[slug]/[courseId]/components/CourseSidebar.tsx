@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState }from 'react'
 import {
   MonitorPlay,
   FileText,
@@ -13,11 +13,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { formatCurrency } from '@/lib/utils/formatCurrency'
 import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/services/fetchCourse'
-import { useCheckEnrollment, useEnrollCourse } from '@/hooks/useEnroll'
-import { ConfirmDialog } from '@/components/widget/confirm-dialog'
+import { useCheckEnrollment, useEnrollCourse }from '@/hooks/useEnroll'
+import { ConfirmDialog }from '@/components/widget/confirm-dialog'
 import { useAuth } from '@/hooks/useAuth'
-import { useAddToCart, useGetCart, useBuyNow, useProcessPayment } from '@/hooks/useOrder'
-import { startOfToday, differenceInCalendarDays } from 'date-fns'
+import { useAddToCart, useGetCart, useBuyNow, useProcessPayment }from '@/hooks/useOrder'
+import { startOfToday, differenceInCalendarDays }from 'date-fns'
+import { PendingPaymentDialog }from '@/components/widget/PendingPaymentDialog'
 
 interface CourseSidebarProps {
   course: CourseSummary | CourseDetailType
@@ -69,14 +70,24 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   }
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-  const { enrollCourse, isPending } = useEnrollCourse()
+  const [pendingPaymentDialogOpen, setPendingPaymentDialogOpen] = useState(false)
+  const [pendingPaymentUrl, setPendingPaymentUrl] = useState('')
+  const [pendingOrderNumber, setPendingOrderNumber] = useState('')
+  
+  const { enrollCourse, isPending }= useEnrollCourse()
   const { isAuthenticated } = useAuth()
   const { isEnrolled, isLoading: isCheckingEnroll } = useCheckEnrollment(course.id, {
     enabled: isAuthenticated && !!course.id,
   })
   const { addToCart, isPending: isAddingToCart } = useAddToCart()
   const { cart } = useGetCart({ enabled: isAuthenticated })
-  const { buyNow, isPending: isBuyNowPending } = useBuyNow()
+  const { buyNow, isPending: isBuyNowPending } = useBuyNow({
+    onPendingPayment: (paymentUrl, orderNumber) => {
+      setPendingPaymentUrl(paymentUrl)
+      setPendingOrderNumber(orderNumber)
+      setPendingPaymentDialogOpen(true)
+    }
+  })
   const { processPayment, isPending: isProcessPaymentPending } = useProcessPayment()
   
   const isInCart = cart?.items?.some(item => item.courseId === course.id) ?? false
@@ -86,7 +97,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
     try {
       await enrollCourse(course.id)
       setIsConfirmOpen(false)
-    } catch {
+    }catch {
     }
   }
 
@@ -116,6 +127,10 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
         couponCode: null,
         notes: null,
       })
+
+      if (buyNowResponse.isSuccess && buyNowResponse.data?.pendingPaymentInfo) {
+        return
+      }
 
       if (buyNowResponse.isSuccess && buyNowResponse.data?.id) {
         const paymentResponse = await processPayment({
@@ -249,6 +264,14 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
 
         <Separator />
 
+        {/* Pending Payment Dialog */}
+        <PendingPaymentDialog
+          open={pendingPaymentDialogOpen}
+          onOpenChange={setPendingPaymentDialogOpen}
+          paymentUrl={pendingPaymentUrl}
+          orderNumber={pendingOrderNumber}
+        />
+
         {/* Course Features */}
         <div className="space-y-4">
           <h3 className="font-semibold text-brand-dark dark:text-white">Khóa học bao gồm:</h3>
@@ -259,7 +282,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
             </li>
             <li className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-brand-purple" />
-              <span>{totalLessons} bài học</span>
+              <span>{totalLessons}bài học</span>
             </li>
             <li className="flex items-center gap-3">
               <Trophy className="w-5 h-5 text-brand-purple" />

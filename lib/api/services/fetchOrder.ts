@@ -160,15 +160,22 @@ export interface OrderData {
   orderNumber: string;
   status: string;
   subTotal: number;
+  subTotalAfterInstructorDiscount: number;
+  instructorDiscountAmount: number;
+  systemDiscountAmount: number;
   discountAmount: number;
   taxAmount: number;
   totalAmount: number;
   currency: string;
-  couponId: string | null;
+  platformFeeAmount: number;
+  instructorEarnings: number;
+  instructorCouponId: string | null;
+  systemCouponId: string | null;
   paidAt: string | null;
   ipAddress: string | null;
   userAgent: string | null;
   orderItems: OrderItem[];
+  pendingPaymentInfo: PendingPaymentInfo | null;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -204,10 +211,27 @@ export interface PaymentParams {
   isDescending?: boolean;
 }
 
+export interface PaymentInfo {
+  paymentId: string;
+  paymentNumber: string;
+  purpose: string;
+  paymentUrl: string;
+  expiredAt: string;
+}
+
+export interface PendingPaymentInfo {
+  orderId: string;
+  orderNumber: string;
+  paymentInfo: PaymentInfo;
+  message: string;
+}
+
 export interface PaymentItem {
   id: string;
-  orderId: string;
+  orderId: string | null;
+  walletId: string | null;
   paymentNumber: string;
+  purpose: string;
   status: string;
   amount: number;
   currency: string;
@@ -219,6 +243,7 @@ export interface PaymentItem {
   failureReason: string | null;
   createdAt: string;
   updatedAt: string | null;
+  pendingPaymentInfo: PendingPaymentInfo | null;
 }
 
 export interface PaginationMetadata {

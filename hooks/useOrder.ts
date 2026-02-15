@@ -16,7 +16,6 @@ import {
   ProcessPaymentRequest,
   ProcessPaymentResponse,
   PaymentParams,
-  PaymentItem,
   GetMyPaymentsResponse,
 }from "@/lib/api/services/fetchOrder";
 import { toast } from "sonner";
@@ -102,7 +101,7 @@ export function useRemoveFromCart() {
 
       if (data.isSuccess) {
         toast.success(data.message || "Đã xóa khóa học khỏi giỏ hàng!");
-      } else {
+      }else {
         toast.error(data.message || "Không thể xóa khóa học khỏi giỏ hàng!");
       }
     },
@@ -121,7 +120,7 @@ export function useRemoveFromCart() {
 export function useClearCart() {
   const queryClient = useQueryClient();
 
-  const { mutateAsync, isPending } = useMutation<
+  const { mutateAsync, isPending }= useMutation<
     ClearCartResponse,
     Error,
     void
@@ -171,25 +170,28 @@ export function useBuyNowPreview() {
 }
 
 // Hook mua ngay khóa học
-export function useBuyNow() {
+export function useBuyNow(options?: { onPendingPayment?: (paymentUrl: string, orderNumber: string) => void }) {
   const queryClient = useQueryClient();
 
-  const { mutateAsync, isPending } = useMutation<
+  const { mutateAsync, isPending }= useMutation<
     BuyNowResponse,
     Error,
     BuyNowRequest
   >({
     mutationFn: (request: BuyNowRequest) => fetchOrder.buyNow(request),
     onSuccess: (data) => {
-      // Cập nhật lại thông tin giỏ hàng sau khi mua thành công
       queryClient.invalidateQueries({
         queryKey: ["cart"],
       });
 
-      if (data.isSuccess) {
-        toast.success(data.message || "Mua khóa học thành công!");
+      if (data.isSuccess && data.data?.pendingPaymentInfo) {
+        const paymentInfo = data.data.pendingPaymentInfo;
+        options?.onPendingPayment?.(
+          paymentInfo.paymentInfo.paymentUrl,
+          paymentInfo.orderNumber
+        );
       } else {
-        toast.error(data.message || "Không thể mua khóa học!");
+        toast.success(data.message || "Mua khóa học thành công!");
       }
     },
     onError: (error) => {
@@ -224,25 +226,28 @@ export function useCheckoutPreview() {
 }
 
 // Hook thanh toán giỏ hàng
-export function useCheckout() {
+export function useCheckout(options?: { onPendingPayment?: (paymentUrl: string, orderNumber: string) => void }) {
   const queryClient = useQueryClient();
 
-  const { mutateAsync, isPending } = useMutation<
+  const { mutateAsync, isPending }= useMutation<
     CheckoutResponse,
     Error,
     CheckoutRequest
   >({
     mutationFn: (request: CheckoutRequest) => fetchOrder.checkout(request),
     onSuccess: (data) => {
-      // Cập nhật lại thông tin giỏ hàng sau khi thanh toán thành công
       queryClient.invalidateQueries({
         queryKey: ["cart"],
       });
 
-      if (data.isSuccess) {
-        toast.success(data.message || "Thanh toán thành công!");
+      if (data.isSuccess && data.data?.pendingPaymentInfo && data.data?.status === "PENDING") {
+        const paymentInfo = data.data.pendingPaymentInfo;
+        options?.onPendingPayment?.(
+          paymentInfo.paymentInfo.paymentUrl,
+          paymentInfo.orderNumber
+        );
       } else {
-        toast.error(data.message || "Không thể thanh toán!");
+        toast.success(data.message || "Thanh toán thành công!");
       }
     },
     onError: (error) => {
@@ -258,7 +263,7 @@ export function useCheckout() {
 
 // Hook xử lý thanh toán
 export function useProcessPayment() {
-  const { mutateAsync, isPending } = useMutation<
+  const { mutateAsync, isPending }= useMutation<
     ProcessPaymentResponse,
     Error,
     ProcessPaymentRequest
@@ -286,17 +291,16 @@ export function useProcessPayment() {
 export function useGetMyPayments(options?: UseGetMyPaymentsOptions) {
   const { data, isLoading, isError, refetch } = useQuery<
     GetMyPaymentsResponse,
-    Error,
-    PaymentItem[]
+    Error
   >({
     queryKey: ["my-payments", options?.params],
     queryFn: () => fetchOrder.getMyPayments(options?.params),
     enabled: options?.enabled ?? true,
-    select: (res) => res.data,
   });
 
   return {
-    payments: data,
+    payments: data?.data || [],
+    metadata: data?.metadata,
     isLoading,
     isError,
     refetch,
