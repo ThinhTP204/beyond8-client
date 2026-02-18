@@ -206,7 +206,7 @@ export default function CourseListItem({ course, isSelected, onToggleSelect, isS
               onClick={(e) => handleAction(e, () => publishCourse({ id: course.id }))}
               disabled={isPublishing}
             >
-              {isPublishing ? "Đang xử lý..." : "Công khai"}
+              {isPublishing ? "Đang xử lý..." : "Công bố"}
             </Button>
           ) : course.status === CourseStatus.PendingApproval ? (
             <Button

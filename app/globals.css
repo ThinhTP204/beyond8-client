@@ -270,6 +270,7 @@ h3.tiptap-heading+h2.tiptap-heading {
   margin: 1.5rem 0;
   padding-left: 1rem;
 }
+
 /* Custom Scrollbar Styling - Match Brand Colors */
 /* For Chrome, Safari, Edge (Webkit browsers) */
 ::-webkit-scrollbar {
@@ -321,4 +322,37 @@ h3.tiptap-heading+h2.tiptap-heading {
 
 .scrollbar-brand::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, var(--brand-magenta), var(--brand-purple));
+}
+
+/* Auto-show scrollbar on hover */
+.scrollbar-auto-show {
+  scrollbar-color: transparent transparent;
+  /* Firefox: thumb track */
+  transition: scrollbar-color 0.3s;
+}
+
+.scrollbar-auto-show:hover {
+  scrollbar-color: var(--brand-magenta) transparent;
+  /* Firefox: thumb track */
+}
+
+.scrollbar-auto-show::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-auto-show::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-auto-show::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
+}
+
+.scrollbar-auto-show:hover::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--brand-pink), var(--brand-magenta));
+  border-radius: 8px;
+  border: 2px solid var(--muted);
 }

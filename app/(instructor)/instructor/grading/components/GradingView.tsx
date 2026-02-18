@@ -1,6 +1,8 @@
 
+import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronRight, Home, BookOpen, FileText } from "lucide-react"
+import { ChevronRight, Home, BookOpen, FileText, ArrowLeft } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { GradingCourseList } from "./GradingCourseList"
 import { GradingCourseDetail } from "./GradingCourseDetail"
 import { GradingAssignmentDetail } from "./GradingAssignmentDetail"
@@ -26,8 +28,15 @@ export function GradingView({
     return (
         <div className="space-y-6 py-3 relative">
             {/* Header: Breadcrumb Navigation */}
-            <div className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-2 -mx-2 px-2 border-b border-transparent transition-all data-[scrolled=true]:border-border/50 rounded-lg">
+            <div className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60 py-2 -mx-2 px-2 border-b border-transparent transition-all data-[scrolled=true]:border-border/50 rounded-lg">
                 <div className="flex items-center gap-2 text-md">
+                    <Link href="/instructor/courses">
+                        <Button variant="ghost" className="h-8 hover:bg-black/5 mr-2 gap-2 text-muted-foreground hover:text-foreground" title="Quản lý khóa học">
+                            <ArrowLeft className="h-4 w-4" />
+                            Quản lý khóa học
+                        </Button>
+                    </Link>
+                    <div className="h-4 w-px bg-border mx-2" />
                     <button
                         onClick={onBackToCourses}
                         className="flex items-center gap-2 rounded-lg px-3 py-2 text-black font-semibold cursor-pointer hover:bg-black/5"

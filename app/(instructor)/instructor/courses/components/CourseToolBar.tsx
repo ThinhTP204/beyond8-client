@@ -6,9 +6,9 @@ import {
   LayoutGrid,
   LayoutList,
   Plus,
-  BookOpen,
   ListChecks,
-  X
+  X,
+  ClipboardCheck
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
@@ -200,12 +200,12 @@ export default function CourseToolBar({
           >
             <Button
               variant="ghost"
-              onClick={() => router.push('/instructor/question-bank')}
+              onClick={() => router.push('/instructor/grading')}
               className="bg-white border border-purple-200 hover:bg-white rounded-2xl px-3"
             >
-              <BookOpen className="w-5 h-5 text-purple-600" />
-              <span className="hidden sm:inline ml-1 text-purple-600">Ngân hàng câu hỏi</span>
-              <span className="sm:hidden text-purple-600">Câu hỏi</span>
+              <ClipboardCheck className="w-5 h-5 text-purple-600" />
+              <span className="hidden sm:inline ml-1 text-purple-600">Chấm bài</span>
+              <span className="sm:hidden text-purple-600">Chấm bài</span>
             </Button>
           </motion.div>
 
@@ -222,8 +222,8 @@ export default function CourseToolBar({
               size="icon"
               onClick={toggleSelectionMode}
               className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${isSelectionMode
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                 }`}
               title={isSelectionMode ? "Hủy chọn nhiều" : "Chọn nhiều"}
             >

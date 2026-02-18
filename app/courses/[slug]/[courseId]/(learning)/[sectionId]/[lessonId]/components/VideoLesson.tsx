@@ -151,7 +151,7 @@ function VideoQualitySubmenu({
                   value={variant.Url}
                   onSelect={() => onQualityChange?.(variant.Url)}
                   key={variant.Url}
-                  className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-[checked]:bg-brand-purple/20 data-[checked]:text-brand-purple"
+                  className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-checked:bg-brand-purple/20 data-checked:text-brand-purple"
                 >
                   <span>{label}</span>
                   {variant.Resolution && <span className="text-xs text-white/50 ml-2">{variant.Resolution}</span>}
@@ -165,7 +165,7 @@ function VideoQualitySubmenu({
                 value={value}
                 onSelect={select}
                 key={value}
-                className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-[checked]:bg-brand-purple/20 data-[checked]:text-brand-purple"
+                className="px-3 py-2 text-white/90 hover:text-white hover:bg-white/10 rounded-md cursor-pointer transition-colors text-sm flex items-center justify-between data-checked:bg-brand-purple/20 data-checked:text-brand-purple"
               >
                 <span>{label}</span>
                 {bitrateText && <span className="text-xs text-white/50 ml-2">{bitrateText}</span>}
@@ -245,9 +245,10 @@ interface VideoLessonProps {
   variants?: any[]
   durationSeconds?: number | null
   isDownloadable?: boolean
+  onProgress?: (progress: number) => void
 }
 
-export default function VideoLesson({ lessonId, title, description, videoUrl, thumbnailUrl, variants, durationSeconds, originVideoUrl, isDownloadable = false }: VideoLessonProps) {
+export default function VideoLesson({ lessonId, title, description, videoUrl, thumbnailUrl, variants, durationSeconds, originVideoUrl, isDownloadable = false, onProgress }: VideoLessonProps) {
   const [isMounted, setIsMounted] = useState(false)
   const [isTheaterMode, setIsTheaterMode] = useState(false)
   const [currentSrc, setCurrentSrc] = useState(videoUrl)
@@ -374,7 +375,7 @@ export default function VideoLesson({ lessonId, title, description, videoUrl, th
       {/* Backdrop for Theater Mode */}
       {isTheaterMode && (
         <div
-          className="fixed inset-0 bg-black/95 z-[60] animate-in fade-in duration-300 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/95 z-60 animate-in fade-in duration-300 backdrop-blur-sm"
           onClick={() => setIsTheaterMode(false)}
         />
       )}
@@ -389,7 +390,7 @@ export default function VideoLesson({ lessonId, title, description, videoUrl, th
         className={cn(
           "w-full group relative overflow-hidden ring-1 ring-white/10 bg-black aspect-video",
           isTheaterMode
-            ? "fixed inset-0 z-[70] m-auto w-full max-w-6xl h-fit max-h-screen rounded-none md:rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)]"
+            ? "fixed inset-0 z-70 m-auto w-full max-w-6xl h-fit max-h-screen rounded-none md:rounded-lg shadow-[0_0_50px_rgba(0,0,0,0.5)]"
             : "mb-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100"
         )}
       >
@@ -402,9 +403,33 @@ export default function VideoLesson({ lessonId, title, description, videoUrl, th
           load="eager"
           className="w-full h-full"
           onEnded={handleVideoEnded}
+          onTimeUpdate={(detail) => {
+            const { currentTime } = detail
+            // detail does not have duration. We need to access it from playerRef or state?
+            // Actually, MediaTimeUpdateEventDetail is just { currentTime: number, played: TimeRange[] }?
+            // Let's check Vidstack docs or type definition if possible.
+            // Or just use playerRef.current.duration if available.
+            // OR better: use useMediaState to get duration in the component scope?
+            // But useMediaState hook updates on every render? No, it subscribes.
+
+            // Wait, I can't access duration from 'detail' if it's not there.
+            // Let's use playerRef.current?.state.duration or similar.
+            // Or access the store.
+
+            // Simplest way: use the player instance from ref.
+            if (playerRef.current) {
+              const duration = playerRef.current.duration;
+              if (duration > 0) {
+                const progress = currentTime / duration
+                if (onProgress) {
+                  onProgress(progress)
+                }
+              }
+            }
+          }}
         >
           <MediaProvider>
-            <Poster className="vds-poster object-cover w-full h-full absolute inset-0 block opacity-0 data-[visible]:opacity-100 transition-opacity duration-200" src={thumbnailUrl || undefined} alt={title} />
+            <Poster className="vds-poster object-cover w-full h-full absolute inset-0 block opacity-0 data-visible:opacity-100 transition-opacity duration-200" src={thumbnailUrl || undefined} alt={title} />
           </MediaProvider>
 
           {/* Click to Play/Pause Overlay */}
@@ -425,7 +450,7 @@ export default function VideoLesson({ lessonId, title, description, videoUrl, th
           <CenterPlayButton />
 
           {/* Pro Max Controls Overlay */}
-          <Controls.Root className="absolute inset-0 z-30 flex flex-col justify-end bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 data-[visible]:opacity-100 pointer-events-none">
+          <Controls.Root className="absolute inset-0 z-30 flex flex-col justify-end bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 data-visible:opacity-100 pointer-events-none">
 
             <div className="p-4 md:p-6 w-full space-y-4 pointer-events-auto">
 

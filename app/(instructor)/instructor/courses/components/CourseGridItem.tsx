@@ -100,7 +100,7 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
       style={{ cursor: isSelectionMode ? 'pointer' : 'default' }}
     >
       {/* Image Section */}
-      <div className="relative w-full aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
+      <div className="relative w-full aspect-4/3 overflow-hidden bg-linear-to-br from-slate-100 to-slate-50">
         <SafeImage
           src={formatImageUrl(course.thumbnailUrl) || '/images/placeholder.jpg'}
           alt={course.title}
@@ -109,7 +109,7 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
         />
 
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
         <div className={`absolute top-3 transition-all duration-300 left-3`}>
           <Badge className={`${getStatusColor(course.status)} text-white border-0 backdrop-blur-sm`}>
@@ -133,18 +133,18 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
       </div>
 
       {/* Content Section */}
-      <div className="flex flex-col flex-1 p-5 gap-4 bg-gradient-to-b from-white to-slate-50/30">
+      <div className="flex flex-col flex-1 p-5 gap-4 bg-linear-to-b from-white to-slate-50/30">
         {/* Price & Title */}
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-bold text-2xl bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+            <h3 className="font-bold text-2xl bg-linear-to-r from-primary to-purple-600 bg-clip-text text-transparent">
               {course.price === 0 ? 'Miễn phí' : formattedPrice}
             </h3>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-gradient-to-r from-emerald-50 to-teal-50 w-fit px-3 py-1 rounded-full border border-emerald-200/50 shadow-sm">
                 <span>{getLevelLabel(course.level)}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-slate-600 bg-gradient-to-br from-slate-100 to-slate-50 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200/50">
+              <div className="flex items-center gap-1.5 text-slate-600 bg-linear-to-br from-slate-100 to-slate-50 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200/50">
                 <Clock className="w-4 h-4" />
                 <span className="text-xs font-semibold">{formatDuration(course.totalDurationMinutes)}</span>
               </div>
@@ -206,7 +206,7 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
               onClick={(e) => handleAction(e, () => publishCourse({ id: course.id }))}
               disabled={isPublishing}
             >
-              {isPublishing ? "Đang xử lý..." : "Công khai"}
+              {isPublishing ? "Đang xử lý..." : "Công bố"}
             </Button>
           ) : course.status === CourseStatus.PendingApproval ? (
             <Button

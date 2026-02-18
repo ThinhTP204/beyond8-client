@@ -172,7 +172,7 @@ export default function InstructorCoursesPage() {
               >
                 {selectedCourseIds.length > 0
                   ? `Đã chọn ${selectedCourseIds.length} khóa học`
-                  : 'Chọn tất cả (Khóa học cần công khai)'}
+                  : 'Chọn tất cả (Khóa học cần công bố)'}
               </label>
             </div>
           </div>
@@ -202,7 +202,7 @@ export default function InstructorCoursesPage() {
                   <span className="animate-spin mr-2">⏳</span> Đang xử lý...
                 </>
               ) : (
-                `Công khai ${selectedCourseIds.length > 0 ? `(${selectedCourseIds.length})` : ''}`
+                `Công bố ${selectedCourseIds.length > 0 ? `(${selectedCourseIds.length})` : ''}`
               )}
             </Button>
           </div>

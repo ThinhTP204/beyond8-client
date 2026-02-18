@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, BookOpen, Users, Wallet, User, LogOut, Bell, Crown, Gem, Zap } from "lucide-react";
+import { Home, BookOpen, Users, Wallet, User, LogOut, Bell, Crown, Gem, Zap, ClipboardCheck } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -68,6 +68,7 @@ export function InstructorBottomNav() {
     { name: "Tổng quan", href: "/instructor/dashboard", icon: Home },
     { name: "Khóa học", href: "/instructor/courses", icon: BookOpen },
     { name: "Học sinh", href: "/instructor/students", icon: Users },
+    { name: "Chấm bài", href: "/instructor/grading", icon: ClipboardCheck },
     { name: "Ví", href: "/instructor/wallet", icon: Wallet },
     { name: "Hồ sơ", href: "/mybeyond?tab=myprofile", icon: User },
   ];
@@ -93,14 +94,14 @@ export function InstructorBottomNav() {
                     >
                       <Avatar className="w-full h-full border-[1.5px] border-white">
                         <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName || 'User'} className="object-cover" />
-                        <AvatarFallback className="text-[8px] bg-purple-100 text-purple-700 font-bold flex items-center justify-center pt-[1px]">
+                        <AvatarFallback className="text-[8px] bg-purple-100 text-purple-700 font-bold flex items-center justify-center pt-px">
                           {getAvatarFallback()}
                         </AvatarFallback>
                       </Avatar>
 
                       {/* Plan Icon */}
                       {getPlanIcon(subscription?.subscriptionPlan?.code) && (
-                        <div className="absolute -top-1 -right-1 bg-white rounded-full p-[1px] shadow-sm z-30 flex items-center justify-center border border-gray-100">
+                        <div className="absolute -top-1 -right-1 bg-white rounded-full p-px shadow-sm z-30 flex items-center justify-center border border-gray-100">
                           {getPlanIcon(subscription?.subscriptionPlan?.code)}
                         </div>
                       )}

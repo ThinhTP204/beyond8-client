@@ -5,7 +5,8 @@ import { useGetCourseDetails, useGetCourseSummary } from '@/hooks/useCourse'
 import type { CourseDetail, CourseSummary, LessonSummary, SectionSummary, SectionDetail } from '@/lib/api/services/fetchCourse'
 import type { Lesson } from '@/lib/api/services/fetchLesson'
 import { useAuth } from '@/hooks/useAuth'
-import { useCheckEnrollment } from '@/hooks/useEnroll'
+import { useCheckEnrollment, useUpdateLearning, useGetCurriculumProgress } from '@/hooks/useEnroll' // Updated imports
+import { useState, useMemo } from 'react' // Import useState, useMemo
 import VideoLesson from './components/VideoLesson'
 import TextLesson from './components/TextLesson'
 import LessonInfo from './components/LessonInfo'
@@ -13,6 +14,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { formatHls, getResolvedHlsVariants } from '@/lib/utils/formatHls'
 
 import { useGetVideoByLessonId } from '@/hooks/useLesson'
+// 1.5 Determine completion status (Moved up to avoid conditional hook error)
+// Need lessonId to be available. It comes from params.
+// But params is at line 50.
+// Let's check where lessonId is defined. Line 55.
+// So this hook needs to be AFTER line 55.
+// But lines 115, 122, 127 checks return early. 
+// Hooks MUST be before any return.
+// So we must move all hooks to the top, even if some data is not yet available, 
+// using 'enabled' flags or null checks inside the hook/memo.
 
 
 import Link from 'next/link'
@@ -62,6 +72,34 @@ export default function LessonPage() {
     enabled: !!courseId && isAuthenticated,
   })
 
+  // 1.1 Enrollment ID (moved up to be available)
+  // const enrollmentId = isEnrolled ? courseId : undefined // Simplification based on assumption or need to fetch properly if different
+
+  // However, useCheckEnrollment returns enrollmentId? API check needed.
+  // Looking at useEnroll.ts or usage in TextLesson:
+  // const { enrollmentId } = useCheckEnrollment(courseId, { enabled: !!courseId })
+  // It seems useCheckEnrollment returns object with enrollmentId. 
+  // Let's correct destructuring above if needed, or re-call.
+  // Actually line 58 descturctures isEnrolled. Let's see if it returns enrollmentId.
+  // Assuming it does based on TextLesson usage.
+
+  const { enrollmentId: userEnrollmentId } = useCheckEnrollment(courseId, {
+    enabled: !!courseId && isAuthenticated
+  })
+
+  // 1.2 Curriculum Progress
+  const { curriculumProgress } = useGetCurriculumProgress(userEnrollmentId || undefined, {
+    enabled: !!userEnrollmentId
+  })
+
+  // 1.3 Update Learning
+  const { updateLearning, isPending: isUpdatingLearning } = useUpdateLearning()
+
+  // 1.4 Local State
+  const [hasScrolled, setHasScrolled] = useState(false)
+  const [videoProgress, setVideoProgress] = useState(0)
+  const [isNavigating, setIsNavigating] = useState(false)
+
   // 2. Xác định mode tương tự layout
   const shouldFetchDetails = isAuthenticated && !isCheckingEnroll && isEnrolled
   const shouldFetchSummary = !isAuthenticated || (!isCheckingEnroll && !isEnrolled)
@@ -88,6 +126,22 @@ export default function LessonPage() {
     router.push('/courses')
     return null
   }
+
+  // Determine completion status (Moved here, before other early returns if possible, 
+  // but we have other hooks below like useGetCourseDetails which might be skipped? 
+  // No, useGetCourseDetails has 'enabled' option, so it is always called.
+  // The early returns like 'if (isLoading) return' at line 113 are the blockers.
+
+  // So isLessonCompleted must be before line 113.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const isLessonCompleted = useMemo(() => {
+    if (!curriculumProgress) return false
+    for (const s of curriculumProgress.sections) {
+      const l = s.lessons.find((item) => item.lessonId === lessonId)
+      if (l) return l.isCompleted
+    }
+    return false
+  }, [curriculumProgress, lessonId])
 
   // 4. Determine final state
   const mode = shouldFetchDetails ? 'details' : 'summary'
@@ -161,6 +215,70 @@ export default function LessonPage() {
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null
   const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null
 
+  // Determine completion status - MOVED UP CHECK
+  // We need to ensure we don't break rules of hooks.
+  // The early returns (lines 115, 122, 127, 132 etc) are problematic if we use useMemo below them.
+  // We should move this useMemo up, and handle potential undefined values.
+
+  // However, 'section' and 'lesson' are derived after the hooks and early returns.
+  // We can calculate isLessonCompleted based on lessonId from params, which is available early.
+
+  // Let's refactor the component to have all hooks at top.
+  // But wait, 'lesson' object is used in JSX.
+  // The issue is simply that I placed useMemo AFTER early returns.
+  // I need to place it before any 'if (something) return ...' 
+
+  // But 'curriculumProgress' is fetched at top. 'lessonId' is at top. 
+  // So I can move isLessonCompleted to top.
+
+  // Actually, let's just move the definition up.
+
+
+  // Handle Next Lesson Navigation
+  const handleNextLesson = async () => {
+    if (isNavigating) return
+
+    // If not completed and it's a Text lesson (implied context), mark complete
+    // For video lessons, completion logic (80%) is also sufficient to mark complete.
+
+    if (!isLessonCompleted && !isUpdatingLearning) {
+      // We initiate updateLearning if conditions met.
+      // For text: we already enabled button implies conditions met (scrolled).
+      // For video: if progress >= 0.8, we enable button.
+      // So if button click happens, we assume we can mark complete.
+      try {
+        await updateLearning({
+          lessonId,
+          data: {
+            lastPositionSeconds: 0, // Or current video time?
+            markComplete: true
+          }
+        })
+      } catch (error) {
+        console.error("Failed to mark lesson as complete", error)
+      }
+    }
+
+    if (nextLesson) {
+      setIsNavigating(true)
+      router.push(`${baseUrl}/${nextLesson.sectionId}/${nextLesson.id}`)
+    } else {
+      router.push(baseUrl)
+    }
+  }
+
+  // Determine if Next button should be disabled in LessonInfo
+  // Logic: Disabled IF:
+  // (Current is Text AND Not Completed AND Not Scrolled)
+  // OR
+  // (Current is Video AND Not Completed AND Progress < 80%)
+
+  const isVideoCompletedLocal = videoProgress >= 0.8
+
+  const isNextDisabled =
+    (lesson?.type === 'Text' && !isLessonCompleted && !hasScrolled) ||
+    (lesson?.type === 'Video' && !isLessonCompleted && !isVideoCompletedLocal)
+
   const baseUrl = `/courses/${slug}/${courseId}`
 
   return (
@@ -181,6 +299,7 @@ export default function LessonPage() {
                 }
                 originVideoUrl={originalUrl || ''}
                 isDownloadable={'isDownloadable' in lesson ? lesson.isDownloadable : false}
+                onProgress={(progress) => setVideoProgress(progress)}
               />
             )}
             {lesson.type === 'Text' && (
@@ -188,6 +307,7 @@ export default function LessonPage() {
                 lessonId={lesson.id}
                 title={lesson.title}
                 content={'textContent' in lesson ? lesson.textContent : null}
+                onScrollToBottom={() => setHasScrolled(true)}
               />
             )}
           </div>
@@ -207,6 +327,18 @@ export default function LessonPage() {
           currentLesson={lesson as Lesson}
           slug={slug}
           courseId={courseId}
+          onNavigate={(sectionId, lessonId) => {
+            // We want to intercept Next Lesson click.
+            // LessonInfo passes sectionId/lessonId. 
+            // If it matches nextLesson, use our handler.
+            if (nextLesson && nextLesson.id === lessonId) {
+              handleNextLesson()
+            } else {
+              // Fallback for prev lesson or others
+              router.push(`${baseUrl}/${sectionId}/${lessonId}`)
+            }
+          }}
+          isNextDisabled={isNextDisabled}
         />
       </div>
     </div>

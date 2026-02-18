@@ -16,7 +16,7 @@ interface GradingSectionViewProps {
 
 export function GradingSectionView({ section, ungradedCount, totalSubmissions, onSelectAssignment }: GradingSectionViewProps) {
     return (
-        <AccordionItem value={section.id} className="group mb-4 rounded-2xl border border-brand-magenta/10 bg-white/80 px-2 shadow-sm backdrop-blur-xl transition-all hover:border-brand-magenta/30 hover:shadow-md hover:shadow-brand-magenta/5 data-[state=open]:border-brand-magenta/30 data-[state=open]:shadow-brand-magenta/5">
+        <AccordionItem value={section.id} className="group my-4 py-2 rounded-2xl border border-brand-magenta/10 bg-white/80 px-2 shadow-sm backdrop-blur-xl transition-all hover:border-brand-magenta/30 hover:shadow-md hover:shadow-brand-magenta/5 data-[state=open]:border-brand-magenta/30 data-[state=open]:shadow-brand-magenta/5">
             <AccordionTrigger className="hover:no-underline py-4 px-2 rounded-xl hover:bg-black/5 transition-colors [&[data-state=open]>div>div>span]:text-brand-magenta">
                 <div className="flex items-center justify-between w-full pr-4">
                     <div className="flex flex-col items-start gap-1">

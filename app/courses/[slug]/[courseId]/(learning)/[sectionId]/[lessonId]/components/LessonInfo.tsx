@@ -21,6 +21,7 @@ interface LessonInfoProps {
   slug: string
   courseId: string
   onNavigate?: (sectionId: string, lessonId: string) => void
+  isNextDisabled?: boolean
   instructor?: {
     name: string
     avatar?: string
@@ -28,7 +29,7 @@ interface LessonInfoProps {
   }
 }
 
-export default function LessonInfo({ course, currentLesson, slug, courseId, onNavigate, instructor }: LessonInfoProps) {
+export default function LessonInfo({ course, currentLesson, slug, courseId, onNavigate, instructor, isNextDisabled }: LessonInfoProps) {
 
   // Find prev/next lesson
   const allLessons = course.sections.flatMap(s => s.lessons.map(l => ({ ...l, sectionId: s.id })))
@@ -96,8 +97,19 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
             {nextLesson ? (
               onNavigate ? (
                 <Button
-                  className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium"
-                  onClick={() => onNavigate(nextLesson.sectionId, nextLesson.id)}
+                  className={`
+                    rounded-full px-6 h-10 transition-all font-medium border-none shadow-lg
+                    ${isNextDisabled
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                      : 'bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white'
+                    }
+                  `}
+                  onClick={() => {
+                    if (!isNextDisabled) {
+                      onNavigate(nextLesson.sectionId, nextLesson.id)
+                    }
+                  }}
+                  disabled={isNextDisabled}
                 >
                   Bài tiếp theo <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
