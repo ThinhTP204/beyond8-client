@@ -206,7 +206,7 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
               onClick={(e) => handleAction(e, () => publishCourse({ id: course.id }))}
               disabled={isPublishing}
             >
-              {isPublishing ? "Đang xử lý..." : "Công bố"}
+              {isPublishing ? "Đang xử lý..." : "Công khai"}
             </Button>
           ) : course.status === CourseStatus.PendingApproval ? (
             <Button

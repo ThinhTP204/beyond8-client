@@ -58,6 +58,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { Markdown } from "tiptap-markdown";
 import { ToolbarProvider } from "@/components/ui/toolbar-provider";
 import { EditorToolbar } from "./EditorToolbar";
+import { AvatarCropperDialog } from "@/components/ui/cropper-image";
 
 export interface LessonEditorRef {
   hasUnsavedChanges: () => boolean;
@@ -108,6 +109,10 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
     const [durationValue, setDurationValue] = useState(0);
     const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+
+    // Cropper state
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     // Text specific
     const [textContent, setTextContent] = useState("");
@@ -172,18 +177,31 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
       isUploadingVideoLesson,
     } = useMediaVideoLesson();
 
-    const handleThumbnailUpload = async (file: File) => {
+    const handleThumbnailUpload = (file: File) => {
       if (!file) return;
 
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        // alert('Please upload an image file');
         return;
       }
 
-      uploadThumnailVideoLesson(file, {
+      // Create object URL for cropper
+      const imageUrl = URL.createObjectURL(file);
+      setSelectedImage(imageUrl);
+      setIsCropperOpen(true);
+
+      // Reset input value to allow selecting same file again
+      if (thumbnailInputRef.current) {
+        thumbnailInputRef.current.value = '';
+      }
+    };
+
+    const handleCropperSave = async (croppedFile: File) => {
+      uploadThumnailVideoLesson(croppedFile, {
         onSuccess: (data) => {
           setVideoThumbnailUrl(formatImageUrl(data.fileUrl) || data.fileUrl);
+          setIsCropperOpen(false);
+          setSelectedImage(null);
         },
         onError: (error) => {
           console.error("Upload thumbnail failed", error);
@@ -1500,6 +1518,21 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
             </div>
           </div>
         </div>
+
+        {/* Cropper Dialog */}
+        {isCropperOpen && (
+          <AvatarCropperDialog
+            open={isCropperOpen}
+            imageSrc={selectedImage}
+            onClose={() => {
+              setIsCropperOpen(false);
+              setSelectedImage(null);
+            }}
+            onCropped={handleCropperSave}
+            aspect={16 / 9}
+            cropShape="rect"
+          />
+        )}
       </div>
     );
   }

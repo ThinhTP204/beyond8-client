@@ -569,10 +569,10 @@ export function usePublishCourse() {
       queryClient.invalidateQueries({
         queryKey: ["courses"],
       });
-      toast.success("Công bố khóa học thành công!");
+      toast.success("Công khai khóa học thành công!");
     },
     onError: (error: ApiError) => {
-      toast.error(error?.message || "Lỗi khi công bố khóa học!");
+      toast.error(error?.message || "Lỗi khi công khai khóa học!");
     },
   });
 
@@ -644,10 +644,10 @@ export function usePublishCourses() {
       queryClient.invalidateQueries({
         queryKey: ["courses", "instructor"],
       });
-      toast.success("Công bố khóa học thành công!");
+      toast.success("Công khai khóa học thành công!");
     },
     onError: (error: ApiError) => {
-      toast.error(error?.message || "Lỗi khi công bố khóa học!");
+      toast.error(error?.message || "Lỗi khi công khai khóa học!");
     },
   });
 

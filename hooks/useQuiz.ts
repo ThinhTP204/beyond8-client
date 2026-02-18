@@ -215,6 +215,9 @@ export function useSubmitQuizAttempt() {
                 queryClient.invalidateQueries({
                     queryKey: ["quiz-current-attempt", quizId],
                 });
+                queryClient.invalidateQueries({
+                    queryKey: ["curriculum-progress"],
+                });
             }
         },
     });

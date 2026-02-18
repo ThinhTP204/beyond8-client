@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react' // Import useRef
+import { useState, useRef, useEffect } from 'react' // Import useRef
 import { Maximize2, Minimize2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -21,6 +21,49 @@ export default function TextLesson({ title, content, onScrollToBottom }: TextLes
     // Scroll detection
     const contentRef = useRef<HTMLDivElement>(null)
     const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
+
+    // Check if content is short enough to not need scrolling
+    useEffect(() => {
+        if (!contentRef.current) return
+
+        const checkScroll = () => {
+            if (contentRef.current) {
+                const { scrollHeight, clientHeight } = contentRef.current
+                // If content is shorter than or equal to container, it's considered "read"
+                if (scrollHeight <= clientHeight + 50) {
+                    setHasScrolledToBottom(true)
+                    if (onScrollToBottom) onScrollToBottom()
+                }
+            }
+        }
+
+        // Check initially and on resize
+        checkScroll()
+        window.addEventListener('resize', checkScroll)
+
+        // Also observe content changes if markdown renders late (basic approach)
+        const timeoutId = setTimeout(checkScroll, 500)
+
+        return () => {
+            window.removeEventListener('resize', checkScroll)
+            clearTimeout(timeoutId)
+        }
+    }, [content, onScrollToBottom])
+
+    const handleScroll = () => {
+        if (!contentRef.current) return
+        const { scrollTop, scrollHeight, clientHeight } = contentRef.current
+
+        // Check if we are close to bottom
+        const isBottom = scrollTop + clientHeight >= scrollHeight - 50
+
+        if (!hasScrolledToBottom && isBottom) {
+            setHasScrolledToBottom(true)
+            if (onScrollToBottom) {
+                onScrollToBottom()
+            }
+        }
+    }
 
     // Check enrollment and progress to determine if already completed
     // const { enrollmentId } = useCheckEnrollment(courseId, { enabled: !!courseId })
@@ -79,16 +122,7 @@ export default function TextLesson({ title, content, onScrollToBottom }: TextLes
                 {/* Content Area */}
                 <div
                     ref={contentRef}
-                    onScroll={() => {
-                        if (!contentRef.current) return
-                        const { scrollTop, scrollHeight, clientHeight } = contentRef.current
-                        if (!hasScrolledToBottom && scrollTop + clientHeight >= scrollHeight - 50) { // 50px buffer
-                            setHasScrolledToBottom(true)
-                            if (onScrollToBottom) {
-                                onScrollToBottom()
-                            }
-                        }
-                    }}
+                    onScroll={handleScroll}
                     className={`
                     p-4 h-full overflow-y-auto w-full scrollbar-auto-show
                     ${isFullscreen ? 'flex-1 h-full' : 'aspect-video flex flex-col'}

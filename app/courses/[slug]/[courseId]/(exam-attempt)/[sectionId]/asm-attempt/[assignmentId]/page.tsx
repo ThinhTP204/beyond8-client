@@ -127,10 +127,8 @@ export default function AssignmentAttemptPage() {
             }
 
             const getNextButtonText = () => {
-              if (nextLesson.type === LessonType.Quiz) {
-                return "Bài kiểm tra"
-              }
-              return "Bài tiếp theo"
+              // Since we are moving to the next section, it's always "Next Chapter"
+              return "Chương tiếp theo"
             }
 
             const getNextLessonUrl = () => {
@@ -139,6 +137,12 @@ export default function AssignmentAttemptPage() {
                 const quizId = (nextLesson as any).quizId
                 return `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${quizId}`
               }
+              // Check if next lesson is an assignment (unlikely for first lesson, but for consistency)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              if ((nextLesson as any).type === 'Assignment') {
+                // Logic for assignment URL if needed, but usually assignment is separate entity attached to section
+              }
+
               return `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}`
             }
 

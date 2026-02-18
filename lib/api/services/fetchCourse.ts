@@ -533,7 +533,7 @@ export const fetchCourse = {
         return response.data;
     },
 
-    //Công bố khóa học
+    //Công khai khóa học
     publishCourse: async (id: string): Promise<CourseResponse> => {
         const response = await apiService.post<CourseResponse>(`api/v1/courses/${id}/publish`);
         return response.data;

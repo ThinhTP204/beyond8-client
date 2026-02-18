@@ -116,7 +116,7 @@ export function AvatarCropperDialog({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Cắt ảnh đại diện</DialogTitle>
+          <DialogTitle>Cắt ảnh</DialogTitle>
         </DialogHeader>
         <div className="relative w-full h-80 bg-black/80 rounded-lg overflow-hidden">
           {imageSrc && (

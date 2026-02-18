@@ -102,7 +102,9 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
               let targetUrl = getLessonUrl(nextLesson)
               let forceFullNav = false
 
-              if (nextLesson.type === LessonType.Quiz) {
+              if (nextLesson.sectionId !== allLessons[currentIndex].sectionId) {
+                buttonText = "Chương tiếp theo"
+              } else if (nextLesson.type === LessonType.Quiz) {
                 buttonText = "Bài kiểm tra"
                 targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${nextLesson.quizId}`
                 forceFullNav = true
@@ -114,35 +116,37 @@ export default function LessonInfo({ course, currentLesson, slug, courseId, onNa
                   const assignmentId = (section as any).assignmentId
                   if (assignmentId) {
                     targetUrl = `/courses/${slug}/${courseId}/${nextLesson.sectionId}/asm-attempt/${assignmentId}`
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     forceFullNav = true
                   }
                 }
               }
 
-              return (onNavigate && !forceFullNav) ? (
+              return (onNavigate && !isNextDisabled) ? (
                 <Button
-                  className={`
-                    rounded-full px-6 h-10 transition-all font-medium border-none shadow-lg
-                    ${isNextDisabled
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-                      : 'bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white'
-                    }
-                  `}
+                  className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium"
                   onClick={() => {
-                    if (!isNextDisabled) {
-                      onNavigate(nextLesson.sectionId, nextLesson.id)
-                    }
+                    onNavigate(nextLesson.sectionId, nextLesson.id)
                   }}
                   disabled={isNextDisabled}
                 >
                   {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               ) : (
-                <Link href={targetUrl}>
-                  <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
+                isNextDisabled ? (
+                  <Button
+                    disabled
+                    className="rounded-full bg-gray-200 text-gray-400 cursor-not-allowed shadow-none border-none px-6 h-10 font-medium"
+                  >
                     {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
-                </Link>
+                ) : (
+                  <Link href={targetUrl}>
+                    <Button className="rounded-full bg-linear-to-r from-purple-900 to-purple-700 hover:opacity-90 text-white border-none shadow-lg px-6 h-10 transition-all font-medium">
+                      {buttonText} <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </Link>
+                )
               )
             })() : (
               <Button

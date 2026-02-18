@@ -260,7 +260,7 @@ export function CoursePreviewDialog({
                 open={isApproveOpen}
                 onOpenChange={setIsApproveOpen}
                 title="Phê duyệt khóa học"
-                description="Bạn có chắc chắn muốn phê duyệt khóa học này công khai không?"
+                description="Bạn có chắc chắn muốn phê duyệt khóa học này không?"
                 confirmLabel="Phê duyệt"
                 onConfirm={handleApproveConfirm}
                 isLoading={isApproving}

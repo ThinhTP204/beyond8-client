@@ -248,7 +248,7 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
                         size="icon"
                         className={`h-10 rounded-full text-gray-500 hover:text-green-600 hover:bg-green-50 flex items-center transition-all duration-300 ${isToolbarHovered ? "w-full justify-start px-3" : "w-10 justify-center mx-auto"
                           }`}
-                        title="Công bố"
+                        title="Công khai"
                         onClick={() => publishCourse({ id: courseId })}
                         disabled={isPublishing}
                       >
@@ -259,7 +259,7 @@ export default function TwoPanelLayout({ courseId, onBackToInfo }: TwoPanelLayou
                             animate={{ opacity: 1 }}
                             className="ml-3 whitespace-nowrap text-sm font-medium"
                           >
-                            Công bố
+                            Công khai
                           </motion.span>
                         )}
                       </Button>

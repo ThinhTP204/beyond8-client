@@ -6,7 +6,7 @@ import type { CourseDetail, CourseSummary, LessonSummary, SectionSummary, Sectio
 import type { Lesson } from '@/lib/api/services/fetchLesson'
 import { useAuth } from '@/hooks/useAuth'
 import { useCheckEnrollment, useUpdateLearning, useGetCurriculumProgress } from '@/hooks/useEnroll' // Updated imports
-import { useState, useMemo } from 'react' // Import useState, useMemo
+import { useState, useMemo, useEffect } from 'react' // Import useState, useMemo, useEffect
 import VideoLesson from './components/VideoLesson'
 import TextLesson from './components/TextLesson'
 import LessonInfo from './components/LessonInfo'
@@ -99,6 +99,14 @@ export default function LessonPage() {
   const [hasScrolled, setHasScrolled] = useState(false)
   const [videoProgress, setVideoProgress] = useState(0)
   const [isNavigating, setIsNavigating] = useState(false)
+
+  // Reset scroll state when lesson changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setHasScrolled(false)
+    setVideoProgress(0)
+    setIsNavigating(false)
+  }, [lessonId])
 
   // 2. Xác định mode tương tự layout
   const shouldFetchDetails = isAuthenticated && !isCheckingEnroll && isEnrolled
@@ -261,7 +269,24 @@ export default function LessonPage() {
 
     if (nextLesson) {
       setIsNavigating(true)
-      router.push(`${baseUrl}/${nextLesson.sectionId}/${nextLesson.id}`)
+
+      // Determine target URL
+      const section = course.sections.find(s => s.id === nextLesson.sectionId)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const assignmentId = (section as any)?.assignmentId
+
+      let targetUrl = `${baseUrl}/${nextLesson.sectionId}/${nextLesson.id}`
+
+      if (nextLesson.type === 'Quiz' && 'quizId' in nextLesson) {
+        targetUrl = `${baseUrl}/${nextLesson.sectionId}/${nextLesson.id}/quiz-attempt?quizId=${nextLesson.quizId}`
+      } else if (section) {
+        const lastLesson = section.lessons[section.lessons.length - 1]
+        if (lastLesson.id === nextLesson.id && assignmentId) {
+          targetUrl = `${baseUrl}/${nextLesson.sectionId}/asm-attempt/${assignmentId}`
+        }
+      }
+
+      router.push(targetUrl)
     } else {
       router.push(baseUrl)
     }
@@ -304,6 +329,7 @@ export default function LessonPage() {
             )}
             {lesson.type === 'Text' && (
               <TextLesson
+                key={lesson.id}
                 lessonId={lesson.id}
                 title={lesson.title}
                 content={'textContent' in lesson ? lesson.textContent : null}
