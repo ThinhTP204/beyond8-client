@@ -16,7 +16,7 @@ import { CourseSummary, CourseDetail as CourseDetailType } from '@/lib/api/servi
 import { useCheckEnrollment, useEnrollCourse } from '@/hooks/useEnroll'
 import { ConfirmDialog } from '@/components/widget/confirm-dialog'
 import { useAuth } from '@/hooks/useAuth'
-import { useAddToCart, useGetCart, useBuyNow, useCheckCourse } from '@/hooks/useOrder'
+import { useAddToCart, useGetCart, useBuyNow, useCheckCourse, useProcessPayment } from '@/hooks/useOrder'
 import { startOfToday, differenceInCalendarDays } from 'date-fns'
 import { PendingPaymentDialog } from '@/components/widget/PendingPaymentDialog'
 import { useRouter } from 'next/navigation'
@@ -83,7 +83,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   })
   const { addToCart, isPending: isAddingToCart } = useAddToCart()
   const { cart } = useGetCart({ enabled: isAuthenticated })
-  const { buyNow, isPending: isBuyNowPending } = useBuyNow()
+  //const { buyNow, isPending: isBuyNowPending } = useBuyNow()
   const { processPayment, isPending: isProcessPaymentPending } = useProcessPayment()
 
   const { isPurchased } = useCheckCourse(course.id, {

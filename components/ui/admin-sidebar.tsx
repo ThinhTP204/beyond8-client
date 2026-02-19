@@ -20,7 +20,9 @@ import {
   LayoutList,
   MessageSquare,
   Bell,
+  Ticket,
 } from 'lucide-react';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -49,6 +51,7 @@ const menuItems = [
   { icon: FileCheck, label: 'Duyệt giảng viên', href: '/admin/instructor-registration' },
   { icon: LayoutList, label: 'Quản lý danh mục', href: '/admin/category' },
   { icon: BookOpen, label: 'Khóa học', href: '/admin/course' },
+  { icon: Ticket, label: 'Quản lý khuyến mãi', href: '/admin/coupon' },
   {
     icon: Bot,
     label: 'Quản lý AI',
@@ -324,20 +327,20 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
               </TooltipProvider>
             ) : (
               <div className="relative flex items-center gap-2">
-                  <Avatar className="h-8 w-8 rounded-lg flex-shrink-0">
-                    <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
-                    <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold rounded-lg text-xs">
-                      {getAvatarFallback()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {userProfile?.isActive && (
-                    <span className="absolute bottom-0 -right-1 w-3 h-3 flex z-10">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
-                    </span>
-                  )}
+                <Avatar className="h-8 w-8 rounded-lg flex-shrink-0">
+                  <AvatarImage src={formatImageUrl(userProfile?.avatarUrl)} alt={userProfile?.fullName} />
+                  <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold rounded-lg text-xs">
+                    {getAvatarFallback()}
+                  </AvatarFallback>
+                </Avatar>
+                {userProfile?.isActive && (
+                  <span className="absolute bottom-0 -right-1 w-3 h-3 flex z-10">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
+                  </span>
+                )}
               </div>
-             
+
             )}
 
             <div className={cn(
@@ -379,8 +382,8 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                           <Bell className="h-4 w-4" />
                         </div>
                         Thông báo
-                        </div> 
-                        <div>
+                      </div>
+                      <div>
                         {notificationStatus && notificationStatus.unreadCount > 0 && (
                           <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
                             <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white text-[10px] font-bold text-white">
@@ -388,7 +391,7 @@ export function AdminSidebar({ isCollapsed }: AdminSidebarProps) {
                             </span>
                           </span>
                         )}
-                        </div>                   
+                      </div>
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
