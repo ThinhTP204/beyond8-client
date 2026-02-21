@@ -17,8 +17,10 @@ export default function PaymentCallbackPage() {
   useEffect(() => {
     if (typeof window !== "undefined" && sessionStorage.getItem("isWalletTopUp") === "true") {
       sessionStorage.removeItem("isWalletTopUp");
+      const returnUrl = sessionStorage.getItem("walletTopUpReturnUrl") || "/instructor/wallet";
+      sessionStorage.removeItem("walletTopUpReturnUrl");
       const params = new URLSearchParams(searchParams.toString());
-      router.replace(`/instructor/wallet?${params.toString()}`);
+      router.replace(`${returnUrl}?${params.toString()}`);
     }
   }, [searchParams, router]);
 

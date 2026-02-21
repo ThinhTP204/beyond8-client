@@ -161,7 +161,13 @@ export function useCreateCouponForCourse() {
 			toast.success("Tạo mã khuyến mãi thành công!");
 		},
 		onError: (error: ApiError) => {
-			toast.error(error?.message || "Tạo mã khuyến mãi thất bại!");
+			const errorMessage = (error?.message || "").toLowerCase();
+			const isInsufficientBalance = errorMessage.includes("số dư") || errorMessage.includes("xu") || errorMessage.includes("balance") || errorMessage.includes("không đủ");
+
+			// If it's an insufficient balance error, let the component handle the custom toast + action
+			if (!isInsufficientBalance) {
+				toast.error(error?.message || "Tạo mã khuyến mãi thất bại!");
+			}
 		},
 	});
 

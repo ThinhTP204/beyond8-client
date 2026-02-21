@@ -25,6 +25,7 @@ import {
     FormDescription,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -261,11 +262,11 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                     <FormItem className="space-y-2">
                                                         <FormLabel className="text-sm font-medium text-gray-700">Mô tả <span className="text-gray-400 font-normal">(tùy chọn)</span></FormLabel>
                                                         <FormControl>
-                                                            <Input
+                                                            <Textarea
                                                                 placeholder="Mô tả ngắn về chương trình khuyến mãi..."
                                                                 {...field}
                                                                 value={field.value || ''}
-                                                                className="h-11 bg-white border-gray-200"
+                                                                className="min-h-[100px] resize-none bg-white border-gray-200"
                                                             />
                                                         </FormControl>
                                                         <FormMessage />
@@ -356,12 +357,22 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                             <FormControl>
                                                                 <div className="relative">
                                                                     <Input
-                                                                        type="number"
+                                                                        type="text"
+                                                                        inputMode="numeric"
                                                                         {...field}
+                                                                        value={field.value ?? ''}
+                                                                        onChange={(e) => {
+                                                                            let val = e.target.value.replace(/[^0-9]/g, "");
+                                                                            if (val.length > 1 && val.startsWith("0")) {
+                                                                                val = val.replace(/^0+/, "");
+                                                                                if (val === "") val = "0";
+                                                                            }
+                                                                            field.onChange(val);
+                                                                        }}
                                                                         className="h-11 pr-12 font-medium bg-white border-gray-200 text-lg"
                                                                         placeholder="0"
                                                                     />
-                                                                    <div className="absolute inset-y-0 right-0 flex items-center justify-center w-12 pointer-events-none text-muted-foreground font-semibold bg-gray-50 border-l h-full rounded-r-md">
+                                                                    <div className="absolute inset-y-0 right-0 flex items-center justify-center w-12 pointer-events-none text-muted-foreground font-semibold">
                                                                         {couponType === CouponType.Percentage ? "%" : "đ"}
                                                                     </div>
                                                                 </div>
@@ -386,9 +397,18 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                 <FormControl>
                                                                     <div className="relative">
                                                                         <Input
-                                                                            type="number"
+                                                                            type="text"
+                                                                            inputMode="numeric"
                                                                             {...field}
                                                                             value={field.value ?? ''}
+                                                                            onChange={(e) => {
+                                                                                let val = e.target.value.replace(/[^0-9]/g, "");
+                                                                                if (val.length > 1 && val.startsWith("0")) {
+                                                                                    val = val.replace(/^0+/, "");
+                                                                                    if (val === "") val = "0";
+                                                                                }
+                                                                                field.onChange(val);
+                                                                            }}
                                                                             className="h-11 bg-white border-gray-200 pr-10"
                                                                             placeholder="Không giới hạn"
                                                                         />
@@ -415,9 +435,18 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                             <FormControl>
                                                                 <div className="relative">
                                                                     <Input
-                                                                        type="number"
+                                                                        type="text"
+                                                                        inputMode="numeric"
                                                                         {...field}
                                                                         value={field.value ?? ''}
+                                                                        onChange={(e) => {
+                                                                            let val = e.target.value.replace(/[^0-9]/g, "");
+                                                                            if (val.length > 1 && val.startsWith("0")) {
+                                                                                val = val.replace(/^0+/, "");
+                                                                                if (val === "") val = "0";
+                                                                            }
+                                                                            field.onChange(val);
+                                                                        }}
                                                                         className="h-11 bg-white border-gray-200 pr-10"
                                                                         placeholder="0"
                                                                     />
@@ -595,9 +624,18 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                 </div>
                                                                 <FormControl>
                                                                     <Input
-                                                                        type="number"
+                                                                        type="text"
+                                                                        inputMode="numeric"
                                                                         {...field}
                                                                         value={field.value ?? ''}
+                                                                        onChange={(e) => {
+                                                                            let val = e.target.value.replace(/[^0-9]/g, "");
+                                                                            if (val.length > 1 && val.startsWith("0")) {
+                                                                                val = val.replace(/^0+/, "");
+                                                                                if (val === "") val = "0";
+                                                                            }
+                                                                            field.onChange(val);
+                                                                        }}
                                                                         placeholder="Không giới hạn"
                                                                         className="h-11 bg-white border-gray-200"
                                                                     />
@@ -617,9 +655,18 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                 </div>
                                                                 <FormControl>
                                                                     <Input
-                                                                        type="number"
+                                                                        type="text"
+                                                                        inputMode="numeric"
                                                                         {...field}
                                                                         value={field.value ?? ''}
+                                                                        onChange={(e) => {
+                                                                            let val = e.target.value.replace(/[^0-9]/g, "");
+                                                                            if (val.length > 1 && val.startsWith("0")) {
+                                                                                val = val.replace(/^0+/, "");
+                                                                                if (val === "") val = "0";
+                                                                            }
+                                                                            field.onChange(val);
+                                                                        }}
                                                                         placeholder="1"
                                                                         className="h-11 bg-white border-gray-200"
                                                                     />

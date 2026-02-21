@@ -6,7 +6,7 @@ import { TransactionHistoryTable } from "./components/TransactionHistoryTable";
 import { WithdrawalSection } from "./components/WithdrawalSection";
 import { ChartLineInteractive } from "../dashboard/components/ChartLineInteractive";
 import { useGetMyWallet, useGetMyTransactions } from "@/hooks/useWallet";
-import { DepositDialog } from "./components/DepositDialog";
+import { DepositDialog } from "@/components/widget/wallet/DepositDialog";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";

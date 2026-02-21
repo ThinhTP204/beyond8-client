@@ -24,7 +24,7 @@ export function WithdrawalSection() {
               </div>
             </div>
           </div>
-          <Button className="w-full bg-brand-magenta hover:bg-brand-magenta/90">
+          <Button className="rounded-full w-full bg-brand-magenta hover:bg-brand-magenta/90">
             Yêu cầu rút tiền
           </Button>
         </CardContent>
@@ -35,7 +35,7 @@ export function WithdrawalSection() {
           <CardTitle>Phương thức thanh toán</CardTitle>
         </CardHeader>
         <CardContent>
-          <Button variant="outline" className="w-full gap-2">
+          <Button variant="outline" className="rounded-full w-full gap-2">
             <CreditCard className="h-4 w-4" />
             Quản lý tài khoản
           </Button>
