@@ -2,12 +2,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Clock, CreditCard, Wallet } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface WalletStatsCardsProps {
   totalRevenue: number;
   currentBalance: number;
   pendingClearance: number;
   totalWithdrawn: number;
+  isLoading?: boolean;
 }
 
 export function WalletStatsCards({
@@ -15,6 +17,7 @@ export function WalletStatsCards({
   currentBalance,
   pendingClearance,
   totalWithdrawn,
+  isLoading,
 }: WalletStatsCardsProps) {
   const stats = [
     {
@@ -66,7 +69,11 @@ export function WalletStatsCards({
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              {isLoading ? (
+                <Skeleton className="h-8 w-32 mb-2" />
+              ) : (
+                <div className="text-2xl font-bold">{stat.value}</div>
+              )}
               <p className="text-xs text-muted-foreground mt-1">
                 {stat.description}
               </p>

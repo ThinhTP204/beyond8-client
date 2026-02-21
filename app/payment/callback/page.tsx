@@ -1,7 +1,7 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
-import { useMemo } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useEffect, useMemo } from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -12,6 +12,15 @@ import { formatCurrency } from '@/lib/utils/formatCurrency'
 
 export default function PaymentCallbackPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("isWalletTopUp") === "true") {
+      sessionStorage.removeItem("isWalletTopUp");
+      const params = new URLSearchParams(searchParams.toString());
+      router.replace(`/instructor/wallet?${params.toString()}`);
+    }
+  }, [searchParams, router]);
 
   const { isSuccess, paymentInfo, errorMessage, errorReason } = useMemo(() => {
     const responseCode = searchParams.get('vnp_ResponseCode')
@@ -22,7 +31,7 @@ export default function PaymentCallbackPage() {
     const bankCode = searchParams.get('vnp_BankCode')
 
     const isSuccess = responseCode === '00' && transactionStatus === '00'
-    
+
     let errorMessage: string | undefined
     let errorReason: string | undefined
     if (!isSuccess) {
@@ -76,7 +85,7 @@ export default function PaymentCallbackPage() {
           break
       }
     }
-    
+
     let formattedAmount: string | undefined
     if (amount) {
       const amountNumber = parseInt(amount) / 100
@@ -99,7 +108,7 @@ export default function PaymentCallbackPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      
+
       <div className="flex-1 flex items-center justify-center py-12 px-4">
         <Card className="max-w-md w-full mx-auto text-center shadow-lg">
           <CardContent className="p-8 space-y-6">
@@ -181,7 +190,7 @@ export default function PaymentCallbackPage() {
             <div className="pt-4">
               <Button
                 size="lg"
-                className="w-full bg-gradient-to-r from-brand-magenta to-brand-purple text-white hover:opacity-90"
+                className="w-full bg-linear-to-r from-brand-magenta to-brand-purple text-white hover:opacity-90"
                 asChild
               >
                 <Link href="/">Quay lại trang chủ</Link>
