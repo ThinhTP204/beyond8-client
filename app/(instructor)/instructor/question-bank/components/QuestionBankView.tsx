@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ChevronRight, Home, FolderOpen, Plus } from "lucide-react"
+import { ChevronRight, Home, FolderOpen, Plus, ArrowLeft } from "lucide-react"
 import { Question } from "@/lib/api/services/fetchQuestion"
 import { TagFolderCard } from "./TagFolderCard"
 import { QuestionCard } from "./QuestionCard"
 import { useGetQuestionTagsCount, useGetQuestions } from "@/hooks/useQuestion"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { Pagination } from "@/components/ui/custom-pagination"
 import { CreateQuestionMethodDialog } from "@/components/widget/question/CreateQuestionMethodDialog"
 import { CreateQuestionDialog } from "@/components/widget/question/CreateQuestionDialog"
@@ -79,6 +80,13 @@ export function QuestionBankView({
             <div className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-2 -mx-2 px-2 border-b border-transparent transition-all data-[scrolled=true]:border-border/50 rounded-lg">
                 {/* Breadcrumb Navigation */}
                 <div className="flex items-center gap-2 text-md">
+                    <Link href="/instructor/courses">
+                        <Button variant="ghost" className="h-8 hover:bg-black/5 mr-2 gap-2 text-muted-foreground hover:text-foreground" title="Quản lý khóa học">
+                            <ArrowLeft className="h-4 w-4" />
+                            Quản lý khóa học
+                        </Button>
+                    </Link>
+                    <div className="h-4 w-px bg-border mx-2" />
                     <button
                         onClick={onBackToTags}
                         className="flex items-center gap-2 rounded-lg px-3 py-2 text-black font-semibold cursor-pointer hover:bg-black/5"

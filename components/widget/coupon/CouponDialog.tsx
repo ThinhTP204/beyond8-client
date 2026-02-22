@@ -198,7 +198,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
             >
                 <DialogHeader className="px-6 py-4 border-b bg-gray-50/50 flex-shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-sm">
+                        <div className="h-10 w-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-sm">
                             <Ticket className="w-5 h-5" />
                         </div>
                         <div>
@@ -241,7 +241,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                     placeholder="VD: SUMMER2024"
                                                                     {...field}
                                                                     disabled={mode === "edit"}
-                                                                    className="h-11 uppercase font-mono tracking-wider font-semibold bg-white border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                                                                    className="h-11 uppercase font-mono tracking-wider font-semibold bg-white border-gray-200 focus:border-purple-500 focus:ring-purple-500"
                                                                     onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                                                     maxLength={20}
                                                                 />
@@ -252,7 +252,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                     variant="outline"
                                                                     size="icon"
                                                                     onClick={generateCode}
-                                                                    className="h-11 w-11 shrink-0 border-gray-200 hover:bg-gray-50 hover:text-orange-600"
+                                                                    className="h-11 w-11 shrink-0 border-gray-200 hover:bg-gray-50 hover:text-purple-600"
                                                                     title="Tạo mã ngẫu nhiên"
                                                                 >
                                                                     <RefreshCcw className="h-4 w-4" />
@@ -335,8 +335,8 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                     <FormControl>
                                                                         <RadioGroupItem value={CouponType.Percentage} className="peer sr-only" />
                                                                     </FormControl>
-                                                                    <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-transparent bg-gray-50 p-4 hover:bg-orange-50 hover:text-orange-900 peer-data-[state=checked]:border-orange-500 peer-data-[state=checked]:bg-white peer-data-[state=checked]:text-orange-700 cursor-pointer transition-all shadow-sm">
-                                                                        <Percent className="mb-2 h-6 w-6 text-gray-400 peer-data-[state=checked]:text-orange-500" />
+                                                                    <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-transparent bg-gray-50 p-4 hover:bg-purple-50 hover:text-purple-900 peer-data-[state=checked]:border-purple-500 peer-data-[state=checked]:bg-white peer-data-[state=checked]:text-purple-700 cursor-pointer transition-all shadow-sm">
+                                                                        <Percent className="mb-2 h-6 w-6 text-gray-400 peer-data-[state=checked]:text-purple-500" />
                                                                         <div className="text-center font-semibold text-sm">Theo %</div>
                                                                     </FormLabel>
                                                                 </FormItem>
@@ -364,7 +364,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                         <FormItem className="space-y-3">
                                                             <div className="flex items-center justify-between">
                                                                 <FormLabel className="text-sm font-medium text-gray-700">Giá trị giảm <span className="text-red-500">*</span></FormLabel>
-                                                                <span className="text-lg font-bold text-orange-600">
+                                                                <span className="text-lg font-bold text-purple-600">
                                                                     {field.value ?? 0}{couponType === CouponType.Percentage ? "%" : "đ"}
                                                                 </span>
                                                             </div>
@@ -375,7 +375,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                             type="button"
                                                                             variant="outline"
                                                                             size="icon"
-                                                                            className="h-8 w-8 shrink-0 rounded-full border-gray-300 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300"
+                                                                            className="h-8 w-8 shrink-0 rounded-full border-gray-300 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300"
                                                                             onClick={() => field.onChange(Math.max(0, (Number(field.value) || 0) - 1))}
                                                                             disabled={(Number(field.value) || 0) <= 0}
                                                                         >
@@ -395,7 +395,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                             type="button"
                                                                             variant="outline"
                                                                             size="icon"
-                                                                            className="h-8 w-8 shrink-0 rounded-full border-gray-300 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300"
+                                                                            className="h-8 w-8 shrink-0 rounded-full border-gray-300 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300"
                                                                             onClick={() => field.onChange(Math.min(100, (Number(field.value) || 0) + 1))}
                                                                             disabled={(Number(field.value) || 0) >= 100}
                                                                         >
@@ -547,7 +547,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                             <Button
                                                                                 variant={"outline"}
                                                                                 className={cn(
-                                                                                    "w-full justify-start text-left font-normal h-11 bg-white border-gray-200 focus:border-orange-500 focus:ring-orange-500 hover:bg-white hover:text-black",
+                                                                                    "w-full justify-start text-left font-normal h-11 bg-white border-gray-200 focus:border-purple-500 focus:ring-purple-500 hover:bg-white hover:text-black",
                                                                                     !field.value && "text-muted-foreground"
                                                                                 )}
                                                                             >
@@ -611,7 +611,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                             <Button
                                                                                 variant={"outline"}
                                                                                 className={cn(
-                                                                                    "w-full justify-start text-left font-normal h-11 bg-white border-gray-200 focus:border-orange-500 focus:ring-orange-500 hover:bg-white hover:text-black",
+                                                                                    "w-full justify-start text-left font-normal h-11 bg-white border-gray-200 focus:border-purple-500 focus:ring-purple-500 hover:bg-white hover:text-black",
                                                                                     !field.value && "text-muted-foreground"
                                                                                 )}
                                                                             >
@@ -748,7 +748,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                             <Button
                                 type="submit"
                                 disabled={isPending}
-                                className="rounded-full bg-orange-600 hover:bg-orange-700 text-white shadow-md shadow-orange-200 px-6 min-w-[140px]"
+                                className="rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-200 px-6 min-w-[140px]"
                             >
                                 {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                                 {mode === "add" ? "Tạo mã ngay" : "Lưu thay đổi"}

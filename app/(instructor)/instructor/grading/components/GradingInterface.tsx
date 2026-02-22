@@ -42,7 +42,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
     return (
         <div className="flex flex-col lg:flex-row gap-6 lg:h-full h-auto">
             {/* Column 1: Submission Content */}
-            <div className="flex-1 flex flex-col border rounded-lg bg-slate-50 overflow-hidden min-h-[500px] lg:min-h-0">
+            <div className="flex-1 flex flex-col border rounded-2xl bg-slate-50 overflow-hidden min-h-[500px] lg:min-h-0">
                 <div className="p-4 border-b bg-white">
                     <h3 className="font-semibold text-lg">Nội dung bài làm</h3>
                 </div>
@@ -52,7 +52,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
                     {submission.textContent && (
                         <div>
                             <Label className="mb-2 block text-muted-foreground font-medium">Văn bản:</Label>
-                            <div className="p-4 bg-white rounded-md border min-h-[100px] whitespace-pre-wrap text-sm leading-relaxed shadow-sm">
+                            <div className="p-4 bg-white rounded-xl border min-h-[100px] whitespace-pre-wrap text-sm leading-relaxed shadow-sm">
                                 {submission.textContent}
                             </div>
                         </div>
@@ -75,7 +75,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
                                                     href={isLoading ? undefined : (signedUrl || formatImageUrl(url) || url)}
                                                     target={isLoading ? undefined : "_blank"}
                                                     rel="noreferrer"
-                                                    className={`group flex items-center gap-3 p-3 bg-white border rounded-lg transition-all ${isLoading ? 'opacity-70 cursor-wait' : 'hover:border-brand-magenta/50 hover:shadow-md'}`}
+                                                    className={`group flex items-center gap-3 p-3 bg-white border rounded-xl transition-all ${isLoading ? 'opacity-70 cursor-wait' : 'hover:border-brand-magenta/50 hover:shadow-md'}`}
                                                     onClick={(e) => {
                                                         if (isLoading || (!signedUrl && !formatImageUrl(url))) {
                                                             e.preventDefault()
@@ -117,7 +117,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
             </div>
 
             {/* Column 2: AI Details */}
-            <div className="flex-1 flex flex-col border rounded-lg bg-white overflow-hidden min-h-[500px] lg:min-h-0">
+            <div className="flex-1 flex flex-col border rounded-2xl bg-white overflow-hidden min-h-[500px] lg:min-h-0">
                 <div className="p-4 border-b bg-white flex justify-between items-center">
                     <h3 className="font-semibold text-lg flex items-center gap-2">
                         <span className="bg-linear-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text">AI Đánh giá & Gợi ý</span>
@@ -147,7 +147,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
             </div>
 
             {/* Column 3: Grading Form */}
-            <div className="flex-1 flex flex-col border rounded-lg bg-white overflow-hidden min-h-[500px] lg:min-h-0">
+            <div className="flex-1 flex flex-col border rounded-2xl bg-white overflow-hidden min-h-[500px] lg:min-h-0">
                 <div className="p-4 border-b">
                     <h3 className="font-semibold text-lg">Kết quả & Nhận xét</h3>
                 </div>
@@ -163,7 +163,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
                                     max={assignment.totalPoints}
                                     value={score}
                                     onChange={(e) => setScore(e.target.value)}
-                                    className="pr-12 text-lg font-semibold h-12"
+                                    className="pr-12 text-lg font-semibold h-12 rounded-xl"
                                     placeholder="0"
                                 />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
@@ -179,7 +179,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
                             value={feedback}
                             onChange={(e) => setFeedback(e.target.value)}
                             placeholder="Nhập nhận xét chi tiết..."
-                            className="min-h-[200px] resize-none p-3 text-base"
+                            className="min-h-[200px] resize-none p-3 text-base rounded-xl"
                         />
                     </div>
                 </div>
@@ -188,7 +188,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
                     <Button
                         onClick={handleSubmit}
                         disabled={isPending || score === ""}
-                        className="bg-brand-magenta hover:bg-brand-magenta/90 w-full h-10 text-base"
+                        className="bg-brand-magenta hover:bg-brand-magenta/90 w-full h-10 text-base rounded-xl"
                     >
                         {isPending ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
                         {isPending ? "Đang lưu..." : "Lưu kết quả"}

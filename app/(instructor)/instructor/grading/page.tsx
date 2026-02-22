@@ -1,7 +1,5 @@
 "use client"
 
-"use client"
-
 import { GradingExplorer } from "./components/GradingExplorer"
 
 export default function GradingPage() {

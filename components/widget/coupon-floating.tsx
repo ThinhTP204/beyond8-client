@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActiveCoupons } from "@/hooks/useCoupon";
+import { CouponType } from "@/lib/api/services/fetchCoupon";
 import { formatCurrency } from "@/lib/utils/formatCurrency";
 import { differenceInSeconds } from "date-fns";
 import gsap from "gsap";
@@ -152,7 +153,7 @@ export function CouponFloatingPanel() {
             {Array.from({ length: 4 }).map((_, index) => (
               <div
                 key={index}
-                className="min-w-[260px] rounded-2xl border border-purple-100 bg-white p-4 shadow-sm"
+                className="min-w-[280px] w-[280px] rounded-2xl border border-purple-100 bg-white p-4 shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -201,7 +202,7 @@ export function CouponFloatingPanel() {
             {loopCoupons.map((coupon, index) => (
               <div
                 key={`${coupon.id}-${index}`}
-                className="relative min-w-[260px] rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-pink-50 p-4 shadow-sm"
+                className="relative min-w-[500px] w-[280px] rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 via-white to-pink-50 p-4 shadow-sm"
                 onMouseEnter={() => setHoveredId(coupon.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >
@@ -248,40 +249,40 @@ export function CouponFloatingPanel() {
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] border-fuchsia-200 text-fuchsia-700"
-                      >
-                        {coupon.type}
-                      </Badge>
                       {!coupon.isActive && (
                         <Badge className="bg-purple-600 text-white hover:bg-purple-600 text-[10px]">
                           Tạm dừng
                         </Badge>
                       )}
                     </div>
-                    <div className="mt-2 text-base font-semibold text-slate-900">
+                    <div className="mt-2 text-lg font-semibold text-slate-900">
                       {coupon.code}
                     </div>
-                    <div className="mt-1 text-xs text-slate-500 line-clamp-2">
+                    <div className="mt-1 text-sm text-slate-500 line-clamp-2">
                       {coupon.description ?? "--"}
                     </div>
                   </div>
                     <div className="mr-2 inline-flex items-center rounded-full bg-gradient-to-r from-purple-600 to-fuchsia-600 px-3 py-1 text-sm font-semibold text-white shadow">
-                      {formatCurrency(coupon.value)}
+                      {coupon.type === CouponType.Percentage ? `${coupon.value}%` : formatCurrency(coupon.value)}
                     </div>
                   </motion.div>
 
                 <motion.div
-                  className="relative mt-3 flex items-center justify-between text-[11px] text-slate-600 pl-2"
+                  className="relative mt-3 flex flex-col gap-1 text-xs text-slate-600 pl-2"
                   animate={{ paddingRight: hoveredId === coupon.id ? "2.5rem" : "0" }}
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 >
-                  <div>
-                    <span className="font-medium text-slate-900">Tối thiểu:</span>{" "}
-                    {formatCurrency(coupon.minOrderAmount || 0)}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-medium text-slate-900">Tối thiểu:</span>{" "}
+                      {formatCurrency(coupon.minOrderAmount || 0)}
+                    </div>
+                    <div>
+                      <span className="font-medium text-slate-900">Giảm tối đa:</span>{" "}
+                      {coupon.maxDiscountAmount ? formatCurrency(coupon.maxDiscountAmount) : "Không giới hạn"}
+                    </div>
                   </div>
-                  <div className="text-right">
+                  <div>
                     {(() => {
                       const countdown = getCountdown(coupon.validTo);
                       if (!countdown) return null;
@@ -290,7 +291,7 @@ export function CouponFloatingPanel() {
                         : "bg-purple-50 text-purple-700";
                       return (
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${badgeClass}`}
+                          className={`inline-flex items-center rounded-full py-0.5 text-xs font-medium ${badgeClass}`}
                         >
                           {countdown.label}
                         </span>

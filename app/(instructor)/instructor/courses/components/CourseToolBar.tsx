@@ -8,7 +8,8 @@ import {
   Plus,
   ListChecks,
   X,
-  ClipboardCheck
+  ClipboardCheck,
+  BookOpen
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
@@ -200,12 +201,12 @@ export default function CourseToolBar({
           >
             <Button
               variant="ghost"
-              onClick={() => router.push('/instructor/grading')}
+              onClick={() => router.push('/instructor/question-bank')}
               className="bg-white border border-purple-200 hover:bg-white rounded-2xl px-3"
             >
-              <ClipboardCheck className="w-5 h-5 text-purple-600" />
-              <span className="hidden sm:inline ml-1 text-purple-600">Chấm bài</span>
-              <span className="sm:hidden text-purple-600">Chấm bài</span>
+              <BookOpen className="w-5 h-5 text-purple-600" />
+              <span className="hidden sm:inline ml-1 text-purple-600">Ngân hàng câu hỏi</span>
+              <span className="sm:hidden text-purple-600">Ngân hàng câu hỏi</span>
             </Button>
           </motion.div>
 

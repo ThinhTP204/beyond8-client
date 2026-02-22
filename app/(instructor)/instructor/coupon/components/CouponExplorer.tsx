@@ -18,7 +18,13 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { DepositDialog } from "@/components/widget/wallet/DepositDialog"
 export function CouponExplorer() {
-    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const pathname = usePathname()
+
+    const [selectedCourseId, setSelectedCourseId] = useState<string | null>(
+        () => searchParams.get('courseId')
+    )
 
     // Dialog States
     const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -36,9 +42,6 @@ export function CouponExplorer() {
     })
     const { toggleCoupon } = useToggleCoupon()
 
-    const searchParams = useSearchParams()
-    const router = useRouter()
-    const pathname = usePathname()
     const processedRef = useRef(false)
 
     useEffect(() => {
@@ -50,12 +53,9 @@ export function CouponExplorer() {
             if (vnp_ResponseCode === "00") {
                 const amount = vnp_Amount ? parseInt(vnp_Amount) / 100 : 0
                 toast.success(`Nạp tiền thành công ${amount > 0 ? amount.toLocaleString() + ' VNĐ' : ''}`)
-                // The wallet balance is automatically updated due to useGetMyWallet polling/invalidation
             } else {
                 toast.error("Nạp tiền thất bại hoặc đã bị hủy.")
             }
-
-            // Cleanup URL to remove VNPay params
             router.replace(pathname, { scroll: false })
         }
     }, [searchParams, router, pathname])
@@ -80,12 +80,18 @@ export function CouponExplorer() {
         return coupons.filter(c => c.applicableCourseId === selectedCourseId)
     }, [selectedCourseId, coupons])
 
-    const handleCourseClick = (courseId: string) => {
-        setSelectedCourseId(courseId)
-    }
-
     const handleBackToFolders = () => {
         setSelectedCourseId(null)
+        const params = new URLSearchParams(searchParams.toString())
+        params.delete('courseId')
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    }
+
+    const handleCourseClick = (courseId: string) => {
+        setSelectedCourseId(courseId)
+        const params = new URLSearchParams(searchParams.toString())
+        params.set('courseId', courseId)
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false })
     }
 
     const handleAdd = () => {
@@ -165,7 +171,7 @@ export function CouponExplorer() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+                        className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
                     >
                         {isLoading ? (
                             Array.from({ length: 5 }).map((_, index) => (
@@ -182,7 +188,6 @@ export function CouponExplorer() {
                                     <CourseFolderCard
                                         courseName={course.title}
                                         couponCount={courseStats[course.id] || 0}
-                                        thumbnailUrl={course.thumbnailUrl}
                                         onClick={() => handleCourseClick(course.id)}
                                     />
                                 </motion.div>

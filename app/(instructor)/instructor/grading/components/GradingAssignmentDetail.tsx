@@ -75,16 +75,16 @@ export function GradingAssignmentDetail({ assignmentId, onBack }: GradingAssignm
                         <Button
                             variant="outline"
                             onClick={() => setIsDialogOpen(true)}
-                            className="gap-2"
+                            className="gap-2 rounded-xl"
                         >
                             <Eye className="w-4 h-4" />
                             Xem chi tiết
                         </Button>
-                        <Button variant="outline" onClick={onBack}>Quay lại</Button>
+                        <Button variant="outline" onClick={onBack} className="rounded-xl">Quay lại</Button>
                     </div>
                 </div>
 
-                <div className="border rounded-lg overflow-hidden">
+                <div className="border rounded-2xl overflow-hidden">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -122,6 +122,7 @@ export function GradingAssignmentDetail({ assignmentId, onBack }: GradingAssignm
                                                 onClick={() => {
                                                     router.push(`/instructor/grading/${assignmentId}/submission/${submission.id}`)
                                                 }}
+                                                className="rounded-xl"
                                             >
                                                 {submission.status === 'Graded' ? "Xem lại" : "Chấm điểm"}
                                             </Button>

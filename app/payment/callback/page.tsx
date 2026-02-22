@@ -1,11 +1,10 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import Link from 'next/link'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { formatCurrency } from '@/lib/utils/formatCurrency'
@@ -13,16 +12,18 @@ import { formatCurrency } from '@/lib/utils/formatCurrency'
 export default function PaymentCallbackPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const returnUrlRef = useRef<string>('/')
 
   useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem("isWalletTopUp") === "true") {
+    if (typeof window !== "undefined") {
+      const savedReturnUrl = sessionStorage.getItem("walletTopUpReturnUrl");
+      if (savedReturnUrl) {
+        returnUrlRef.current = savedReturnUrl;
+      }
       sessionStorage.removeItem("isWalletTopUp");
-      const returnUrl = sessionStorage.getItem("walletTopUpReturnUrl") || "/instructor/wallet";
       sessionStorage.removeItem("walletTopUpReturnUrl");
-      const params = new URLSearchParams(searchParams.toString());
-      router.replace(`${returnUrl}?${params.toString()}`);
     }
-  }, [searchParams, router]);
+  }, []);
 
   const { isSuccess, paymentInfo, errorMessage, errorReason } = useMemo(() => {
     const responseCode = searchParams.get('vnp_ResponseCode')
@@ -193,9 +194,9 @@ export default function PaymentCallbackPage() {
               <Button
                 size="lg"
                 className="w-full bg-linear-to-r from-brand-magenta to-brand-purple text-white hover:opacity-90"
-                asChild
+                onClick={() => router.push(returnUrlRef.current)}
               >
-                <Link href="/">Quay lại trang chủ</Link>
+                Quay lại
               </Button>
             </div>
           </CardContent>
