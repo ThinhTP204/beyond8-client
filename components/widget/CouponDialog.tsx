@@ -179,13 +179,15 @@ export default function CouponDialog({
   const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (currentCouponCode && coupons.length > 0) {
-      const found = coupons.find(c => c.code === currentCouponCode)
-      setSelectedCouponId(found?.id || null)
-    } else if (!currentCouponCode) {
-      setSelectedCouponId(null)
+    if (open) {
+      if (currentCouponCode && coupons.length > 0) {
+        const found = coupons.find(c => c.code === currentCouponCode)
+        setSelectedCouponId(found?.id || null)
+      }else if (!currentCouponCode) {
+        setSelectedCouponId(null)
+      }
     }
-  }, [currentCouponCode, coupons])
+  }, [open, currentCouponCode, coupons])
 
   const handleSelectCoupon = (couponId: string) => {
     setSelectedCouponId(selectedCouponId === couponId ? null : couponId)

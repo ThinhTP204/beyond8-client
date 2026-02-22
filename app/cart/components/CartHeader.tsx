@@ -25,8 +25,8 @@ export default function CartHeader() {
             <ShoppingCart className="h-5 w-5 text-foreground" />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">Giỏ hàng</h3>
-            <p className="text-xs text-muted-foreground">
+            <h3 className="font-bold text-lg text-foreground">Giỏ hàng</h3>
+            <p className="text-sm text-muted-foreground">
               {isAuthenticated && cart
                 ? `${cart.totalItems} khóa học`
                 : 'Chưa có khóa học'}
@@ -37,7 +37,7 @@ export default function CartHeader() {
       {/* Select All and Clear All Buttons */}
       {isAuthenticated && cart && cart.items.length > 0 && (
         <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-          <label className="flex items-center gap-2 text-foreground hover:text-foreground transition-colors text-sm cursor-pointer">
+          <label className="flex items-center gap-2 text-foreground hover:text-foreground transition-colors text-base cursor-pointer">
             <Checkbox
               checked={isAllSelected}
               onCheckedChange={selectAll}

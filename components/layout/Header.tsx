@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { useSubscription } from "@/hooks/useSubscription";
 import { Slider } from "@/components/ui/slider";
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 // import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -529,6 +529,8 @@ export function Header() {
   const { mutateLogout } = useLogout();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const { cart } = useGetCart({ enabled: isAuthenticated });
+  const pathname = usePathname();
+  const isCartPage = pathname === '/cart';
 
   const headerRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -838,6 +840,7 @@ export function Header() {
               )} */}
 
               {/* Cart Icon */}
+              {!isCartPage && (
               <div
                 className="relative"
                 onMouseEnter={() => setIsCartOpen(true)}
@@ -864,6 +867,7 @@ export function Header() {
                   onMouseLeave={() => setIsCartOpen(false)}
                 />
               </div>
+              )}
 
               {isLoading ? (
                 <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
@@ -906,7 +910,8 @@ export function Header() {
                       <span className="absolute -top-1 -right-1 w-3 h-3 flex z-10">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white"></span>
-                      </span>                    )}
+                      </span>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
