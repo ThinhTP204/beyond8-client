@@ -3,9 +3,10 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Coupon, CouponType, CreateCouponInstructorRequest, UpdateCouponRequest } from "@/lib/api/services/fetchCoupon"
 import { useCreateCouponForCourse, useUpdateCoupon } from "@/hooks/useCoupon"
+import { useGetMyWallet } from "@/hooks/useWallet"
 
 import { useGetCourseByInstructor } from "@/hooks/useCourse"
 import { CourseLevel } from "@/lib/api/services/fetchCourse"
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
 import {
     Select,
@@ -42,7 +44,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Loader2, RefreshCcw, Ticket, Percent, DollarSign, Tag, Users, Clock, AlertTriangle, CalendarDays, CheckCircle2, CalendarIcon } from "lucide-react"
+import { Loader2, RefreshCcw, Ticket, Percent, DollarSign, Tag, Users, Clock, AlertTriangle, CalendarDays, CheckCircle2, CalendarIcon, Wallet } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Calendar } from "@/components/ui/calendar"
@@ -54,14 +56,14 @@ import { toast } from "sonner"
 
 // Schema validation
 const formSchema = z.object({
-    code: z.string().min(3, "Mã phải có ít nhất 3 ký tự").max(20, "Mã tối đa 20 ký tự"),
-    description: z.string().nullable(),
+    code: z.string().min(1, "Vui lòng nhập mã giảm giá hoặc nhấn nút tạo tự động.").min(3, "Mã phải có ít nhất 3 ký tự").max(20, "Mã tối đa 20 ký tự"),
+    description: z.string().min(1, "Vui lòng nhập mô tả cho mã giảm giá"),
     type: z.nativeEnum(CouponType),
-    value: z.coerce.number().min(0, "Giá trị phải lớn hơn hoặc bằng 0"),
-    minOrderAmount: z.coerce.number().min(0).nullable().optional(),
-    maxDiscountAmount: z.coerce.number().min(0).nullable().optional(),
-    usageLimit: z.coerce.number().min(0).nullable().optional(),
-    usagePerUser: z.coerce.number().min(0).nullable().optional(),
+    value: z.coerce.number().min(1, "Giá trị giảm phải lớn hơn 0."),
+    minOrderAmount: z.coerce.number().min(0, "Đơn hàng tối thiểu không được âm").nullable().optional(),
+    maxDiscountAmount: z.coerce.number().min(1, "Giảm tối đa phải lớn hơn hoặc bằng 1").nullable().optional(),
+    usageLimit: z.coerce.number().min(1, "Tổng lượt sử dụng phải lớn hơn hoặc bằng 1").nullable().optional(),
+    usagePerUser: z.coerce.number().min(1, "Lượt dùng / khách phải lớn hơn hoặc bằng 1").nullable().optional(),
     validFrom: z.string().refine((val) => !isNaN(Date.parse(val)), {
         message: "Ngày bắt đầu không hợp lệ",
     }),
@@ -70,7 +72,15 @@ const formSchema = z.object({
     }),
     isActive: z.boolean(),
     // Instructor specific
-    applicableCourseId: z.string().min(1, "Vui lòng chọn khóa học áp dụng"),
+    applicableCourseId: z.string().min(1, "Vui lòng chọn khóa học."),
+}).refine((data) => {
+    if (data.type === CouponType.Percentage && data.value > 100) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Giá trị phần trăm không được vượt quá 100%",
+    path: ["value"],
 }).refine((data) => {
     const from = new Date(data.validFrom);
     const to = new Date(data.validTo);
@@ -107,6 +117,7 @@ export function InstructorCouponDialog({
     }); // Fetch enough courses
     const { user } = useAuth();
     const { userProfile, isLoading: isLoadingProfile } = useUserProfile();
+    const { wallet } = useGetMyWallet();
 
     const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
 
@@ -131,6 +142,31 @@ export function InstructorCouponDialog({
 
     // eslint-disable-next-line react-hooks/incompatible-library
     const couponType = form.watch("type");
+    const watchedValue = form.watch("value");
+    const watchedMaxDiscount = form.watch("maxDiscountAmount");
+    const watchedUsageLimit = form.watch("usageLimit");
+
+    // Balance check logic
+    const { requiredBalance, isInsufficientBalance, availableBalance } = useMemo(() => {
+        const value = Number(watchedValue) || 0;
+        const maxDiscount = Number(watchedMaxDiscount) || 0;
+        const usageLimit = Number(watchedUsageLimit) || 0;
+        const available = wallet?.availableBalance ?? 0;
+
+        let required = 0;
+        if (couponType === CouponType.FixedAmount) {
+            required = value * usageLimit;
+        } else {
+            // Percentage type: use maxDiscountAmount
+            required = maxDiscount * usageLimit;
+        }
+
+        return {
+            requiredBalance: required,
+            isInsufficientBalance: required > 0 && required > available,
+            availableBalance: available,
+        };
+    }, [watchedValue, watchedMaxDiscount, watchedUsageLimit, couponType, wallet?.availableBalance]);
 
     // Check if coupon belongs to instructor (has applicableCourseId)
     const isGlobalCoupon = initialData && !initialData.applicableCourseId;
@@ -253,13 +289,13 @@ export function InstructorCouponDialog({
                         }
                     }}
                     className={cn(
-                        "flex flex-col p-0 gap-0 transition-all duration-300 overflow-hidden max-w-6xl h-[85vh]",
+                        "flex flex-col p-0 gap-0 transition-all duration-300 overflow-hidden max-w-7xl h-[88vh]",
                         isDepositDialogOpen && "hidden"
                     )}
                 >
                     <DialogHeader className="px-6 py-4 border-b bg-gray-50/50 flex-shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-sm">
+                            <div className="h-10 w-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-sm">
                                 <Ticket className="w-5 h-5" />
                             </div>
                             <div>
@@ -312,7 +348,7 @@ export function InstructorCouponDialog({
                                                                 disabled={mode === "edit" || !!preSelectedCourseId}
                                                             >
                                                                 <FormControl>
-                                                                    <SelectTrigger className="h-11 bg-white border-gray-200 focus:ring-orange-500 text-left">
+                                                                    <SelectTrigger className="h-11 bg-white border-gray-200 focus:ring-purple-500 text-left">
                                                                         <SelectValue placeholder="Chọn khóa học" />
                                                                     </SelectTrigger>
                                                                 </FormControl>
@@ -343,7 +379,7 @@ export function InstructorCouponDialog({
                                                                         placeholder="VD: SUMMER2024"
                                                                         {...field}
                                                                         disabled={mode === "edit"}
-                                                                        className="h-11 uppercase font-mono tracking-wider font-semibold bg-white border-gray-200 focus:border-orange-500 focus:ring-orange-500"
+                                                                        className="h-11 uppercase font-mono tracking-wider font-semibold bg-white border-gray-200 focus:border-purple-500 focus:ring-purple-500"
                                                                         onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                                                                         maxLength={20}
                                                                     />
@@ -354,7 +390,7 @@ export function InstructorCouponDialog({
                                                                         variant="outline"
                                                                         size="icon"
                                                                         onClick={generateCode}
-                                                                        className="h-11 w-11 shrink-0 border-gray-200 hover:bg-gray-50 hover:text-orange-600"
+                                                                        className="h-11 w-11 shrink-0 border-gray-200 hover:bg-gray-50 hover:text-purple-600"
                                                                         title="Tạo mã ngẫu nhiên"
                                                                     >
                                                                         <RefreshCcw className="h-4 w-4" />
@@ -371,7 +407,7 @@ export function InstructorCouponDialog({
                                                     name="description"
                                                     render={({ field }) => (
                                                         <FormItem className="space-y-2">
-                                                            <FormLabel className="text-sm font-medium text-gray-700">Mô tả <span className="text-gray-400 font-normal">(tùy chọn)</span></FormLabel>
+                                                            <FormLabel className="text-sm font-medium text-gray-700">Mô tả <span className="text-red-500">*</span></FormLabel>
                                                             <FormControl>
                                                                 <Textarea
                                                                     placeholder="Mô tả ngắn về chương trình khuyến mãi..."
@@ -435,8 +471,8 @@ export function InstructorCouponDialog({
                                                                         <FormControl>
                                                                             <RadioGroupItem value={CouponType.Percentage} className="peer sr-only" />
                                                                         </FormControl>
-                                                                        <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-transparent bg-gray-50 p-4 hover:bg-orange-50 hover:text-orange-900 peer-data-[state=checked]:border-orange-500 peer-data-[state=checked]:bg-white peer-data-[state=checked]:text-orange-700 cursor-pointer transition-all shadow-sm">
-                                                                            <Percent className="mb-2 h-6 w-6 text-gray-400 peer-data-[state=checked]:text-orange-500" />
+                                                                        <FormLabel className="flex flex-col items-center justify-between rounded-xl border-2 border-transparent bg-gray-50 p-4 hover:bg-purple-50 hover:text-purple-900 peer-data-[state=checked]:border-purple-500 peer-data-[state=checked]:bg-white peer-data-[state=checked]:text-purple-700 cursor-pointer transition-all shadow-sm">
+                                                                            <Percent className="mb-2 h-6 w-6 text-gray-400 peer-data-[state=checked]:text-purple-500" />
                                                                             <div className="text-center font-semibold text-sm">Theo %</div>
                                                                         </FormLabel>
                                                                     </FormItem>
@@ -461,31 +497,80 @@ export function InstructorCouponDialog({
                                                         control={form.control}
                                                         name="value"
                                                         render={({ field }) => (
-                                                            <FormItem className="space-y-2">
-                                                                <FormLabel className="text-sm font-medium text-gray-700">Giá trị giảm <span className="text-red-500">*</span></FormLabel>
-                                                                <FormControl>
-                                                                    <div className="relative">
-                                                                        <Input
-                                                                            type="text"
-                                                                            inputMode="numeric"
-                                                                            {...field}
-                                                                            value={field.value ?? ''}
-                                                                            onChange={(e) => {
-                                                                                let val = e.target.value.replace(/[^0-9]/g, "");
-                                                                                if (val.length > 1 && val.startsWith("0")) {
-                                                                                    val = val.replace(/^0+/, "");
-                                                                                    if (val === "") val = "0";
-                                                                                }
-                                                                                field.onChange(val);
-                                                                            }}
-                                                                            className="h-11 pr-12 font-medium bg-white border-gray-200 text-lg"
-                                                                            placeholder="0"
-                                                                        />
-                                                                        <div className="absolute inset-y-0 right-0 flex items-center justify-center w-12 pointer-events-none text-muted-foreground font-semibold">
-                                                                            {couponType === CouponType.Percentage ? "%" : "đ"}
+                                                            <FormItem className="space-y-3">
+                                                                <div className="flex items-center justify-between">
+                                                                    <FormLabel className="text-sm font-medium text-gray-700">Giá trị giảm <span className="text-red-500">*</span></FormLabel>
+                                                                    <span className="text-lg font-bold text-purple-600">
+                                                                        {field.value ?? 0}{couponType === CouponType.Percentage ? "%" : "đ"}
+                                                                    </span>
+                                                                </div>
+                                                                {couponType === CouponType.Percentage ? (
+                                                                    <>
+                                                                        <div className="flex items-center gap-3">
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="outline"
+                                                                                size="icon"
+                                                                                className="h-8 w-8 shrink-0 rounded-full border-gray-300 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300"
+                                                                                onClick={() => field.onChange(Math.max(0, (Number(field.value) || 0) - 1))}
+                                                                                disabled={(Number(field.value) || 0) <= 0}
+                                                                            >
+                                                                                <span className="text-base font-bold">−</span>
+                                                                            </Button>
+                                                                            <FormControl>
+                                                                                <Slider
+                                                                                    min={0}
+                                                                                    max={100}
+                                                                                    step={1}
+                                                                                    value={[Number(field.value) || 0]}
+                                                                                    onValueChange={(vals) => field.onChange(vals[0])}
+                                                                                    className="py-2"
+                                                                                />
+                                                                            </FormControl>
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="outline"
+                                                                                size="icon"
+                                                                                className="h-8 w-8 shrink-0 rounded-full border-gray-300 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300"
+                                                                                onClick={() => field.onChange(Math.min(100, (Number(field.value) || 0) + 1))}
+                                                                                disabled={(Number(field.value) || 0) >= 100}
+                                                                            >
+                                                                                <span className="text-base font-bold">+</span>
+                                                                            </Button>
                                                                         </div>
-                                                                    </div>
-                                                                </FormControl>
+                                                                        <div className="flex justify-between text-xs text-gray-400 px-11">
+                                                                            <span>0%</span>
+                                                                            <span>25%</span>
+                                                                            <span>50%</span>
+                                                                            <span>75%</span>
+                                                                            <span>100%</span>
+                                                                        </div>
+                                                                    </>
+                                                                ) : (
+                                                                    <FormControl>
+                                                                        <div className="relative">
+                                                                            <Input
+                                                                                type="text"
+                                                                                inputMode="numeric"
+                                                                                {...field}
+                                                                                value={field.value ?? ''}
+                                                                                onChange={(e) => {
+                                                                                    let val = e.target.value.replace(/[^0-9]/g, "");
+                                                                                    if (val.length > 1 && val.startsWith("0")) {
+                                                                                        val = val.replace(/^0+/, "");
+                                                                                        if (val === "") val = "0";
+                                                                                    }
+                                                                                    field.onChange(val);
+                                                                                }}
+                                                                                className="h-11 pr-12 font-medium bg-white border-gray-200 text-lg"
+                                                                                placeholder="0"
+                                                                            />
+                                                                            <div className="absolute inset-y-0 right-0 flex items-center justify-center w-12 pointer-events-none text-muted-foreground font-semibold">
+                                                                                đ
+                                                                            </div>
+                                                                        </div>
+                                                                    </FormControl>
+                                                                )}
                                                                 <FormMessage />
                                                             </FormItem>
                                                         )}
@@ -573,6 +658,7 @@ export function InstructorCouponDialog({
                                         </Card>
                                     </div>
 
+
                                     {/* Column 3: Limit & Validity */}
                                     <div className="space-y-6">
                                         <Card className="border-gray-200 shadow-sm flex flex-col h-full">
@@ -598,7 +684,7 @@ export function InstructorCouponDialog({
                                                                                 <Button
                                                                                     variant={"outline"}
                                                                                     className={cn(
-                                                                                        "w-full justify-start text-left font-normal h-11 bg-white border-gray-200 focus:border-orange-500 focus:ring-orange-500 hover:bg-white hover:text-black",
+                                                                                        "w-full justify-start text-left font-normal h-11 bg-white border-gray-200 focus:border-purple-500 focus:ring-purple-500 hover:bg-white hover:text-black",
                                                                                         !field.value && "text-muted-foreground"
                                                                                     )}
                                                                                 >
@@ -662,7 +748,7 @@ export function InstructorCouponDialog({
                                                                                 <Button
                                                                                     variant={"outline"}
                                                                                     className={cn(
-                                                                                        "w-full justify-start text-left font-normal h-11 bg-white border-gray-200 focus:border-orange-500 focus:ring-orange-500 hover:bg-white hover:text-black",
+                                                                                        "w-full justify-start text-left font-normal h-11 bg-white border-gray-200 focus:border-purple-500 focus:ring-purple-500 hover:bg-white hover:text-black",
                                                                                         !field.value && "text-muted-foreground"
                                                                                     )}
                                                                                 >
@@ -792,18 +878,68 @@ export function InstructorCouponDialog({
                                 </div>
                             </div>
 
+                            {/* Balance check warning - full width banner */}
+                            {mode === "add" && requiredBalance > 0 && (
+                                <div className="px-6 pb-4 flex-shrink-0">
+                                    <div
+                                        className={`rounded-lg border p-2 text-sm transition-all duration-300 ease-in-out ${isInsufficientBalance
+                                            ? "bg-red-50 border-red-200 text-red-800"
+                                            : "bg-green-50 border-green-200 text-green-800"
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            {isInsufficientBalance ? (
+                                                <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
+                                            ) : (
+                                                <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                                            )}
+                                            <div className="flex-1">
+                                                {isInsufficientBalance ? (
+                                                    <p className="font-semibold">Số dư trong ví không đủ để tạo mã giảm giá này. Vui lòng nạp thêm tiền.</p>
+                                                ) : (
+                                                    <p className="font-semibold">Số dư ví đủ để tạo mã giảm giá.</p>
+                                                )}
+                                            </div>
+                                            <div className="flex gap-6 text-xs shrink-0">
+                                                <div className="text-center">
+                                                    <div className="opacity-70">Số dư khả dụng</div>
+                                                    <div className="font-bold text-sm">{availableBalance.toLocaleString()}đ</div>
+                                                </div>
+                                                <div className="text-center">
+                                                    <div className="opacity-70">Số tiền cần giữ</div>
+                                                    <div className="font-bold text-sm">{requiredBalance.toLocaleString()}đ</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <DialogFooter className="px-6 py-4 border-t bg-white flex-shrink-0 z-20 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]">
                                 <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="rounded-full text-gray-500 hover:bg-gray-100 hover:text-black">
                                     Hủy bỏ
                                 </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={isPending}
-                                    className="rounded-full bg-orange-600 hover:bg-orange-700 text-white shadow-md shadow-orange-200 px-6 min-w-[140px]"
-                                >
-                                    {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-                                    {mode === "add" ? "Tạo mã ngay" : "Lưu thay đổi"}
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    {mode === "add" && isInsufficientBalance && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setIsDepositDialogOpen(true)}
+                                            className="rounded-full border-purple-300 text-purple-600 hover:bg-purple-50 hover:text-purple-700 px-5 transition-all duration-200"
+                                        >
+                                            <Wallet className="mr-2 h-4 w-4" />
+                                            Nạp tiền
+                                        </Button>
+                                    )}
+                                    <Button
+                                        type="submit"
+                                        disabled={isPending || (mode === "add" && isInsufficientBalance)}
+                                        className="rounded-full bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-200 px-6 min-w-[140px] disabled:opacity-50"
+                                    >
+                                        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                                        {mode === "add" ? "Tạo mã ngay" : "Lưu thay đổi"}
+                                    </Button>
+                                </div>
                             </DialogFooter>
                         </form>
                     </Form>

@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -41,13 +42,13 @@ import { cn } from "@/lib/utils"
 // Schema validation
 const formSchema = z.object({
     code: z.string().min(3, "Mã phải có ít nhất 3 ký tự").max(20, "Mã tối đa 20 ký tự"),
-    description: z.string().nullable(),
+    description: z.string().min(1, "Vui lòng nhập mô tả cho mã giảm giá"),
     type: z.nativeEnum(CouponType),
-    value: z.coerce.number().min(0, "Giá trị phải lớn hơn hoặc bằng 0"),
-    minOrderAmount: z.coerce.number().min(0).nullable().optional(),
-    maxDiscountAmount: z.coerce.number().min(0).nullable().optional(),
-    usageLimit: z.coerce.number().min(0).nullable().optional(),
-    usagePerUser: z.coerce.number().min(0).nullable().optional(),
+    value: z.coerce.number().min(1, "Giá trị giảm phải lớn hơn hoặc bằng 1"),
+    minOrderAmount: z.coerce.number().min(0, "Đơn hàng tối thiểu không được âm").nullable().optional(),
+    maxDiscountAmount: z.coerce.number().min(1, "Giảm tối đa phải lớn hơn hoặc bằng 1").nullable().optional(),
+    usageLimit: z.coerce.number().min(1, "Tổng lượt sử dụng phải lớn hơn hoặc bằng 1").nullable().optional(),
+    usagePerUser: z.coerce.number().min(1, "Lượt dùng / khách phải lớn hơn hoặc bằng 1").nullable().optional(),
     validFrom: z.string().refine((val) => !isNaN(Date.parse(val)), {
         message: "Ngày bắt đầu không hợp lệ",
     }),
@@ -55,6 +56,14 @@ const formSchema = z.object({
         message: "Ngày kết thúc không hợp lệ",
     }),
     isActive: z.boolean(),
+}).refine((data) => {
+    if (data.type === CouponType.Percentage && data.value > 100) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Giá trị phần trăm không được vượt quá 100%",
+    path: ["value"],
 }).refine((data) => {
     const from = new Date(data.validFrom);
     const to = new Date(data.validTo);
@@ -260,7 +269,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                 name="description"
                                                 render={({ field }) => (
                                                     <FormItem className="space-y-2">
-                                                        <FormLabel className="text-sm font-medium text-gray-700">Mô tả <span className="text-gray-400 font-normal">(tùy chọn)</span></FormLabel>
+                                                        <FormLabel className="text-sm font-medium text-gray-700">Mô tả <span className="text-red-500">*</span></FormLabel>
                                                         <FormControl>
                                                             <Textarea
                                                                 placeholder="Mô tả ngắn về chương trình khuyến mãi..."
@@ -352,31 +361,80 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                     control={form.control}
                                                     name="value"
                                                     render={({ field }) => (
-                                                        <FormItem className="space-y-2">
-                                                            <FormLabel className="text-sm font-medium text-gray-700">Giá trị giảm <span className="text-red-500">*</span></FormLabel>
-                                                            <FormControl>
-                                                                <div className="relative">
-                                                                    <Input
-                                                                        type="text"
-                                                                        inputMode="numeric"
-                                                                        {...field}
-                                                                        value={field.value ?? ''}
-                                                                        onChange={(e) => {
-                                                                            let val = e.target.value.replace(/[^0-9]/g, "");
-                                                                            if (val.length > 1 && val.startsWith("0")) {
-                                                                                val = val.replace(/^0+/, "");
-                                                                                if (val === "") val = "0";
-                                                                            }
-                                                                            field.onChange(val);
-                                                                        }}
-                                                                        className="h-11 pr-12 font-medium bg-white border-gray-200 text-lg"
-                                                                        placeholder="0"
-                                                                    />
-                                                                    <div className="absolute inset-y-0 right-0 flex items-center justify-center w-12 pointer-events-none text-muted-foreground font-semibold">
-                                                                        {couponType === CouponType.Percentage ? "%" : "đ"}
+                                                        <FormItem className="space-y-3">
+                                                            <div className="flex items-center justify-between">
+                                                                <FormLabel className="text-sm font-medium text-gray-700">Giá trị giảm <span className="text-red-500">*</span></FormLabel>
+                                                                <span className="text-lg font-bold text-orange-600">
+                                                                    {field.value ?? 0}{couponType === CouponType.Percentage ? "%" : "đ"}
+                                                                </span>
+                                                            </div>
+                                                            {couponType === CouponType.Percentage ? (
+                                                                <>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            size="icon"
+                                                                            className="h-8 w-8 shrink-0 rounded-full border-gray-300 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300"
+                                                                            onClick={() => field.onChange(Math.max(0, (Number(field.value) || 0) - 1))}
+                                                                            disabled={(Number(field.value) || 0) <= 0}
+                                                                        >
+                                                                            <span className="text-base font-bold">−</span>
+                                                                        </Button>
+                                                                        <FormControl>
+                                                                            <Slider
+                                                                                min={0}
+                                                                                max={100}
+                                                                                step={1}
+                                                                                value={[Number(field.value) || 0]}
+                                                                                onValueChange={(vals) => field.onChange(vals[0])}
+                                                                                className="py-2"
+                                                                            />
+                                                                        </FormControl>
+                                                                        <Button
+                                                                            type="button"
+                                                                            variant="outline"
+                                                                            size="icon"
+                                                                            className="h-8 w-8 shrink-0 rounded-full border-gray-300 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-300"
+                                                                            onClick={() => field.onChange(Math.min(100, (Number(field.value) || 0) + 1))}
+                                                                            disabled={(Number(field.value) || 0) >= 100}
+                                                                        >
+                                                                            <span className="text-base font-bold">+</span>
+                                                                        </Button>
                                                                     </div>
-                                                                </div>
-                                                            </FormControl>
+                                                                    <div className="flex justify-between text-xs text-gray-400 px-11">
+                                                                        <span>0%</span>
+                                                                        <span>25%</span>
+                                                                        <span>50%</span>
+                                                                        <span>75%</span>
+                                                                        <span>100%</span>
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <FormControl>
+                                                                    <div className="relative">
+                                                                        <Input
+                                                                            type="text"
+                                                                            inputMode="numeric"
+                                                                            {...field}
+                                                                            value={field.value ?? ''}
+                                                                            onChange={(e) => {
+                                                                                let val = e.target.value.replace(/[^0-9]/g, "");
+                                                                                if (val.length > 1 && val.startsWith("0")) {
+                                                                                    val = val.replace(/^0+/, "");
+                                                                                    if (val === "") val = "0";
+                                                                                }
+                                                                                field.onChange(val);
+                                                                            }}
+                                                                            className="h-11 pr-12 font-medium bg-white border-gray-200 text-lg"
+                                                                            placeholder="0"
+                                                                        />
+                                                                        <div className="absolute inset-y-0 right-0 flex items-center justify-center w-12 pointer-events-none text-muted-foreground font-semibold">
+                                                                            đ
+                                                                        </div>
+                                                                    </div>
+                                                                </FormControl>
+                                                            )}
                                                             <FormMessage />
                                                         </FormItem>
                                                     )}
