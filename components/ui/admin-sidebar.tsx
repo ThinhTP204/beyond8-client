@@ -21,6 +21,8 @@ import {
   MessageSquare,
   Bell,
   Ticket,
+  BookCheckIcon,
+  Wallet,
 } from 'lucide-react';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -49,9 +51,25 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
   { icon: Users, label: 'Quản lý người dùng', href: '/admin/user' },
   { icon: FileCheck, label: 'Duyệt giảng viên', href: '/admin/instructor-registration' },
-  { icon: LayoutList, label: 'Quản lý danh mục', href: '/admin/category' },
-  { icon: BookOpen, label: 'Khóa học', href: '/admin/course' },
-  { icon: Ticket, label: 'Quản lý khuyến mãi', href: '/admin/coupon' },
+  {
+    icon: BookOpen,
+    label: 'Khóa học',
+    href: '#course-management',
+    children: [
+      { label: 'Quản lý danh mục', href: '/admin/category', icon: LayoutList },
+      { label: 'Quản lý khóa học', href: '/admin/course', icon: BookCheckIcon },
+      { label: 'Quản lý khuyến mãi', href: '/admin/coupon', icon: Ticket },
+    ],
+  },
+  {
+    icon: Wallet,
+    label: 'Quản lý ví tiền',
+    href: '#wallet-management',
+    children: [
+      { label: 'Ví nền tảng', href: '/admin/platform-wallet', icon: Wallet },
+      { label: 'Ví giảng viên', href: '/admin/instructor-wallet', icon: Users },
+    ],
+  },
   {
     icon: Bot,
     label: 'Quản lý AI',

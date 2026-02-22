@@ -110,3 +110,44 @@ export function useGetTransactionsByInstructorId(instructorId: string, params: T
         isFetching
     };
 }
+
+export function useGetPlatformWallet() {
+    const { data, isLoading, error, isError, refetch } = useQuery({
+        queryKey: ["wallet", "platform"],
+        queryFn: () => fetchWallet.getPlatformWallet(),
+    });
+
+    return {
+        wallet: (data?.data ?? null) as Wallet | null,
+        isLoading,
+        error,
+        isError,
+        refetch,
+    };
+}
+
+export function useGetPlatformTransactions(params: TransactionsParams) {
+    const { data, isLoading, error, isError, refetch, isFetching } = useQuery({
+        queryKey: ["wallet", "transactions", "platform", params],
+        queryFn: () => fetchWallet.getPlatformTransactions(params),
+        select: (data: TransactionsResponse) => ({
+            data: data.data as WalletTransaction[],
+            count: data.metadata?.totalItems || 0,
+            pageNumber: data.metadata?.pageNumber || params.pageNumber,
+            pageSize: data.metadata?.pageSize || params.pageSize,
+            totalPages: data.metadata?.totalPages || 0,
+            hasNextPage: data.metadata?.hasNextPage || false,
+            hasPreviousPage: data.metadata?.hasPreviousPage || false
+        }),
+        placeholderData: (previousData) => previousData,
+    });
+
+    return {
+        data,
+        isLoading,
+        error,
+        isError,
+        refetch,
+        isFetching
+    };
+}

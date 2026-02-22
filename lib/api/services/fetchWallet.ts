@@ -117,7 +117,7 @@ export const fetchWallet = {
 
     //Lấy thông tin ví của một giảng viên cụ thể (Admin/Staff)
     getWalletByInstructorId: async (instructorId: string): Promise<WalletResponse> => {
-        const response = await apiService.get<WalletResponse>(`api/v1/wallets/instructor${instructorId}`);
+        const response = await apiService.get<WalletResponse>(`api/v1/wallets/instructor/${instructorId}`);
         return response.data;
     },
 
@@ -130,6 +130,18 @@ export const fetchWallet = {
     //Tạo ví cho một giảng viên (Admin/Staff - Internal use)
     createWalletForInstructor: async (instructorId: string): Promise<WalletResponse> => {
         const response = await apiService.post<WalletResponse>(`api/v1/wallets/create/${instructorId}`);
+        return response.data;
+    },
+
+    //Lấy thông tin ví nền tảng (Admin only)
+    getPlatformWallet: async (): Promise<WalletResponse> => {
+        const response = await apiService.get<WalletResponse>("api/v1/platform-wallet");
+        return response.data;
+    },
+
+    //Lấy lịch sử giao dịch ví nền tảng (Admin only, phân trang)
+    getPlatformTransactions: async (params: TransactionsParams): Promise<TransactionsResponse> => {
+        const response = await apiService.get<TransactionsResponse>("api/v1/platform-wallet/transactions", convertParamsToQuery(params));
         return response.data;
     },
 }
