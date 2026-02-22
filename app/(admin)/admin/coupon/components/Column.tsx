@@ -116,6 +116,7 @@ export const getColumns = ({ onEdit, onDelete, onToggleStatus }: ColumnProps): C
         cell: ({ row }) => {
             const coupon = row.original
             const isActive = coupon.isActive
+            const isGlobal = coupon.applicableCourseId === null
 
             return (
                 <div className="flex items-center">
@@ -124,7 +125,8 @@ export const getColumns = ({ onEdit, onDelete, onToggleStatus }: ColumnProps): C
                         size="icon"
                         className="hover:bg-blue-600/10 hover:text-blue-600"
                         onClick={() => onEdit(coupon)}
-                        title="Chỉnh sửa"
+                        title={isGlobal ? "Chỉnh sửa" : "Chỉ có thể chỉnh sửa coupon toàn cục"}
+                        disabled={!isGlobal}
                     >
                         <Pencil className="h-4 w-4" />
                     </Button>
@@ -133,7 +135,8 @@ export const getColumns = ({ onEdit, onDelete, onToggleStatus }: ColumnProps): C
                         size="icon"
                         className={isActive ? "text-destructive hover:bg-destructive/10 hover:text-destructive" : "text-green-600 hover:bg-green-100 hover:text-green-700"}
                         onClick={() => onToggleStatus(coupon)}
-                        title={isActive ? "Vô hiệu hóa" : "Kích hoạt"}
+                        title={isGlobal ? (isActive ? "Vô hiệu hóa" : "Kích hoạt") : "Chỉ có thể thao tác với coupon toàn cục"}
+                        disabled={!isGlobal}
                     >
                         {isActive ? (
                             <Lock className="h-4 w-4" />

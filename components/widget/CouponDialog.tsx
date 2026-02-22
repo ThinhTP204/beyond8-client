@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -149,7 +149,7 @@ interface CouponDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onApply: (couponCode: string | null) => Promise<boolean> | boolean
-  filterByCourseId?: string
+  filterByCourseId?: string | null
   strictCourseFilter?: boolean
   currentCouponCode?: string | null
 }
@@ -158,7 +158,7 @@ export default function CouponDialog({
   open, 
   onOpenChange, 
   onApply, 
-  filterByCourseId, 
+  filterByCourseId = null, 
   strictCourseFilter = false,
   currentCouponCode 
 }: CouponDialogProps) {
@@ -166,26 +166,23 @@ export default function CouponDialog({
   const [manualCode, setManualCode] = useState('')
   const [isApplying, setIsApplying] = useState(false)
 
-  const coupons = filterByCourseId
-    ? allCoupons.filter((c) =>
-        strictCourseFilter
-          ? c.applicableCourseId === filterByCourseId
-          : c.applicableCourseId === filterByCourseId || c.applicableCourseId === null
-      )
-    : allCoupons
+  const coupons = useMemo(() => {
+    return filterByCourseId
+      ? allCoupons.filter((c) =>
+          strictCourseFilter
+            ? c.applicableCourseId === filterByCourseId
+            : c.applicableCourseId === filterByCourseId || c.applicableCourseId === null
+        )
+      : allCoupons.filter(c => c.applicableCourseId === null)
+  }, [allCoupons, filterByCourseId, strictCourseFilter])
   
-  const [selectedCouponId, setSelectedCouponId] = useState<string | null>(() => {
-    if (currentCouponCode) {
-      const found = coupons.find(c => c.code === currentCouponCode)
-      return found?.id || null
-    }
-    return null
-  })
+  const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null)
+
   useEffect(() => {
-    if (currentCouponCode) {
+    if (currentCouponCode && coupons.length > 0) {
       const found = coupons.find(c => c.code === currentCouponCode)
       setSelectedCouponId(found?.id || null)
-    } else {
+    } else if (!currentCouponCode) {
       setSelectedCouponId(null)
     }
   }, [currentCouponCode, coupons])

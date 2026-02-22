@@ -28,6 +28,7 @@ export function MobileCouponCard({
     onDelete,
     onToggleStatus,
 }: MobileCouponCardProps) {
+    const isGlobal = coupon.applicableCourseId === null
     return (
         <div className="flex flex-col space-y-2 rounded-lg border p-4 shadow-sm bg-white">
             <div className="flex items-center justify-between">
@@ -46,11 +47,11 @@ export function MobileCouponCard({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={onEdit}>
+                        <DropdownMenuItem onClick={onEdit} disabled={!isGlobal}>
                             <Pencil className="mr-2 h-4 w-4" />
                             Chỉnh sửa
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={onToggleStatus}>
+                        <DropdownMenuItem onClick={onToggleStatus} disabled={!isGlobal}>
                             {coupon.isActive ? <Lock className="mr-2 h-4 w-4" /> : <Unlock className="mr-2 h-4 w-4" />}
                             {coupon.isActive ? "Vô hiệu hóa" : "Kích hoạt"}
                         </DropdownMenuItem>
