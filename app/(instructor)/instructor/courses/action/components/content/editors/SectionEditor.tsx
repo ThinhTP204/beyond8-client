@@ -20,7 +20,7 @@ import { HeaderPortal } from "./HeaderPortal";
 import { useUpdateSection, useDeleteSection, useActivationSection } from "@/hooks/useSection";
 import { useCreateLesson, useGetLessonBySectionId } from "@/hooks/useLesson";
 import { useGetAssignmentById, useDeleteAssignment } from "@/hooks/useAssignment";
-import { LessonType } from "@/lib/api/services/fetchLesson";
+import { Lesson, LessonType } from "@/lib/api/services/fetchLesson";
 import { useRouter } from "next/navigation";
 
 export interface SectionEditorRef {
@@ -144,8 +144,9 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                 isPreview: false,
             };
 
+            let newLesson;
             if (type === "Video") {
-                await createLesson({
+                newLesson = await createLesson({
                     type: LessonType.Video,
                     ...baseData,
                     title: "Video mới",
@@ -155,19 +156,24 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                     isDownloadable: false,
                 });
             } else if (type === "Text") {
-                await createLesson({
+                newLesson = await createLesson({
                     type: LessonType.Text,
                     ...baseData,
                     title: "Bài học mới",
                     content: "",
                 });
             } else if (type === "Quiz") {
-                await createLesson({
+                newLesson = await createLesson({
                     type: LessonType.Quiz,
                     ...baseData,
                     title: "Bài kiểm tra mới",
                     quizId: null,
                 });
+            }
+
+            const createdLesson = newLesson?.data as unknown as Lesson;
+            if (createdLesson?.id) {
+                onLessonSelect?.(createdLesson.id);
             }
         };
 
@@ -216,6 +222,17 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                 descriptionRef.current.style.height = descriptionRef.current.scrollHeight + 'px';
             }
         }, [descriptionValue]);
+
+        useEffect(() => {
+            const handleKeyDown = (e: KeyboardEvent) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    if (hasChanges) handleSave();
+                }
+            };
+            window.addEventListener('keydown', handleKeyDown);
+            return () => window.removeEventListener('keydown', handleKeyDown);
+        });
 
         return (
             <div className="flex-1 flex flex-col h-[calc(100vh-100px)] overflow-hidden bg-white relative">
@@ -424,11 +441,11 @@ export const SectionEditor = forwardRef<SectionEditorRef, SectionEditorProps>(
                                             </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => handleCreateLesson("Text")}>
                                                 <FileText className="h-4 w-4 mr-2" />
-                                                Text
+                                                Văn bản
                                             </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => handleCreateLesson("Quiz")}>
                                                 <ClipboardList className="h-4 w-4 mr-2" />
-                                                Quiz
+                                                Bài kiểm tra
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>

@@ -82,6 +82,7 @@ export function CreateQuizDialog({
     const [pageSize, setPageSize] = useState(10)
     const [isDescending, setIsDescending] = useState(true)
     const [isChildDialogOpen, setIsChildDialogOpen] = useState(false)
+    const [currentPageQuestions, setCurrentPageQuestions] = useState<Question[]>([])
 
     const totalPercent = easyPercent + mediumPercent + hardPercent
     const isDistributionValid = totalPercent === 100
@@ -110,6 +111,19 @@ export function CreateQuizDialog({
             return newMap
         })
     }
+
+    const handleSelectAll = () => {
+        setSelectedItems(prev => {
+            const newMap = new Map(prev)
+            for (const q of currentPageQuestions) {
+                if (newMap.size >= totalQuestions) break
+                if (!newMap.has(q.id)) newMap.set(q.id, q)
+            }
+            return newMap
+        })
+    }
+
+    const allCurrentSelected = currentPageQuestions.length > 0 && currentPageQuestions.every(q => selectedItems.has(q.id))
 
     const handleSubmit = async () => {
         const questionIds = Array.from(selectedItems.keys())
@@ -515,6 +529,10 @@ export function CreateQuizDialog({
                                     selectedIds={new Set(selectedItems.keys())}
                                     onToggleSelect={handleToggleSelect}
                                     onInteractingWithDialog={setIsChildDialogOpen}
+                                    onCurrentPageQuestions={setCurrentPageQuestions}
+                                    isInDialog={true}
+                                    onSelectAll={handleSelectAll}
+                                    selectAllDisabled={selectedItems.size >= totalQuestions}
                                 />
                             </div>
                         </div>
@@ -540,7 +558,7 @@ export function CreateQuizDialog({
                             <Button variant="outline" onClick={handleBackStep} disabled={isPending} className="rounded-full border-gray-300 hover:bg-gray-100 hover:text-black">
                                 <ArrowLeft className="mr-2 h-4 w-4" /> Quay lại
                             </Button>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3">
                                 <Button
                                     onClick={handleSubmit}
                                     disabled={isPending || selectedItems.size !== totalQuestions}

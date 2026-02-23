@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Coupon, CouponType, CreateCouponRequest, UpdateCouponRequest } from "@/lib/api/services/fetchCoupon"
 import { useCreateCoupon, useUpdateCoupon } from "@/hooks/useCoupon"
 
@@ -105,6 +105,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
     });
 
     const couponType = form.watch("type");
+    const [percentStep, setPercentStep] = useState<1 | 5 | 10 | 15>(1);
 
     useEffect(() => {
         if (open) {
@@ -362,11 +363,33 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                     name="value"
                                                     render={({ field }) => (
                                                         <FormItem className="space-y-3">
-                                                            <div className="flex items-center justify-between">
-                                                                <FormLabel className="text-sm font-medium text-gray-700">Giá trị giảm <span className="text-red-500">*</span></FormLabel>
-                                                                <span className="text-lg font-bold text-purple-600">
-                                                                    {field.value ?? 0}{couponType === CouponType.Percentage ? "%" : "đ"}
-                                                                </span>
+                                                            <div className="flex items-center justify-between gap-2">
+                                                                <FormLabel className="text-sm font-medium text-gray-700 shrink-0">Giá trị giảm <span className="text-red-500">*</span></FormLabel>
+                                                                <div className="flex items-center gap-2">
+                                                                    {couponType === CouponType.Percentage && (
+                                                                        <div className="flex items-center gap-1.5">
+                                                                            {([1, 5, 10, 15] as const).map((s) => (
+                                                                                <Button
+                                                                                    key={s}
+                                                                                    type="button"
+                                                                                    size="sm"
+                                                                                    onClick={() => setPercentStep(s)}
+                                                                                    className={cn(
+                                                                                        "h-6 px-2.5 text-xs rounded-full transition-all",
+                                                                                        percentStep === s
+                                                                                            ? "bg-purple-600 text-white border-transparent hover:bg-purple-700"
+                                                                                            : "bg-white border border-gray-200 text-gray-500 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300"
+                                                                                    )}
+                                                                                >
+                                                                                    {s}%
+                                                                                </Button>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                    <span className="text-lg font-bold text-purple-600">
+                                                                        {field.value ?? 0}{couponType === CouponType.Percentage ? "%" : "đ"}
+                                                                    </span>
+                                                                </div>
                                                             </div>
                                                             {couponType === CouponType.Percentage ? (
                                                                 <>
@@ -376,7 +399,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                             variant="outline"
                                                                             size="icon"
                                                                             className="h-8 w-8 shrink-0 rounded-full border-gray-300 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300"
-                                                                            onClick={() => field.onChange(Math.max(0, (Number(field.value) || 0) - 1))}
+                                                                            onClick={() => field.onChange(Math.max(0, (Number(field.value) || 0) - percentStep))}
                                                                             disabled={(Number(field.value) || 0) <= 0}
                                                                         >
                                                                             <span className="text-base font-bold">−</span>
@@ -396,7 +419,7 @@ export function CouponDialog({ open, onOpenChange, mode, initialData }: CouponDi
                                                                             variant="outline"
                                                                             size="icon"
                                                                             className="h-8 w-8 shrink-0 rounded-full border-gray-300 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300"
-                                                                            onClick={() => field.onChange(Math.min(100, (Number(field.value) || 0) + 1))}
+                                                                            onClick={() => field.onChange(Math.min(100, (Number(field.value) || 0) + percentStep))}
                                                                             disabled={(Number(field.value) || 0) >= 100}
                                                                         >
                                                                             <span className="text-base font-bold">+</span>

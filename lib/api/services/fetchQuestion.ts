@@ -45,7 +45,9 @@ export interface Question {
 }
 
 export interface QuestionParams {
+  keyword?: string
   tag?: string
+  difficulty?: QuestionDifficulty
   pageNumber?: number
   pageSize?: number
   isDescending?: boolean
@@ -157,6 +159,8 @@ const convertQuestionParamsToQuery = (params?: QuestionParams): RequestParams =>
   if (!params) return {}
   const query: RequestParams = {}
   if (params.tag) query.tag = params.tag
+  if (params.keyword) query.keyword = params.keyword
+  if (params.difficulty) query.difficulty = params.difficulty
   // API requires PageNumber and PageSize (PascalCase) - they are required parameters
   query.PageNumber = params.pageNumber ?? 1
   query.PageSize = params.pageSize ?? 10

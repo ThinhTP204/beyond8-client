@@ -334,7 +334,7 @@ export function CreateAssignmentDialog({
                                             <SelectContent>
                                                 <SelectItem value={SubmissionType.Text}>Văn bản (Text)</SelectItem>
                                                 <SelectItem value={SubmissionType.File}>Tệp tin (File)</SelectItem>
-                                                <SelectItem value={SubmissionType.Both}>Cả hai (Both)</SelectItem>
+                                                <SelectItem value={SubmissionType.Both}>Cả hai </SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -374,21 +374,20 @@ export function CreateAssignmentDialog({
                                                         {fileType}
                                                     </Badge>
                                                 ))}
+                                                {allowedFileTypes.filter(ft => !commonFileTypes.includes(ft)).map(fileType => (
+                                                    <Badge
+                                                        key={fileType}
+                                                        variant="default"
+                                                        className="cursor-pointer gap-1 bg-linear-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                                                    >
+                                                        {fileType}
+                                                        <X
+                                                            className="h-3 w-3 hover:text-red-200"
+                                                            onClick={() => toggleFileType(fileType)}
+                                                        />
+                                                    </Badge>
+                                                ))}
                                             </div>
-                                            {allowedFileTypes.length > 0 && (
-                                                <div className="flex flex-wrap gap-2 p-2 bg-gray-50 rounded-md border">
-                                                    <span className="text-xs text-gray-500">Đã chọn:</span>
-                                                    {allowedFileTypes.map(fileType => (
-                                                        <Badge key={fileType} variant="secondary" className="gap-1">
-                                                            {fileType}
-                                                            <X
-                                                                className="h-3 w-3 cursor-pointer hover:text-red-500"
-                                                                onClick={() => toggleFileType(fileType)}
-                                                            />
-                                                        </Badge>
-                                                    ))}
-                                                </div>
-                                            )}
                                             <div className="flex gap-2">
                                                 <Input
                                                     value={customFileType}

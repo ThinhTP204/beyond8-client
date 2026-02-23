@@ -1,11 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useCreateQuiz } from "@/hooks/useQuiz"
 import { useCheckEmbedHealth, useEmbedFile } from "@/hooks/useAI"
 import { useGenerateQuestionsWithAI, useImportQuestionsFromAI } from "@/hooks/useQuestion"
-import { useGetLessonDocument } from "@/hooks/useLesson"
+import { useGetLessonDocument, useCreateLessonDocument } from "@/hooks/useLesson"
+import { useMediaDocumentCourse } from "@/hooks/useMedia"
 import { Quiz } from "@/lib/api/services/fetchQuiz"
+import { formatImageUrl } from "@/lib/utils/formatImageUrl"
+import DocumentUploadDialog from "@/components/widget/document/DocumentUploadDialog"
 import {
     Dialog,
     DialogContent,
@@ -27,7 +30,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Loader2, Settings, Sparkles, Target, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, FileText, BrainCircuit, Play, Clock, Trophy, Shuffle, Eye, HelpCircle } from "lucide-react"
+import { Loader2, Settings, Sparkles, Target, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, FileText, BrainCircuit, Play, Clock, Trophy, Shuffle, Eye, HelpCircle, Upload } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -63,7 +66,19 @@ export function CreateQuizAIDialog({
     const { mutateAsync: embedFile } = useEmbedFile()
     const { generateQuestionsAsync } = useGenerateQuestionsWithAI()
     const { importQuestionsAsync } = useImportQuestionsFromAI()
-    const { lessonDocuments } = useGetLessonDocument(lessonId)
+    const { lessonDocuments, refetch: refetchDocs } = useGetLessonDocument(lessonId)
+    const { createLessonDocument, isPending: isCreatingDoc } = useCreateLessonDocument(courseId)
+    const { uploadDocumentCourseAsync, isUploadingDocumentCourse } = useMediaDocumentCourse()
+
+    // Document upload state
+    const documentInputRef = React.useRef<HTMLInputElement>(null)
+    const [isDocumentDialogOpen, setIsDocumentDialogOpen] = useState(false)
+    const [documentFileToUpload, setDocumentFileToUpload] = useState<File | null>(null)
+    const [documentMetadata, setDocumentMetadata] = useState({
+        title: "",
+        description: "",
+        isDownloadable: true,
+    })
 
     // Step Control
     const [step, setStep] = useState<1 | 2>(1)
@@ -114,6 +129,39 @@ export function CreateQuizAIDialog({
         setStep(1)
         setProcessStep('idle')
         setErrorMsg(null)
+    }
+
+    const handleDocumentFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+        setDocumentFileToUpload(file)
+        setDocumentMetadata({ title: file.name, description: "", isDownloadable: true })
+        setIsDocumentDialogOpen(true)
+        if (documentInputRef.current) documentInputRef.current.value = ""
+    }
+
+    const handleDocumentConfirmUpload = async () => {
+        if (!documentFileToUpload) return
+        try {
+            const mediaFile = await uploadDocumentCourseAsync(documentFileToUpload)
+            if (mediaFile?.fileUrl) {
+                await createLessonDocument({
+                    lessonId,
+                    lessonDocumentUrl: formatImageUrl(mediaFile.fileUrl) || "",
+                    title: documentMetadata.title,
+                    description: documentMetadata.description,
+                    isDownloadable: documentMetadata.isDownloadable,
+                    isIndexedInVectorDb: true,
+                })
+                const result = await refetchDocs()
+                const firstDoc = result.data?.[0]
+                if (firstDoc) setSelectedDocumentId(firstDoc.id)
+                setIsDocumentDialogOpen(false)
+                setDocumentFileToUpload(null)
+            }
+        } catch (error) {
+            console.error("Failed to upload document:", error)
+        }
     }
 
     const executeFullFlow = async () => {
@@ -222,6 +270,7 @@ export function CreateQuizAIDialog({
     const neededHard = totalQuestions - neededEasy - neededMedium
 
     return (
+        <>
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className={cn(
                 "flex flex-col p-0 gap-0 transition-all duration-300 overflow-hidden",
@@ -448,8 +497,25 @@ export function CreateQuizAIDialog({
                                                     </SelectContent>
                                                 </Select>
                                             ) : (
-                                                <div className="p-4 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 text-center text-sm text-gray-500">
-                                                    Chưa có tài liệu nào. Vui lòng tải lên tài liệu ở bài học trước.
+                                                <div className="flex flex-col items-center gap-3 p-5 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 text-center">
+                                                    <FileText className="w-8 h-8 text-gray-300" />
+                                                    <p className="text-sm text-gray-500">Chưa có tài liệu nào cho bài học này</p>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="gap-2 rounded-full border-teal-200 text-teal-700 hover:bg-teal-50 hover:text-teal-900"
+                                                        onClick={() => documentInputRef.current?.click()}
+                                                    >
+                                                        <Upload className="w-4 h-4" />
+                                                        Tải tài liệu lên
+                                                    </Button>
+                                                    <input
+                                                        ref={documentInputRef}
+                                                        type="file"
+                                                        className="hidden"
+                                                        onChange={handleDocumentFileSelect}
+                                                    />
                                                 </div>
                                             )}
                                         </div>
@@ -541,6 +607,17 @@ export function CreateQuizAIDialog({
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <DocumentUploadDialog
+            open={isDocumentDialogOpen}
+            onOpenChange={setIsDocumentDialogOpen}
+            metadata={documentMetadata}
+            setMetadata={setDocumentMetadata}
+            onConfirm={handleDocumentConfirmUpload}
+            onCancel={() => setIsDocumentDialogOpen(false)}
+            isLoading={isUploadingDocumentCourse || isCreatingDoc}
+        />
+        </>
     )
 }
 

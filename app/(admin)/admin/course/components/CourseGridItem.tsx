@@ -173,7 +173,7 @@ export default function CourseGridItem({ course, onPreview }: CourseGridItemProp
                             </>
                         )}
                         <div className="col-span-2">
-                            <Button variant="outline" className="w-full h-9 rounded-xl border-slate-200 hover:bg-slate-50 hover:border-primary/30 transition-all shadow-sm">
+                            <Button variant="outline" className="w-full h-9 rounded-xl border-slate-200 hover:bg-slate-50 hover:border-primary/30 transition-all shadow-sm hover:text-black">
                                 Xem chi tiết
                             </Button>
                         </div>

@@ -627,7 +627,27 @@ export const LessonEditor = forwardRef<LessonEditorRef, LessonEditorProps>(
       }
     };
 
-    if (!selectedLesson) return null;
+    useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+          e.preventDefault();
+          if (hasLessonChanges) handleLessonSave();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    });
+
+    if (!selectedLesson) {
+      return (
+        <div className="flex-1 flex items-center justify-center h-[calc(100vh-100px)] bg-white">
+          <div className="flex flex-col items-center gap-3 text-gray-400">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-gray-500" />
+            <p className="text-sm">Đang tải bài học...</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="flex-1 flex flex-col h-[calc(100vh-100px)] overflow-hidden bg-white relative min-w-0 w-0">

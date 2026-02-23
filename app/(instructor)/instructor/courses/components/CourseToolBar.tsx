@@ -259,7 +259,7 @@ export default function CourseToolBar({
             >
               <Button
                 variant="ghost"
-                className="bg-gray-100 hover:bg-gray-200 rounded-full px-3"
+                className="bg-gray-100 hover:bg-gray-200 rounded-full px-3 hover:text-black"
               >
                 <Plus className="w-5 h-5 text-gray-700" /> <span className="hidden sm:inline ml-1">Thêm khóa học</span>
                 <span className="sm:hidden">Thêm</span>

@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronRight, Home, FolderOpen, Plus, ArrowLeft } from "lucide-react"
-import { Question } from "@/lib/api/services/fetchQuestion"
+import { Question, QuestionDifficulty } from "@/lib/api/services/fetchQuestion"
 import { TagFolderCard } from "./TagFolderCard"
 import { QuestionCard } from "./QuestionCard"
 import { useGetQuestionTagsCount, useGetQuestions } from "@/hooks/useQuestion"
@@ -15,6 +15,7 @@ import { CreateQuestionMethodDialog } from "@/components/widget/question/CreateQ
 import { CreateQuestionDialog } from "@/components/widget/question/CreateQuestionDialog"
 import { CreateBulkQuestionDialog } from "@/components/widget/question/CreateBulkQuestionDialog"
 import { CreateQuestionPDFDialog } from "@/components/widget/question/CreateQuestionPDFDialog"
+import { cn } from "@/lib/utils"
 
 interface QuestionBankViewProps {
     selectedTag: string | null
@@ -29,6 +30,10 @@ interface QuestionBankViewProps {
     selectionMode?: "single" | "multiple"
     selectedIds?: Set<string>
     onToggleSelect?: (question: Question) => void
+    onCurrentPageQuestions?: (questions: Question[]) => void
+    isInDialog?: boolean
+    onSelectAll?: () => void
+    selectAllDisabled?: boolean
 }
 
 export function QuestionBankView({
@@ -43,12 +48,17 @@ export function QuestionBankView({
     onInteractingWithDialog,
     selectionMode = "single",
     selectedIds,
-    onToggleSelect
+    onToggleSelect,
+    onCurrentPageQuestions,
+    isInDialog = false,
+    onSelectAll,
+    selectAllDisabled = false,
 }: QuestionBankViewProps) {
     const [isMethodDialogOpen, setIsMethodDialogOpen] = useState(false)
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
     const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false)
     const [isPDFDialogOpen, setIsPDFDialogOpen] = useState(false)
+    const [selectedDifficulty, setSelectedDifficulty] = useState<QuestionDifficulty | undefined>(undefined)
 
     // Notify parent when any dialog is open
     useEffect(() => {
@@ -66,9 +76,23 @@ export function QuestionBankView({
                 pageNumber,
                 pageSize,
                 isDescending,
+                difficulty: selectedDifficulty,
             }
             : undefined
     )
+
+    // Expose current page questions to parent for "Select All"
+    // Use a ref to compare IDs and avoid infinite loops from unstable array references
+    const prevQuestionIdsRef = useRef<string>("")
+    useEffect(() => {
+        const newIds = questions.map(q => q.id).join(",")
+        if (newIds !== prevQuestionIdsRef.current) {
+            prevQuestionIdsRef.current = newIds
+            onCurrentPageQuestions?.(questions)
+        }
+    })
+
+    const allCurrentSelected = questions.length > 0 && questions.every(q => selectedIds?.has(q.id))
 
     const hasNextPage = questions.length === pageSize
     const hasPreviousPage = pageNumber > 1
@@ -80,13 +104,17 @@ export function QuestionBankView({
             <div className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-2 -mx-2 px-2 border-b border-transparent transition-all data-[scrolled=true]:border-border/50 rounded-lg">
                 {/* Breadcrumb Navigation */}
                 <div className="flex items-center gap-2 text-md">
-                    <Link href="/instructor/courses">
-                        <Button variant="ghost" className="h-8 hover:bg-black/5 mr-2 gap-2 text-muted-foreground hover:text-foreground" title="Quản lý khóa học">
-                            <ArrowLeft className="h-4 w-4" />
-                            Quản lý khóa học
-                        </Button>
-                    </Link>
-                    <div className="h-4 w-px bg-border mx-2" />
+                    {!isInDialog && (
+                        <>
+                            <Link href="/instructor/courses">
+                                <Button variant="ghost" className="h-8 hover:bg-black/5 mr-2 gap-2 text-muted-foreground hover:text-foreground" title="Quản lý khóa học">
+                                    <ArrowLeft className="h-4 w-4" />
+                                    Quản lý khóa học
+                                </Button>
+                            </Link>
+                            <div className="h-4 w-px bg-border mx-2" />
+                        </>
+                    )}
                     <button
                         onClick={onBackToTags}
                         className="flex items-center gap-2 rounded-lg px-3 py-2 text-black font-semibold cursor-pointer hover:bg-black/5"
@@ -110,8 +138,60 @@ export function QuestionBankView({
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-3"
+                    className="flex items-center gap-2"
                 >
+                    {/* Difficulty Filter - shown when a tag is selected */}
+                    {selectedTag && (
+                        <div className="flex items-center gap-1.5">
+                            {([undefined, QuestionDifficulty.Easy, QuestionDifficulty.Medium, QuestionDifficulty.Hard] as const).map((d) => {
+                                const labels: Record<string, string> = {
+                                    [QuestionDifficulty.Easy]: "Dễ",
+                                    [QuestionDifficulty.Medium]: "Trung Bình",
+                                    [QuestionDifficulty.Hard]: "Khó",
+                                }
+                                const colors: Record<string, string> = {
+                                    [QuestionDifficulty.Easy]: "bg-green-100 text-green-700 border-green-200 hover:bg-green-200",
+                                    [QuestionDifficulty.Medium]: "bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200",
+                                    [QuestionDifficulty.Hard]: "bg-red-100 text-red-700 border-red-200 hover:bg-red-200",
+                                }
+                                const activeColors: Record<string, string> = {
+                                    [QuestionDifficulty.Easy]: "bg-green-500 text-white border-green-500",
+                                    [QuestionDifficulty.Medium]: "bg-yellow-500 text-white border-yellow-500",
+                                    [QuestionDifficulty.Hard]: "bg-red-500 text-white border-red-500",
+                                }
+                                const isActive = selectedDifficulty === d
+                                const label = d === undefined ? "Tất cả" : labels[d]
+                                const colorClass = d === undefined
+                                    ? isActive ? "bg-gray-700 text-white border-gray-700" : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
+                                    : isActive ? activeColors[d] : colors[d]
+                                return (
+                                    <button
+                                        key={d ?? "all"}
+                                        onClick={() => setSelectedDifficulty(d)}
+                                        className={cn("px-2.5 py-1 text-xs font-semibold rounded-full border transition-all", colorClass)}
+                                    >
+                                        {label}
+                                    </button>
+                                )
+                            })}
+                            <div className="h-5 w-px bg-gray-200 mx-1" />
+                        </div>
+                    )}
+                    {onSelectAll && selectedTag && questions.length > 0 && (
+                        <Button
+                            onClick={onSelectAll}
+                            variant="outline"
+                            disabled={selectAllDisabled || allCurrentSelected}
+                            className={cn(
+                                "px-3 py-1.5 text-sm font-semibold rounded-full border transition-all hover:bg-primary/10 hover:text-primary",
+                                allCurrentSelected || selectAllDisabled
+                                    ? "border-gray-200 text-gray-400 bg-gray-50 cursor-not-allowed"
+                                    : "border-brand-magenta text-brand-magenta"
+                            )}
+                        >
+                            {allCurrentSelected ? "Đã chọn hết trang" : `Chọn tất cả (${questions.length})`}
+                        </Button>
+                    )}
                     <Button
                         onClick={() => setIsMethodDialogOpen(true)}
                         className="group relative rounded-full bg-brand-magenta text-white shadow-lg shadow-brand-magenta/20 hover:bg-brand-magenta/90"

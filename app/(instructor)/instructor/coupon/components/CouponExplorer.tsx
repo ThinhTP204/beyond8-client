@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { toast } from "sonner"
-import { ChevronRight, Home, FolderOpen, Plus, Ticket, Wallet } from "lucide-react"
+import { ChevronRight, Home, FolderOpen, Plus, Ticket, Wallet, ArrowLeft } from "lucide-react"
 import { useGetCouponForInstructor, useToggleCoupon } from "@/hooks/useCoupon"
 import { useGetCourseByInstructor } from "@/hooks/useCourse"
 import { useGetMyWallet } from "@/hooks/useWallet"
@@ -17,6 +17,7 @@ import { InstructorCouponDialog } from "@/components/widget/coupon/InstructorCou
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { DepositDialog } from "@/components/widget/wallet/DepositDialog"
+import Link from "next/link"
 export function CouponExplorer() {
     const searchParams = useSearchParams()
     const router = useRouter()
@@ -118,6 +119,12 @@ export function CouponExplorer() {
             <div className="sticky top-0 z-20 flex items-center justify-between gap-4 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 py-2 border-b border-transparent transition-all data-[scrolled=true]:border-border/50 rounded-lg">
                 {/* Breadcrumb Navigation */}
                 <div className="flex items-center gap-2 text-md">
+                    <Link href="/instructor/courses">
+                        <Button variant="ghost" className="h-8 hover:bg-black/5 mr-2 gap-2 text-muted-foreground hover:text-foreground" title="Quản lý khóa học">
+                            <ArrowLeft className="h-4 w-4" />
+                            Quản lý khóa học
+                        </Button>
+                    </Link>
                     <button
                         onClick={handleBackToFolders}
                         className={`flex items-center gap-2 rounded-lg px-3 py-2 font-semibold cursor-pointer hover:bg-black/5 transition-colors ${!selectedCourseId ? 'text-brand-magenta bg-brand-magenta/5' : 'text-foreground'}`}

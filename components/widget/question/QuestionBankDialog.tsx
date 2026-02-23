@@ -30,9 +30,8 @@ export function QuestionBankDialog({ open, onOpenChange, onSelect, selectionMode
 
     const [isChildDialogOpen, setIsChildDialogOpen] = useState(false)
 
-    // Multi-select state
-    // Store as Map to keep content handy: id -> content
     const [selectedItems, setSelectedItems] = useState<Map<string, string>>(new Map())
+    const [currentPageQuestions, setCurrentPageQuestions] = useState<Question[]>([])
 
     // Reset state when dialog opens/closes
     useEffect(() => {
@@ -86,6 +85,21 @@ export function QuestionBankDialog({ open, onOpenChange, onSelect, selectionMode
         }
     }
 
+    const handleSelectAll = () => {
+        setSelectedItems(prev => {
+            const newMap = new Map(prev)
+            currentPageQuestions.forEach(q => {
+                if (!newMap.has(q.id)) {
+                    newMap.set(q.id, q.content)
+                }
+            })
+            return newMap
+        })
+    }
+
+    const allCurrentSelected = currentPageQuestions.length > 0 &&
+        currentPageQuestions.every(q => selectedItems.has(q.id))
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
@@ -124,13 +138,18 @@ export function QuestionBankDialog({ open, onOpenChange, onSelect, selectionMode
                         selectionMode={selectionMode}
                         selectedIds={new Set(selectedItems.keys())}
                         onToggleSelect={handleToggleSelect}
+                        onCurrentPageQuestions={setCurrentPageQuestions}
+                        isInDialog={true}
+                        onSelectAll={handleSelectAll}
                     />
                 </div>
 
                 {selectionMode === "multiple" && (
                     <div className="p-4 border-t bg-gray-50 flex items-center justify-between shrink-0">
-                        <div className="text-sm font-medium text-gray-600">
-                            Đã chọn <span className="text-brand-magenta font-bold">{selectedItems.size}</span> câu hỏi
+                        <div className="flex items-center gap-3">
+                            <div className="text-sm font-medium text-gray-600">
+                                Đã chọn <span className="text-brand-magenta font-bold">{selectedItems.size}</span> câu hỏi
+                            </div>
                         </div>
                         <div className="flex gap-3">
                             <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-full hover:bg-gray-100 hover:text-black">
