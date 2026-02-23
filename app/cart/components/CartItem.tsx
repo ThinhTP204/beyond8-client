@@ -1,14 +1,14 @@
 'use client'
 
-import { Trash2, Tag, Ticket, Edit } from 'lucide-react'
-import { motion, AnimatePresence }from 'framer-motion'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Button } from '@/components/ui/button'
+import { Trash2, Tag, Ticket, Edit }from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Checkbox }from '@/components/ui/checkbox'
+import { Button }from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils/formatCurrency'
-import { formatImageUrl } from '@/lib/utils/formatImageUrl'
+import { formatImageUrl }from '@/lib/utils/formatImageUrl'
 import { useCartContext } from '../context/CartContext'
-import { useState } from 'react'
-import { useRemoveFromCart } from '@/hooks/useOrder'
+import { useState }from 'react'
+import { useRemoveFromCart, useCheckoutPreview }from '@/hooks/useOrder'
 import SafeImage from '@/components/ui/SafeImage'
 import CouponDialog from '@/components/widget/CouponDialog'
 
@@ -27,12 +27,16 @@ interface CartItemProps {
 }
 
 export default function CartItem({ item }: CartItemProps) {
-  const { selectedItems, toggleItem, setInstructorCouponCode, getInstructorCouponCode }= useCartContext()
+  const { selectedItems, toggleItem, setInstructorCouponCode, getInstructorCouponCode } = useCartContext()
   const { removeFromCart, isPending: isRemoving } = useRemoveFromCart()
+  const { previewCheckout}= useCheckoutPreview()
   const [removingItemId, setRemovingItemId] = useState<string | null>(null)
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null)
   const [couponCode, setCouponCode] = useState<string>(getInstructorCouponCode(item.courseId) || '')
   const [couponDialogOpen, setCouponDialogOpen] = useState(false)
+  const [originalPrice, setOriginalPrice] = useState<number>(item.originalPrice)
+  const [instructorDiscount, setInstructorDiscount] = useState<number>(0)
+  const [finalPrice, setFinalPrice] = useState<number>(item.finalPrice)
 
   const isSelected = selectedItems.has(item.courseId)
   const isHovered = hoveredItemId === item.id
@@ -42,16 +46,45 @@ export default function CartItem({ item }: CartItemProps) {
     setRemovingItemId(courseId)
     try {
       await removeFromCart(courseId)
-    }finally {
+    } finally {
       setRemovingItemId(null)
     }
   }
 
   const handleApplyCoupon = async (code: string | null): Promise<boolean> => {
-    setCouponCode(code || '')
-    setInstructorCouponCode(item.courseId, code || '')
-    return true
+    try {
+      if (code) {
+        const response = await previewCheckout({
+          items: [{
+            courseId: item.courseId,
+            instructorCouponCode: code,
+          }],
+          couponCode: null,
+        })
+        
+        if (response?.data?.items?.[0]) {
+          const itemData = response.data.items[0]
+          setOriginalPrice(itemData.originalPrice)
+          setInstructorDiscount(itemData.instructorDiscount)
+          setFinalPrice(itemData.finalPrice)
+        }
+      } else {
+        setOriginalPrice(item.originalPrice)
+        setInstructorDiscount(0)
+        setFinalPrice(item.finalPrice)
+      }
+      
+      setCouponCode(code || '')
+      setInstructorCouponCode(item.courseId, code || '')
+      return true
+    } catch (error) {
+      console.error('Coupon validation error:', error)
+      return false
+    }
   }
+
+  const displayPrice = finalPrice
+  const originalDisplayPrice = instructorDiscount
 
   return (
     <motion.div
@@ -105,36 +138,29 @@ export default function CartItem({ item }: CartItemProps) {
       >
         {/* Thumbnail */}
         <div className="relative h-20 w-32 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-            <SafeImage
-              src={formatImageUrl(item.courseThumbnail) || '/bg-web.jpg'}
-              alt={item.courseTitle}
-              fill
-              className="object-cover"
-            />
+          <SafeImage
+            src={formatImageUrl(item.courseThumbnail) || '/bg-web.jpg'}
+            alt={item.courseTitle}
+            fill
+            className="object-cover"
+          />
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0 flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-sm line-clamp-2 mb-1 text-foreground">
+            <h4 className="font-semibold text-base line-clamp-2 mb-1 text-foreground">
               {item.courseTitle}
             </h4>
-            <p className="text-xs text-muted-foreground mb-2">{item.instructorName}</p>
-            <div className="flex flex-col">
-              <span className="font-bold text-brand-magenta">
-                {formatCurrency(typeof item.finalPrice === 'number' ? item.finalPrice : item.originalPrice)}
+            <p className="text-sm text-muted-foreground mb-2">{item.instructorName}</p>
+            <div className="flex flex-row gap-3">
+              <span className="font-bold text-lg text-brand-magenta">
+                {formatCurrency(displayPrice)}
               </span>
-              {item.hasDiscount && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                  <span className="line-through">
-                    {formatCurrency(item.originalPrice)}
-                  </span>
-                  {item.discountPercent !== null && item.discountPercent !== undefined && item.discountPercent > 0 && (
-                    <span className="text-red-500 font-semibold">
-                      -{item.discountPercent}%
-                    </span>
-                  )}
-                </div>
+              { instructorDiscount > 0 && (
+                <span className="line-through text-sm text-muted-foreground">
+                  {formatCurrency(originalDisplayPrice)}
+                </span>
               )}
             </div>
           </div>
@@ -144,7 +170,7 @@ export default function CartItem({ item }: CartItemProps) {
             {couponCode ? (
               <div className="flex items-center gap-1.5 rounded-lg border border-brand-pink/30 bg-brand-pink/5 px-2 py-1">
                 <Ticket className="h-3.5 w-3.5 text-brand-magenta" />
-                <span className="text-xs font-medium text-brand-magenta">{couponCode}</span>
+                <span className="text-sm font-medium text-brand-magenta">{couponCode}</span>
                 <button
                   type="button"
                   onClick={() => setCouponDialogOpen(true)}
@@ -158,8 +184,9 @@ export default function CartItem({ item }: CartItemProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 gap-1.5 text-xs text-muted-foreground"
+                className="h-8 gap-1.5 text-sm text-muted-foreground"
                 onClick={() => setCouponDialogOpen(true)}
+                disabled={!isSelected}
               >
                 <Tag className="h-3.5 w-3.5" />
                 Mã giảm giá
