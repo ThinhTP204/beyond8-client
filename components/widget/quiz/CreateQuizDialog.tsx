@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useCreateQuiz } from "@/hooks/useQuiz"
 import { Quiz } from "@/lib/api/services/fetchQuiz"
 import { Question } from "@/lib/api/services/fetchQuestion"

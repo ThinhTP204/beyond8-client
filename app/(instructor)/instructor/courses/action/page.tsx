@@ -179,11 +179,11 @@ export function CourseAction({ initialData, isEditMode: initialIsEditMode = fals
           newCourseId = (response.data as Course)?.id;
         }
         if (newCourseId) {
-          // Success! Set the ID but DO NOT redirect yet.
           setCreatedCourseId(newCourseId);
-          // Update saved data to prevent "Unsaved changes" warning
           setSavedData(formData);
           setIsEdit(true);
+          // Redirect to edit route so courseId appears in URL params
+          router.replace(`/instructor/courses/action/${newCourseId}`);
         }
       }
     } else {

@@ -91,14 +91,39 @@ export function useSignalRNotifications() {
         }
       }
 
+      const handleCourseCompleted = (data: {
+        title?: string
+        message?: string
+        metadata?: {
+          courseId?: string
+        }
+      }) => {
+        const { title, metadata, message } = data
+        console.log('[SignalR] Received CourseCompleted:', data.metadata?.courseId)
+
+        // if (metadata?.courseId) {
+        //   toast.success(
+        //     title || 'Khóa học đã hoàn thành',
+        //     {
+        //       description: message,
+        //       duration: 2000,
+        //     }
+        //   )
+        // }
+      }
+
+
+
       connection.on('InstructorApplicationSubmitted', handleInstructorApplicationSubmitted)
       connection.on('RequireReLogin', handleRequireReLogin)
       connection.on('TranscodingVideoSuccess', handleTranscodingVideoSuccess)
+      connection.on('CourseCompleted', handleCourseCompleted)
 
       const cleanup = () => {
         connection.off('InstructorApplicationSubmitted', handleInstructorApplicationSubmitted)
         connection.off('RequireReLogin', handleRequireReLogin)
         connection.off('TranscodingVideoSuccess', handleTranscodingVideoSuccess)
+        connection.off('CourseCompleted', handleCourseCompleted)
       }
       handlersRef.current.push(cleanup)
     }
