@@ -409,23 +409,23 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
       easy: {
         label: "Dễ",
         gradient: "from-emerald-500 to-green-500",
-        bg: "bg-emerald-50 dark:bg-emerald-950/30",
-        border: "border-emerald-200 dark:border-emerald-800",
-        text: "text-emerald-700 dark:text-emerald-300"
+        bg: "bg-emerald-50",
+        border: "border-emerald-200",
+        text: "text-emerald-700"
       },
       medium: {
         label: "Trung bình",
         gradient: "from-amber-500 to-orange-500",
-        bg: "bg-amber-50 dark:bg-amber-950/30",
-        border: "border-amber-200 dark:border-amber-800",
-        text: "text-amber-700 dark:text-amber-300"
+        bg: "bg-amber-50",
+        border: "border-amber-200",
+        text: "text-amber-700"
       },
       hard: {
         label: "Khó",
         gradient: "from-rose-500 to-red-500",
-        bg: "bg-rose-50 dark:bg-rose-950/30",
-        border: "border-rose-200 dark:border-rose-800",
-        text: "text-rose-700 dark:text-rose-300"
+        bg: "bg-rose-50",
+        border: "border-rose-200",
+        text: "text-rose-700"
       }
     }
     return configs[difficulty]
@@ -466,10 +466,10 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
     <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent
         key={open ? 'open' : 'closed'}
-        className="max-w-4xl max-h-[90vh] overflow-hidden border-brand-magenta/20 bg-white/95 backdrop-blur-xl dark:bg-black/95 flex flex-col p-0"
+        className="max-w-4xl max-h-[90vh] overflow-hidden border-brand-magenta/20 bg-white/95 backdrop-blur-xl flex flex-col p-0"
       >
         <DialogHeader className="px-6 pt-6 pb-4 bg-white">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-brand-magenta to-brand-purple bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold bg-linear-to-r from-brand-magenta to-brand-purple bg-clip-text text-transparent">
             {step === 1 ? "Tạo câu hỏi từ PDF" : "Chỉnh sửa và tạo câu hỏi"}
           </DialogTitle>
           <DialogDescription>
@@ -496,7 +496,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                   onDrop={handleDrop}
                   className={`relative overflow-hidden rounded-2xl border-2 border-dashed transition-all ${isDragging
                     ? "border-brand-magenta bg-brand-magenta/5"
-                    : "border-brand-magenta/20 bg-white/50 dark:bg-black/50"
+                    : "border-brand-magenta/20 bg-white/50"
                     }`}
                 >
                   <div className="p-12">
@@ -506,7 +506,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           animate={{
                             y: isDragging ? -10 : 0,
                           }}
-                          className="mb-4 rounded-full bg-gradient-to-br from-brand-magenta/20 to-brand-purple/20 p-6"
+                          className="mb-4 rounded-full bg-linear-to-br from-brand-magenta/20 to-brand-purple/20 p-6"
                         >
                           <Upload className="h-12 w-12 text-brand-magenta" />
                         </motion.div>
@@ -547,8 +547,8 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                         className="space-y-4"
                       >
                         {/* File Info */}
-                        <div className="flex items-start gap-4 rounded-xl border border-brand-magenta/20 bg-white/80 p-4 backdrop-blur-sm dark:bg-black/80">
-                          <div className="rounded-lg bg-gradient-to-br from-brand-magenta/20 to-brand-purple/20 p-3">
+                        <div className="flex items-start gap-4 rounded-xl border border-brand-magenta/20 bg-white/80 p-4 backdrop-blur-sm">
+                          <div className="rounded-lg bg-linear-to-br from-brand-magenta/20 to-brand-purple/20 p-3">
                             <FileText className="h-8 w-8 text-brand-magenta" />
                           </div>
 
@@ -564,7 +564,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           {!isUploading && (
                             <button
                               onClick={removeFile}
-                              className="rounded-full p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                              className="rounded-full p-2 text-red-500 hover:bg-red-50"
                             >
                               <X className="h-5 w-5" />
                             </button>
@@ -583,12 +583,12 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                               </span>
                             </div>
 
-                            <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-800">
+                            <div className="h-2 overflow-hidden rounded-full bg-gray-200">
                               <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${uploadProgress}%` }}
                                 transition={{ duration: 0.3 }}
-                                className="h-full rounded-full bg-gradient-to-r from-brand-magenta to-brand-purple"
+                                className="h-full rounded-full bg-linear-to-r from-brand-magenta to-brand-purple"
                               />
                             </div>
                           </div>
@@ -598,7 +598,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-950"
+                            className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
                           >
                             <p className="font-medium">Có lỗi xảy ra khi xử lý file</p>
                             <p className="mt-1 text-xs">
@@ -622,7 +622,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                 {questionsData && (
                   <div className="space-y-8">
                     {/* Global Tags Section */}
-                    <div className="rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm dark:from-black/90 dark:to-black/70">
+                    <div className="rounded-2xl border border-brand-magenta/20 bg-linear-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm ">
                       <div className="mb-4 flex items-center gap-2">
                         <Tag className="h-5 w-5 text-brand-magenta" />
                         <h3 className="text-lg font-bold text-foreground">
@@ -642,7 +642,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                             }
                           }}
                           placeholder="Nhập tag và nhấn Enter..."
-                          className="flex-1 rounded-xl border-brand-magenta/20 bg-white/80 backdrop-blur-sm dark:bg-black/80"
+                          className="flex-1 rounded-xl border-brand-magenta/20 bg-white/80 backdrop-blur-sm"
                         />
                         <Button
                           type="button"
@@ -673,7 +673,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                 disabled={globalTags.includes(tagData.tag)}
                                 className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${globalTags.includes(tagData.tag)
                                   ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
-                                  : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                  : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-linear-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95"
                                   }`}
                               >
                                 <Tag className="mr-1 inline h-3 w-3" />
@@ -696,7 +696,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
                                   exit={{ scale: 0 }}
-                                  className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-gradient-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
+                                  className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-linear-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
                                 >
                                   <Tag className="h-3 w-3" />
                                   <span>{tag}</span>
@@ -719,7 +719,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                         <Button
                           type="button"
                           onClick={applyGlobalTagsToAll}
-                          className="w-full rounded-xl bg-gradient-to-r from-brand-magenta to-brand-purple text-white shadow-lg shadow-brand-magenta/20 transition-all hover:shadow-xl hover:shadow-brand-magenta/30"
+                          className="w-full rounded-xl bg-linear-to-r from-brand-magenta to-brand-purple text-white shadow-lg shadow-brand-magenta/20 transition-all hover:shadow-xl hover:shadow-brand-magenta/30"
                         >
                           <Tag className="mr-2 h-4 w-4" />
                           Áp dụng cho tất cả câu hỏi
@@ -730,13 +730,13 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                     {questionsData.easy.length > 0 && (
                       <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+                          <div className="h-px flex-1 bg-linear-to-r from-transparent via-emerald-500/30 to-transparent" />
                           <h3 className="flex items-center gap-2 text-lg font-bold">
-                            <span className="rounded-full bg-gradient-to-r from-emerald-500 to-green-500 px-4 py-1.5 text-sm text-white shadow-lg shadow-emerald-500/30">
+                            <span className="rounded-full bg-linear-to-r from-emerald-500 to-green-500 px-4 py-1.5 text-sm text-white shadow-lg shadow-emerald-500/30">
                               Câu hỏi dễ ({questionsData.easy.length})
                             </span>
                           </h3>
-                          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent" />
+                          <div className="h-px flex-1 bg-linear-to-r from-transparent via-emerald-500/30 to-transparent" />
                         </div>
                         {questionsData.easy.map((question, index) => {
                           const config = getDifficultyConfig("easy")
@@ -758,9 +758,9 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           return (
                             <div
                               key={questionKey}
-                              className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 dark:from-black/90 dark:to-black/70"
+                              className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-linear-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10"
                             >
-                              <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${config.gradient}`} />
+                              <div className={`absolute left-0 top-0 h-full w-1 bg-linear-to-b ${config.gradient}`} />
 
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 space-y-4">
@@ -781,7 +781,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                       value={question.content}
                                       onChange={(e) => updateQuestion("easy", index, "content", e.target.value)}
                                       placeholder="Nhập nội dung câu hỏi..."
-                                      className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                      className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta "
                                     />
                                   </div>
 
@@ -798,7 +798,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                           <button
                                             type="button"
                                             onClick={() => toggleCorrect("easy", index, optIndex)}
-                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${option.isCorrect
+                                            className={`shrink-0 rounded-full p-1 transition-all ${option.isCorrect
                                               ? "bg-green-500 text-white"
                                               : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
                                               }`}
@@ -810,14 +810,14 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                             value={option.text}
                                             onChange={(e) => updateOption("easy", index, optIndex, "text", e.target.value)}
                                             placeholder={`Lựa chọn ${optIndex + 1}`}
-                                            className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                            className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta"
                                           />
 
                                           {question.options.length > 1 && (
                                             <button
                                               type="button"
                                               onClick={() => removeOption("easy", index, optIndex)}
-                                              className="flex-shrink-0 rounded-full p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                                              className="shrink-0 rounded-full p-1 text-red-500 hover:bg-red-50"
                                             >
                                               <X className="h-5 w-5" />
                                             </button>
@@ -847,7 +847,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                         onChange={(e) => setTagInput(e.target.value)}
                                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
                                         placeholder="Nhập tag và nhấn Enter..."
-                                        className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                        className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta"
                                       />
                                       <Button
                                         type="button"
@@ -875,7 +875,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                               disabled={question.tags.includes(tagData.tag)}
                                               className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${question.tags.includes(tagData.tag)
                                                 ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
-                                                : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                                : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-linear-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95"
                                                 }`}
                                             >
                                               <Tag className="mr-1 inline h-3 w-3" />
@@ -896,7 +896,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                               initial={{ scale: 0 }}
                                               animate={{ scale: 1 }}
                                               exit={{ scale: 0 }}
-                                              className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-gradient-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
+                                              className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-linear-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
                                             >
                                               <Tag className="h-3 w-3" />
                                               <span>{tag}</span>
@@ -922,7 +922,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                       value={question.explanation || ""}
                                       onChange={(e) => updateQuestion("easy", index, "explanation", e.target.value || null)}
                                       placeholder="Nhập giải thích cho câu hỏi..."
-                                      className="min-h-[80px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                      className="min-h-[80px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta"
                                     />
                                   </div>
                                 </div>
@@ -930,7 +930,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                 <button
                                   type="button"
                                   onClick={() => removeQuestion("easy", index)}
-                                  className="group/delete flex-shrink-0 rounded-full p-2.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/20 dark:hover:bg-red-950/30"
+                                  className="group/delete shrink-0 rounded-full p-2.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/20"
                                 >
                                   <Trash2 className="h-5 w-5 transition-transform group-hover/delete:scale-110" />
                                 </button>
@@ -945,13 +945,13 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                     {questionsData.medium.length > 0 && (
                       <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+                          <div className="h-px flex-1 bg-linear-to-r from-transparent via-amber-500/30 to-transparent" />
                           <h3 className="flex items-center gap-2 text-lg font-bold">
-                            <span className="rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-1.5 text-sm text-white shadow-lg shadow-amber-500/30">
+                            <span className="rounded-full bg-linear-to-r from-amber-500 to-orange-500 px-4 py-1.5 text-sm text-white shadow-lg shadow-amber-500/30">
                               Câu hỏi trung bình ({questionsData.medium.length})
                             </span>
                           </h3>
-                          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+                          <div className="h-px flex-1 bg-linear-to-r from-transparent via-amber-500/30 to-transparent" />
                         </div>
                         {questionsData.medium.map((question, index) => {
                           const config = getDifficultyConfig("medium")
@@ -973,9 +973,9 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           return (
                             <div
                               key={questionKey}
-                              className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 dark:from-black/90 dark:to-black/70"
+                              className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-linear-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10"
                             >
-                              <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${config.gradient}`} />
+                              <div className={`absolute left-0 top-0 h-full w-1 bg-linear-to-b ${config.gradient}`} />
 
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 space-y-4">
@@ -996,7 +996,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                       value={question.content}
                                       onChange={(e) => updateQuestion("medium", index, "content", e.target.value)}
                                       placeholder="Nhập nội dung câu hỏi..."
-                                      className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                      className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta"
                                     />
                                   </div>
 
@@ -1013,7 +1013,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                           <button
                                             type="button"
                                             onClick={() => toggleCorrect("medium", index, optIndex)}
-                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${option.isCorrect
+                                            className={`shrink-0 rounded-full p-1 transition-all ${option.isCorrect
                                               ? "bg-green-500 text-white"
                                               : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
                                               }`}
@@ -1025,14 +1025,14 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                             value={option.text}
                                             onChange={(e) => updateOption("medium", index, optIndex, "text", e.target.value)}
                                             placeholder={`Lựa chọn ${optIndex + 1}`}
-                                            className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                            className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta "
                                           />
 
                                           {question.options.length > 1 && (
                                             <button
                                               type="button"
                                               onClick={() => removeOption("medium", index, optIndex)}
-                                              className="flex-shrink-0 rounded-full p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                                              className="shrink-0 rounded-full p-1 text-red-500 hover:bg-red-50"
                                             >
                                               <X className="h-5 w-5" />
                                             </button>
@@ -1062,7 +1062,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                         onChange={(e) => setTagInput(e.target.value)}
                                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
                                         placeholder="Nhập tag và nhấn Enter..."
-                                        className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                        className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta"
                                       />
                                       <Button
                                         type="button"
@@ -1090,7 +1090,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                               disabled={question.tags.includes(tagData.tag)}
                                               className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${question.tags.includes(tagData.tag)
                                                 ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
-                                                : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                                : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-linear-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95"
                                                 }`}
                                             >
                                               <Tag className="mr-1 inline h-3 w-3" />
@@ -1111,7 +1111,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                               initial={{ scale: 0 }}
                                               animate={{ scale: 1 }}
                                               exit={{ scale: 0 }}
-                                              className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-gradient-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
+                                              className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-linear-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
                                             >
                                               <Tag className="h-3 w-3" />
                                               <span>{tag}</span>
@@ -1137,7 +1137,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                       value={question.explanation || ""}
                                       onChange={(e) => updateQuestion("medium", index, "explanation", e.target.value || null)}
                                       placeholder="Nhập giải thích cho câu hỏi..."
-                                      className="min-h-[80px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                      className="min-h-[80px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta"
                                     />
                                   </div>
                                 </div>
@@ -1145,7 +1145,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                 <button
                                   type="button"
                                   onClick={() => removeQuestion("medium", index)}
-                                  className="group/delete flex-shrink-0 rounded-full p-2.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/20 dark:hover:bg-red-950/30"
+                                  className="group/delete shrink-0 rounded-full p-2.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/20"
                                 >
                                   <Trash2 className="h-5 w-5 transition-transform group-hover/delete:scale-110" />
                                 </button>
@@ -1160,13 +1160,13 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                     {questionsData.hard.length > 0 && (
                       <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-500/30 to-transparent" />
+                          <div className="h-px flex-1 bg-linear-to-r from-transparent via-rose-500/30 to-transparent" />
                           <h3 className="flex items-center gap-2 text-lg font-bold">
-                            <span className="rounded-full bg-gradient-to-r from-rose-500 to-red-500 px-4 py-1.5 text-sm text-white shadow-lg shadow-rose-500/30">
+                            <span className="rounded-full bg-linear-to-r from-rose-500 to-red-500 px-4 py-1.5 text-sm text-white shadow-lg shadow-rose-500/30">
                               Câu hỏi khó ({questionsData.hard.length})
                             </span>
                           </h3>
-                          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-rose-500/30 to-transparent" />
+                          <div className="h-px flex-1 bg-linear-to-r from-transparent via-rose-500/30 to-transparent" />
                         </div>
                         {questionsData.hard.map((question, index) => {
                           const config = getDifficultyConfig("hard")
@@ -1188,9 +1188,9 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                           return (
                             <div
                               key={questionKey}
-                              className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 dark:from-black/90 dark:to-black/70"
+                              className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-linear-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10"
                             >
-                              <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${config.gradient}`} />
+                              <div className={`absolute left-0 top-0 h-full w-1 bg-linear-to-b ${config.gradient}`} />
 
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1 space-y-4">
@@ -1211,7 +1211,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                       value={question.content}
                                       onChange={(e) => updateQuestion("hard", index, "content", e.target.value)}
                                       placeholder="Nhập nội dung câu hỏi..."
-                                      className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                      className="min-h-[100px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta"
                                     />
                                   </div>
 
@@ -1228,7 +1228,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                           <button
                                             type="button"
                                             onClick={() => toggleCorrect("hard", index, optIndex)}
-                                            className={`flex-shrink-0 rounded-full p-1 transition-all ${option.isCorrect
+                                            className={`shrink-0 rounded-full p-1 transition-all ${option.isCorrect
                                               ? "bg-green-500 text-white"
                                               : "border-2 border-gray-300 text-gray-300 hover:border-green-500"
                                               }`}
@@ -1240,14 +1240,14 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                             value={option.text}
                                             onChange={(e) => updateOption("hard", index, optIndex, "text", e.target.value)}
                                             placeholder={`Lựa chọn ${optIndex + 1}`}
-                                            className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                            className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta"
                                           />
 
                                           {question.options.length > 1 && (
                                             <button
                                               type="button"
                                               onClick={() => removeOption("hard", index, optIndex)}
-                                              className="flex-shrink-0 rounded-full p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+                                              className="shrink-0 rounded-full p-1 text-red-500 hover:bg-red-50"
                                             >
                                               <X className="h-5 w-5" />
                                             </button>
@@ -1277,7 +1277,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                         onChange={(e) => setTagInput(e.target.value)}
                                         onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
                                         placeholder="Nhập tag và nhấn Enter..."
-                                        className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                        className="flex-1 border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta"
                                       />
                                       <Button
                                         type="button"
@@ -1305,7 +1305,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                               disabled={question.tags.includes(tagData.tag)}
                                               className={`group/tag rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${question.tags.includes(tagData.tag)
                                                 ? "border-brand-purple/30 bg-brand-purple/10 text-brand-purple/50 cursor-not-allowed"
-                                                : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-gradient-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95 dark:bg-black/80"
+                                                : "border-brand-magenta/30 bg-white/80 text-foreground hover:border-brand-magenta hover:bg-linear-to-r hover:from-brand-magenta/10 hover:to-brand-purple/10 hover:shadow-md hover:scale-105 active:scale-95"
                                                 }`}
                                             >
                                               <Tag className="mr-1 inline h-3 w-3" />
@@ -1326,7 +1326,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                               initial={{ scale: 0 }}
                                               animate={{ scale: 1 }}
                                               exit={{ scale: 0 }}
-                                              className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-gradient-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
+                                              className="group/selected flex items-center gap-1.5 rounded-full border border-brand-purple/30 bg-linear-to-r from-brand-purple/20 to-brand-magenta/20 px-3 py-1.5 text-xs font-medium text-brand-purple shadow-sm backdrop-blur-sm"
                                             >
                                               <Tag className="h-3 w-3" />
                                               <span>{tag}</span>
@@ -1352,7 +1352,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                       value={question.explanation || ""}
                                       onChange={(e) => updateQuestion("hard", index, "explanation", e.target.value || null)}
                                       placeholder="Nhập giải thích cho câu hỏi..."
-                                      className="min-h-[80px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta dark:bg-black/50"
+                                      className="min-h-[80px] resize-none border-brand-magenta/20 bg-white/50 backdrop-blur-sm focus:border-brand-magenta"
                                     />
                                   </div>
                                 </div>
@@ -1360,7 +1360,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                                 <button
                                   type="button"
                                   onClick={() => removeQuestion("hard", index)}
-                                  className="group/delete flex-shrink-0 rounded-full p-2.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/20 dark:hover:bg-red-950/30"
+                                  className="group/delete shrink-0 rounded-full p-2.5 text-red-500 transition-all hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/20"
                                 >
                                   <Trash2 className="h-5 w-5 transition-transform group-hover/delete:scale-110" />
                                 </button>
@@ -1374,8 +1374,8 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
                     {questionsData.easy.length === 0 &&
                       questionsData.medium.length === 0 &&
                       questionsData.hard.length === 0 && (
-                        <div className="flex flex-col items-center justify-center rounded-2xl border border-brand-magenta/20 bg-white/80 py-16 text-center backdrop-blur-sm dark:bg-black/80">
-                          <div className="mb-4 rounded-full bg-gradient-to-br from-brand-magenta/20 to-brand-purple/20 p-6">
+                        <div className="flex flex-col items-center justify-center rounded-2xl border border-brand-magenta/20 bg-white/80 py-16 text-center backdrop-blur-sm">
+                          <div className="mb-4 rounded-full bg-linear-to-br from-brand-magenta/20 to-brand-purple/20 p-6">
                             <FileText className="h-12 w-12 text-brand-magenta" />
                           </div>
                           <p className="text-lg font-semibold text-foreground">Không có câu hỏi nào được tạo</p>
@@ -1390,7 +1390,7 @@ export function CreateQuestionPDFDialog({ open, onOpenChange, onCancel }: Create
         </div>
 
         {/* Fixed Footer */}
-        <div className="border-t border-brand-magenta/10 bg-white/80 px-6 py-4 backdrop-blur-sm dark:bg-black/80">
+        <div className="border-t border-brand-magenta/10 bg-white/80 px-6 py-4 backdrop-blur-sm">
           <div className="flex justify-between gap-3">
             {step === 2 && (
               <Button
