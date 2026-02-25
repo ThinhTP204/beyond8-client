@@ -63,9 +63,9 @@ export function CreateQuestionMethodDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl border-brand-magenta/20 bg-white/95 backdrop-blur-xl dark:bg-black/95">
+      <DialogContent className="max-w-3xl border-brand-magenta/20 bg-white/95 backdrop-blur-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-brand-magenta to-brand-purple bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold bg-linear-to-r from-brand-magenta to-brand-purple bg-clip-text text-transparent">
             Chọn phương thức tạo câu hỏi
           </DialogTitle>
           <DialogDescription>
@@ -83,14 +83,14 @@ export function CreateQuestionMethodDialog({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 onClick={method.onClick}
-                className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-gradient-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 hover:scale-105 active:scale-95 dark:from-black/90 dark:to-black/70"
+                className="group relative overflow-hidden rounded-2xl border border-brand-magenta/20 bg-linear-to-br from-white/90 to-white/70 p-6 shadow-lg shadow-brand-magenta/5 backdrop-blur-sm transition-all hover:shadow-xl hover:shadow-brand-magenta/10 hover:scale-105 active:scale-95"
               >
                 {/* Gradient accent line */}
                 {/* <div className={`absolute left-0 top-0 h-full w-1 bg-gradient-to-b ${method.gradient}`} /> */}
 
                 <div className="relative space-y-4">
                   {/* Icon */}
-                  <div className={`inline-flex rounded-full bg-gradient-to-br ${method.gradient} p-3 text-white shadow-lg`}>
+                  <div className={`inline-flex rounded-full bg-linear-to-br ${method.gradient} p-3 text-white shadow-lg`}>
                     <Icon className="h-6 w-6" />
                   </div>
 
