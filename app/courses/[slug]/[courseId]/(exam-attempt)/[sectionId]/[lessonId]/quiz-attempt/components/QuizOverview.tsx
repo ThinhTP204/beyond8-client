@@ -6,6 +6,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { QuizOverview as QuizOverviewType, QuizMyAttemptsSummary } from '@/lib/api/services/fetchQuiz'
 import { motion } from 'framer-motion'
 import AttemptsHistory from './AttemptsHistory'
+import { useState } from 'react'
+import { useRequestQuizReassign } from '@/hooks/useReassign'
+import { RequestReassignDialog } from '@/components/widget/reassign/RequestReassignDialog'
 
 interface QuizOverviewProps {
   quizOverview: QuizOverviewType
@@ -24,8 +27,15 @@ export default function QuizOverview({
   isStarting,
   quizId,
 }: QuizOverviewProps) {
-  const canStartQuiz = myQuizAttempts 
-    ? myQuizAttempts.remainingAttempts > 0 
+  const [showRequestDialog, setShowRequestDialog] = useState(false)
+  const { requestQuizReassign, isPending: isRequesting } = useRequestQuizReassign()
+
+  const isPassed = myQuizAttempts?.bestScore !== null &&
+    myQuizAttempts?.bestScore !== undefined &&
+    myQuizAttempts.bestScore >= quizOverview.passScorePercent
+
+  const canStartQuiz = myQuizAttempts
+    ? myQuizAttempts.remainingAttempts > 0 && !isPassed
     : true
 
   const formatTime = (minutes: number | null) => {
@@ -127,11 +137,43 @@ export default function QuizOverview({
               )}
             </Button>
           </div>
-          {!canStartQuiz && (
-            <p className="text-sm text-destructive text-right font-medium">
-              Bạn đã hết lượt làm bài
-            </p>
+          {!canStartQuiz && !isPassed && (
+            <div className="flex flex-col items-end gap-2">
+              <p className="text-sm text-destructive font-medium">
+                Bạn đã hết lượt làm bài
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowRequestDialog(true)}
+                className="text-brand-magenta border-brand-magenta/20 hover:bg-brand-magenta/10 hover:text-brand-magenta"
+              >
+                Yêu cầu thêm lượt làm bài
+              </Button>
+            </div>
           )}
+
+          {isPassed && (
+            <div className="flex flex-col items-end gap-2">
+              <p className="text-sm text-green-600 font-medium">
+                Bạn đã đạt yêu cầu bài kiểm tra này
+              </p>
+            </div>
+          )}
+
+          <RequestReassignDialog
+            open={showRequestDialog}
+            onOpenChange={setShowRequestDialog}
+            title="Yêu cầu thêm lượt làm bài"
+            description="Bạn đã hết lượt làm bài kiểm tra này. Vui lòng gửi yêu cầu để giảng viên cấp thêm lượt cho bạn."
+            isPending={isRequesting}
+            onSubmit={async (reason, note) => {
+              await requestQuizReassign({
+                quizId,
+                request: { reason, note: note || null }
+              })
+            }}
+          />
         </motion.div>
 
         {/* Right Column - Stats + History */}
@@ -153,7 +195,7 @@ export default function QuizOverview({
                   </div>
                 ))}
               </div>
-              
+
               {/* History Skeleton */}
               <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4">
                 <Skeleton className="h-6 w-32" />
@@ -180,18 +222,18 @@ export default function QuizOverview({
                   <p className="text-3xl font-bold text-brand-purple">{myQuizAttempts.usedAttempts}</p>
                   <p className="text-xs text-muted-foreground mt-1">/ {myQuizAttempts.maxAttempts} lần</p>
                 </div>
-                
+
                 <div className="text-center p-4 rounded-xl bg-brand-magenta/5 border border-brand-magenta/20">
                   <p className="text-sm text-muted-foreground mb-1">Còn lại</p>
                   <p className="text-3xl font-bold text-brand-magenta">{myQuizAttempts.remainingAttempts}</p>
                   <p className="text-xs text-muted-foreground mt-1">lượt</p>
                 </div>
-                
+
                 <div className="text-center p-4 rounded-xl bg-white border border-gray-200">
                   <p className="text-sm text-muted-foreground mb-1">Cao nhất</p>
                   <p className="text-3xl font-bold text-brand-pink">
-                    {myQuizAttempts.bestScore !== null 
-                      ? `${myQuizAttempts.bestScore}%` 
+                    {myQuizAttempts.bestScore !== null
+                      ? `${myQuizAttempts.bestScore}%`
                       : '--'}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">

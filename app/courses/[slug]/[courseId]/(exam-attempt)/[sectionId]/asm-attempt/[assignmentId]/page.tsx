@@ -8,7 +8,7 @@ import AssignmentSubmission from './components/AssignmentSubmission'
 import AssignmentSkeleton from './components/AssignmentSkeleton'
 import SubmissionHistory from './components/SubmissionHistory'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, CheckCircle2 } from 'lucide-react'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { SubmissionAssigment } from '@/lib/api/services/fetchAssignment'
@@ -18,6 +18,8 @@ import { useGetCourseDetails } from '@/hooks/useCourse'
 import { LessonType } from '@/lib/api/services/fetchLesson'
 import Link from 'next/link'
 // ... imports
+import { useRequestAssignmentReassign } from '@/hooks/useReassign'
+import { RequestReassignDialog } from '@/components/widget/reassign/RequestReassignDialog'
 
 export default function AssignmentAttemptPage() {
   const params = useParams()
@@ -41,9 +43,20 @@ export default function AssignmentAttemptPage() {
   // State for selected submission
   const [selectedSubmission, setSelectedSubmission] = useState<SubmissionAssigment | undefined>(undefined)
   const [isResubmitting, setIsResubmitting] = useState(false)
+  const [showRequestDialog, setShowRequestDialog] = useState(false)
+  const { requestAssignmentReassign, isPending: isRequesting } = useRequestAssignmentReassign()
 
   // Use default submission if no selection has been made
   const currentSubmission = selectedSubmission || defaultSubmission
+
+  // Calculate pass status
+  const isPassed = useMemo(() => {
+    if (currentSubmission && currentSubmission.finalScore !== null && assignment) {
+      const percent = (currentSubmission.finalScore / assignment.totalPoints) * 100
+      return percent >= assignment.passScorePercent
+    }
+    return false
+  }, [currentSubmission, assignment])
 
   const handleSubmit = (data: { textContent: string; fileUrls: string[] }) => {
     submitAssignment(data)
@@ -81,8 +94,10 @@ export default function AssignmentAttemptPage() {
     )
   }
 
+
   // Check if can resubmit
-  const canResubmit = currentSubmission?.finalScore !== null && currentSubmission?.finalScore !== undefined
+  const hasReachedMaxSubmissions = submissions && assignment && submissions.length >= assignment.maxSubmissions
+  const canResubmit = currentSubmission?.finalScore !== null && currentSubmission?.finalScore !== undefined && !hasReachedMaxSubmissions && !isPassed
 
 
 
@@ -111,12 +126,6 @@ export default function AssignmentAttemptPage() {
             // Calculate pass status (Safe to do here as we aren't using hooks inside this IIFE anymore)
             // Note: We are still inside an IIFE here, but we removed the useMemo that was causing the issue.
             // Converting this to a standard block would be better but this minimal fix removes the hook violation.
-
-            let isPassed = false
-            if (currentSubmission && currentSubmission.finalScore !== null && assignment) {
-              const percent = (currentSubmission.finalScore / assignment.totalPoints) * 100
-              isPassed = percent >= assignment.passScorePercent
-            }
 
             if (!nextLesson) {
               return (
@@ -192,6 +201,16 @@ export default function AssignmentAttemptPage() {
                   </Button>
                 )}
 
+                {hasReachedMaxSubmissions && !isPassed && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowRequestDialog(true)}
+                    className="w-full text-brand-magenta border-brand-magenta/20 hover:bg-brand-magenta/10 rounded-xl hover:text-brand-magenta"
+                  >
+                    Yêu cầu thêm lượt nộp bài
+                  </Button>
+                )}
+
                 <SubmissionHistory
                   submissions={submissions}
                   selectedSubmissionId={currentSubmission?.id}
@@ -201,19 +220,62 @@ export default function AssignmentAttemptPage() {
             )}
           </div>
 
-          {/* Row 2: Submission Results */}
+          {/* Row 2: Submission Results / New Submission Form */}
           <div>
-            <AssignmentSubmission
-              assignment={assignment}
-              submission={currentSubmission}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              isResubmitting={isResubmitting}
-              onCancelResubmit={() => setIsResubmitting(false)}
-            />
+            {!hasReachedMaxSubmissions || (hasReachedMaxSubmissions && currentSubmission && !isResubmitting) || isPassed ? (
+              <div className="space-y-4">
+                {isPassed && !isResubmitting && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3 text-green-700">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="font-medium">Bạn đã đạt yêu cầu bài tập này</span>
+                  </div>
+                )}
+                <AssignmentSubmission
+                  assignment={assignment}
+                  submission={isResubmitting ? undefined : currentSubmission}
+                  onSubmit={handleSubmit}
+                  isSubmitting={isSubmitting}
+                  isResubmitting={isResubmitting}
+                  onCancelResubmit={() => setIsResubmitting(false)}
+                />
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center space-y-4">
+                <div className="p-4 bg-brand-magenta/5 text-brand-magenta rounded-full w-16 h-16 mx-auto flex items-center justify-center">
+                  <Clock className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Hết lượt nộp bài</h3>
+                  <p className="text-muted-foreground mt-1">Bạn đã nộp đủ số lần quy định cho bài tập này.</p>
+                </div>
+                {!isPassed && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowRequestDialog(true)}
+                    className="text-brand-magenta border-brand-magenta/20 hover:bg-brand-magenta/10 hover:text-brand-magenta rounded-xl"
+                  >
+                    Yêu cầu thêm lượt nộp bài
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </main>
+
+      <RequestReassignDialog
+        open={showRequestDialog}
+        onOpenChange={setShowRequestDialog}
+        title="Yêu cầu thêm lượt nộp bài"
+        description="Bạn đã hết lượt nộp bài tập này. Vui lòng gửi yêu cầu để giảng viên cấp thêm lượt cho bạn."
+        isPending={isRequesting}
+        onSubmit={async (reason, note) => {
+          await requestAssignmentReassign({
+            assignmentId,
+            request: { reason, note }
+          })
+        }}
+      />
 
       <Footer />
     </div>

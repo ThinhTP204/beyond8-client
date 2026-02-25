@@ -1,25 +1,14 @@
 import { useState } from "react"
-import { useGradeAssignment, useResetSubmission } from "@/hooks/useAssignment"
+import { useGradeAssignment } from "@/hooks/useAssignment"
 import { Assignment, SubmissionAssigment } from "@/lib/api/services/fetchAssignment"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FileIcon, Loader2, Download, RefreshCw } from "lucide-react"
+import { FileIcon, Loader2, Download } from "lucide-react"
 import { AiFeedbackDisplay } from "./AiFeedbackDisplay"
 import { formatImageUrl } from "@/lib/utils/formatImageUrl"
 import DownloadableFileItem from "@/components/widget/assignment/DownloadableFileItem"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 
 interface GradingInterfaceProps {
     submission: SubmissionAssigment
@@ -32,9 +21,7 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
     const [feedback, setFeedback] = useState<string>(submission.instructorFeedback || "")
 
     const { gradeAssignment, isPending } = useGradeAssignment(submission.id)
-    const { resetSubmission, isPending: isResetting } = useResetSubmission(assignment.id)
 
-    const hasExceededSubmissions = assignment.maxSubmissions > 0 && submission.submissionNumber >= assignment.maxSubmissions
 
     const handleSubmit = () => {
         const numScore = parseFloat(score)
@@ -199,37 +186,6 @@ export function GradingInterface({ submission, assignment, onGraded }: GradingIn
                 </div>
 
                 <div className="p-4 bg-slate-50 border-t flex flex-col gap-3">
-                    {hasExceededSubmissions && (
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    disabled={isResetting}
-                                    className="w-full h-10 text-base rounded-xl border-orange-300 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
-                                >
-                                    {isResetting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-                                    {isResetting ? "Đang làm mới..." : "Làm mới lượt nộp"}
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Làm mới lượt nộp bài?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Học viên đã nộp {submission.submissionNumber}/{assignment.maxSubmissions} lần. Bạn có chắc muốn làm mới lượt nộp để học viên có thể nộp lại không?
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                    <AlertDialogAction
-                                        onClick={() => resetSubmission(submission.studentId)}
-                                        className="bg-orange-500 hover:bg-orange-600"
-                                    >
-                                        Xác nhận
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    )}
                     <Button
                         onClick={handleSubmit}
                         disabled={isPending || score === ""}

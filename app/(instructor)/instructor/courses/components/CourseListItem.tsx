@@ -96,6 +96,18 @@ export default function CourseListItem({ course, isSelected, onToggleSelect, isS
     currency: 'VND',
   }).format(course.price)
 
+  const formattedFinalPrice = new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(course.finalPrice)
+
+  const isDiscounted = course.price > course.finalPrice;
+  const discountDisplay = course.discountPercent
+    ? `-${course.discountPercent}%`
+    : course.discountAmount
+      ? `-${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(course.discountAmount)}`
+      : '';
+
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
@@ -156,9 +168,21 @@ export default function CourseListItem({ course, isSelected, onToggleSelect, isS
       <div className="flex flex-1 flex-col justify-center py-1 min-w-0">
         <div className="space-y-2.5">
           <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="font-bold text-2xl bg-linear-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-              {course.price === 0 ? 'Miễn phí' : formattedPrice}
-            </h3>
+            <div className="flex flex-col">
+              <h3 className="font-bold text-2xl bg-linear-to-r from-primary to-purple-600 bg-clip-text text-transparent leading-none">
+                {course.finalPrice === 0 ? 'Miễn phí' : formattedFinalPrice}
+              </h3>
+              {isDiscounted && (
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="text-sm text-slate-400 line-through font-medium">
+                    {formattedPrice}
+                  </span>
+                  <span className="text-xs font-bold text-red-500">
+                    {discountDisplay}
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-1.5 text-slate-600 bg-linear-to-br from-slate-100 to-slate-50 px-3 py-1.5 rounded-lg shadow-sm border border-slate-200/50">
               <Clock className="w-4 h-4" />
               <span className="text-xs font-semibold">{formatDuration(course.totalDurationMinutes)}</span>

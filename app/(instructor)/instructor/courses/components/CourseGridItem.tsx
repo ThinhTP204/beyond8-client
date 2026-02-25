@@ -79,6 +79,18 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
     currency: 'VND',
   }).format(course.price)
 
+  const formattedFinalPrice = new Intl.NumberFormat('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+  }).format(course.finalPrice)
+
+  const isDiscounted = course.price > course.finalPrice;
+  const discountDisplay = course.discountPercent
+    ? `-${course.discountPercent}%`
+    : course.discountAmount
+      ? `-${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(course.discountAmount)}`
+      : '';
+
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
@@ -165,9 +177,21 @@ export default function CourseGridItem({ course, isSelected, onToggleSelect, isS
         {/* Price & Title */}
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-bold text-2xl bg-linear-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-              {course.price === 0 ? 'Miễn phí' : formattedPrice}
-            </h3>
+            <div className="flex flex-col">
+              <h3 className="font-bold text-2xl bg-linear-to-r from-primary to-purple-600 bg-clip-text text-transparent leading-none">
+                {course.finalPrice === 0 ? 'Miễn phí' : formattedFinalPrice}
+              </h3>
+              {isDiscounted && (
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="text-sm text-slate-400 line-through font-medium">
+                    {formattedPrice}
+                  </span>
+                  <span className="text-xs font-bold text-red-500">
+                    {discountDisplay}
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 bg-gradient-to-r from-emerald-50 to-teal-50 w-fit px-3 py-1 rounded-full border border-emerald-200/50 shadow-sm">
                 <span>{getLevelLabel(course.level)}</span>
