@@ -25,6 +25,9 @@ const TransactionTypeLabels: Record<string, string> = {
   [TransactionType.CouponHold]: "Tạm giữ (Coupon)",
   [TransactionType.CouponRelease]: "Hoàn trả (Coupon)",
   [TransactionType.CouponUsage]: "Sử dụng Coupon",
+  "Revenue": "Doanh thu",
+  "CouponCost": "Chi phí Coupon",
+  "Settlement": "Thanh toán",
 };
 
 interface TransactionHistoryTableProps {

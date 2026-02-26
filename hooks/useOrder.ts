@@ -19,7 +19,10 @@ import {
   GetMyPaymentsResponse,
   CheckCourseResponse,
   CancelOrderResponse,
-}from "@/lib/api/services/fetchOrder";
+  OrderStatus,
+  OrderData,
+  UpdateSettlementEligibleAtRequest,
+} from "@/lib/api/services/fetchOrder";
 import { toast } from "sonner";
 
 interface UseGetCartOptions {
@@ -103,7 +106,7 @@ export function useRemoveFromCart() {
 
       if (data.isSuccess) {
         toast.success(data.message || "Đã xóa khóa học khỏi giỏ hàng!");
-      }else {
+      } else {
         toast.error(data.message || "Không thể xóa khóa học khỏi giỏ hàng!");
       }
     },
@@ -122,7 +125,7 @@ export function useRemoveFromCart() {
 export function useClearCart() {
   const queryClient = useQueryClient();
 
-  const { mutateAsync, isPending }= useMutation<
+  const { mutateAsync, isPending } = useMutation<
     ClearCartResponse,
     Error,
     void
@@ -153,7 +156,7 @@ export function useClearCart() {
 
 // Hook preview mua ngay khóa học
 export function useBuyNowPreview() {
-  const { mutateAsync, isPending, data }= useMutation<
+  const { mutateAsync, isPending, data } = useMutation<
     BuyNowPreviewResponse,
     Error,
     BuyNowPreviewRequest
@@ -175,7 +178,7 @@ export function useBuyNowPreview() {
 export function useBuyNow(options?: { onPendingPayment?: (paymentUrl: string, orderNumber: string) => void }) {
   const queryClient = useQueryClient();
 
-  const { mutateAsync, isPending }= useMutation<
+  const { mutateAsync, isPending } = useMutation<
     BuyNowResponse,
     Error,
     BuyNowRequest
@@ -209,7 +212,7 @@ export function useBuyNow(options?: { onPendingPayment?: (paymentUrl: string, or
 
 // Hook preview thanh toán giỏ hàng
 export function useCheckoutPreview() {
-  const { mutateAsync, isPending, data }= useMutation<
+  const { mutateAsync, isPending, data } = useMutation<
     CheckoutPreviewResponse,
     Error,
     CheckoutPreviewRequest
@@ -231,7 +234,7 @@ export function useCheckoutPreview() {
 export function useCheckout(options?: { onPendingPayment?: (paymentUrl: string, orderNumber: string) => void }) {
   const queryClient = useQueryClient();
 
-  const { mutateAsync, isPending }= useMutation<
+  const { mutateAsync, isPending } = useMutation<
     CheckoutResponse,
     Error,
     CheckoutRequest
@@ -265,7 +268,7 @@ export function useCheckout(options?: { onPendingPayment?: (paymentUrl: string, 
 
 // Hook xử lý thanh toán
 export function useProcessPayment() {
-  const { mutateAsync, isPending }= useMutation<
+  const { mutateAsync, isPending } = useMutation<
     ProcessPaymentResponse,
     Error,
     ProcessPaymentRequest
@@ -347,7 +350,7 @@ export function useCancelOrder() {
 
       if (data.isSuccess) {
         toast.success(data.message || "Hủy đơn hàng thành công!");
-      }else {
+      } else {
         toast.error(data.message || "Không thể hủy đơn hàng!");
       }
     },
@@ -358,6 +361,63 @@ export function useCancelOrder() {
 
   return {
     cancelOrder: mutateAsync,
+    isPending,
+  };
+}
+
+// Hook cập nhật trạng thái đơn hàng (Admin only)
+export function useUpdateOrderStatus() {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending } = useMutation<
+    OrderData,
+    Error,
+    { orderId: string; status: OrderStatus }
+  >({
+    mutationFn: ({ orderId, status }) => fetchOrder.updateOrderStatus(orderId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["orders"],
+      });
+      toast.success("Cập nhật trạng thái đơn hàng thành công!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Không thể cập nhật trạng thái đơn hàng!");
+    },
+  });
+
+  return {
+    updateOrderStatus: mutateAsync,
+    isPending,
+  };
+}
+
+// Hook cập nhật ngày đủ điều kiện đối soát (Admin only)
+export function useUpdateSettlementEligibleAt() {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync, isPending } = useMutation<
+    OrderData,
+    Error,
+    { orderId: string; request: UpdateSettlementEligibleAtRequest }
+  >({
+    mutationFn: ({ orderId, request }) => fetchOrder.updateSettlementEligibleAt(orderId, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["orders"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["wallet", "settlements", "upcoming"],
+      });
+      toast.success("Cập nhật thông tin giao dịch thành công!");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Không thể cập nhật thông tin giao dịch!");
+    },
+  });
+
+  return {
+    updateSettlementEligibleAt: mutateAsync,
     isPending,
   };
 }

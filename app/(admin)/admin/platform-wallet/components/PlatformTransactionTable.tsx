@@ -18,13 +18,16 @@ import { WalletTransaction, TransactionType } from "@/lib/api/services/fetchWall
 
 const TransactionTypeLabels: Record<string, string> = {
     [TransactionType.Sale]: "Bán khóa học",
-    [TransactionType.Payout]: "Rút tiền",
+    [TransactionType.Payout]: "Giảng viên rút tiền",
     [TransactionType.PlatformFee]: "Chiết khấu nền tảng",
     [TransactionType.Adjustment]: "Điều chỉnh",
-    [TransactionType.TopUp]: "Nạp tiền",
+    [TransactionType.TopUp]: "Giảng viên nạp tiền",
     [TransactionType.CouponHold]: "Tạm giữ (Coupon)",
     [TransactionType.CouponRelease]: "Hoàn trả (Coupon)",
     [TransactionType.CouponUsage]: "Sử dụng Coupon",
+    "Revenue": "Doanh thu",
+    "CouponCost": "Chi phí Coupon",
+    "Settlement": "Thanh toán",
 };
 
 interface PlatformTransactionTableProps {
@@ -81,6 +84,7 @@ export function PlatformTransactionTable({
                                 const isPositive = [
                                     TransactionType.PlatformFee,
                                     TransactionType.CouponUsage,
+                                    "Revenue"
                                 ].includes(transaction.type);
 
                                 return (
@@ -105,7 +109,7 @@ export function PlatformTransactionTable({
                           ${transaction.status === "Failed" ? "text-red-600 border-red-200 bg-red-50" : ""}
                         `}
                                             >
-                                                {transaction.status === "Completed" ? "Hoàn thành" :
+                                                {transaction.status === "Completed" ? "Thành công" :
                                                     transaction.status === "Pending" ? "Đang xử lý" : "Thất bại"}
                                             </Badge>
                                         </TableCell>

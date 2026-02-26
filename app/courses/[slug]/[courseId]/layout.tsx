@@ -123,12 +123,12 @@ export default function CourseLayout({ children }: { children: React.ReactNode }
       )}
 
       {/* DEV ONLY: Test button — remove before production */}
-      <button
+      {/* <button
         className="fixed bottom-4 left-4 z-99999 px-3 py-1 bg-yellow-400 text-black text-xs rounded shadow"
         onClick={triggerCelebration}
       >
         🎆 Test Fireworks
-      </button>
+      </button> */}
     </>
   )
 }

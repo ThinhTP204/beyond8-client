@@ -278,6 +278,22 @@ export interface CancelOrderResponse {
   metadata: null;
 }
 
+export enum OrderStatus {
+  Pending = "Pending",
+  Paid = "Paid",
+  Failed = "Failed",
+  Cancelled = "Cancelled",
+}
+
+export interface UpdateOrderStatusRequest {
+  status: OrderStatus;
+}
+
+export interface UpdateSettlementEligibleAtRequest {
+  note: string | null
+  settlementEligibleAt: string | null
+}
+
 const convertParamsToQuery = (params?: PaymentParams): RequestParams => {
   if (!params) return {};
   const query: RequestParams = {};
@@ -393,6 +409,24 @@ export const fetchOrder = {
     const response = await apiService.post<CancelOrderResponse, null>(
       `api/v1/orders/${orderId}/cancel`,
       null
+    );
+    return response.data;
+  },
+
+  // Cập nhật trạng thái đơn hàng (Admin only)
+  updateOrderStatus: async (orderId: string, status: OrderStatus): Promise<OrderData> => {
+    const response = await apiService.patch<OrderData, UpdateOrderStatusRequest>(
+      `api/v1/orders/${orderId}/status`,
+      { status }
+    );
+    return response.data;
+  },
+
+  //Cập nhật SettlementEligibleAt cho đơn hàng (Admin only)
+  updateSettlementEligibleAt: async (orderId: string, request: UpdateSettlementEligibleAtRequest): Promise<OrderData> => {
+    const response = await apiService.patch<OrderData, UpdateSettlementEligibleAtRequest>(
+      `api/v1/orders/${orderId}/settlement`,
+      request
     );
     return response.data;
   },

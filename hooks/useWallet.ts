@@ -1,6 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchWallet } from "@/lib/api/services/fetchWallet";
-import type { ChargeWalletRequest, TransactionsParams, TransactionsResponse, Wallet, WalletTransaction } from "@/lib/api/services/fetchWallet";
+import type {
+    ChargeWalletRequest,
+    TransactionsParams,
+    TransactionsResponse,
+    Wallet,
+    WalletTransaction,
+    UpcomingParams,
+    GetUpcomingSettlementsResponse,
+    UpcomingSettlement,
+    MyUpcomingParams,
+    GetMyUpcomingSettlementsResponse,
+    MyUpcoming
+} from "@/lib/api/services/fetchWallet";
 import { ApiError } from "@/types/api";
 import { toast } from "sonner";
 
@@ -132,6 +144,79 @@ export function useGetPlatformTransactions(params: TransactionsParams) {
         queryFn: () => fetchWallet.getPlatformTransactions(params),
         select: (data: TransactionsResponse) => ({
             data: data.data as WalletTransaction[],
+            count: data.metadata?.totalItems || 0,
+            pageNumber: data.metadata?.pageNumber || params.pageNumber,
+            pageSize: data.metadata?.pageSize || params.pageSize,
+            totalPages: data.metadata?.totalPages || 0,
+            hasNextPage: data.metadata?.hasNextPage || false,
+            hasPreviousPage: data.metadata?.hasPreviousPage || false
+        }),
+        placeholderData: (previousData) => previousData,
+    });
+
+    return {
+        data,
+        isLoading,
+        error,
+        isError,
+        refetch,
+        isFetching
+    };
+}
+
+export function useTriggerSettlement() {
+    const queryClient = useQueryClient();
+    const { mutateAsync, isPending } = useMutation({
+        mutationFn: () => fetchWallet.triggerSettlement(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["wallet"],
+            });
+            toast.success("Thực hiện xử lý các giao dịch thành công!");
+        },
+        onError: (error: ApiError) => {
+            toast.error(error?.message || "Thực hiện xử lý các giao dịch thất bại!");
+        },
+    });
+
+    return {
+        triggerSettlement: mutateAsync,
+        isPending,
+    };
+}
+
+export function useGetUpcomingSettlements(params: UpcomingParams) {
+    const { data, isLoading, error, isError, refetch, isFetching } = useQuery({
+        queryKey: ["wallet", "settlements", "upcoming", params],
+        queryFn: () => fetchWallet.getUpcomingSettlements(params),
+        select: (data: GetUpcomingSettlementsResponse) => ({
+            data: data.data as UpcomingSettlement[],
+            count: data.metadata?.totalItems || 0,
+            pageNumber: data.metadata?.pageNumber || params.pageNumber,
+            pageSize: data.metadata?.pageSize || params.pageSize,
+            totalPages: data.metadata?.totalPages || 0,
+            hasNextPage: data.metadata?.hasNextPage || false,
+            hasPreviousPage: data.metadata?.hasPreviousPage || false
+        }),
+        placeholderData: (previousData) => previousData,
+    });
+
+    return {
+        data,
+        isLoading,
+        error,
+        isError,
+        refetch,
+        isFetching
+    };
+}
+
+export function useGetMyUpcomingSettlements(params: MyUpcomingParams) {
+    const { data, isLoading, error, isError, refetch, isFetching } = useQuery({
+        queryKey: ["wallet", "settlements", "my-upcoming", params],
+        queryFn: () => fetchWallet.getMyUpcomingSettlements(params),
+        select: (data: GetMyUpcomingSettlementsResponse) => ({
+            data: data.data as MyUpcoming[],
             count: data.metadata?.totalItems || 0,
             pageNumber: data.metadata?.pageNumber || params.pageNumber,
             pageSize: data.metadata?.pageSize || params.pageSize,

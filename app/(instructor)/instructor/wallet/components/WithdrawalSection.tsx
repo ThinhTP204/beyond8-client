@@ -2,9 +2,13 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, CreditCard } from "lucide-react";
+import { Building2, CreditCard, CalendarClock } from "lucide-react";
 
-export function WithdrawalSection() {
+interface WithdrawalSectionProps {
+  lastPayoutAt?: string | null;
+}
+
+export function WithdrawalSection({ lastPayoutAt }: WithdrawalSectionProps) {
   return (
     <div className="space-y-6">
       <Card>
@@ -27,6 +31,12 @@ export function WithdrawalSection() {
           <Button className="rounded-full w-full bg-brand-magenta hover:bg-brand-magenta/90">
             Yêu cầu rút tiền
           </Button>
+          {lastPayoutAt && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground justify-center pt-2">
+              <CalendarClock className="h-4 w-4" />
+              <span>Lần rút gần nhất: {new Date(lastPayoutAt).toLocaleDateString('vi-VN')}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 

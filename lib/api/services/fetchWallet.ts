@@ -4,6 +4,8 @@ import { Metadata } from "./fetchUsers"
 export interface Wallet {
     id: string
     instructorId: string
+    pendingBalance: number
+    nextAvailableAt: string | null
     availableBalance: number
     holdBalance: number
     currency: string
@@ -24,6 +26,7 @@ export enum TransactionType {
     CouponHold = "CouponHold",
     CouponRelease = "CouponRelease",
     CouponUsage = "CouponUsage",
+    Settlement = "Settlement",
 }
 
 export interface WalletTransaction {
@@ -79,7 +82,96 @@ export interface TransactionsResponse {
     metadata: Metadata
 }
 
+export interface UpcomingSettlement {
+    orderId: string
+    instructorAmount: number
+    platformAmount: number
+    availableAt: string | null
+    currency: string
+    status: string
+    platformStatus: string
+}
+
+export interface MyUpcoming {
+    transactionId: string
+    walletId: string
+    orderId: string
+    amount: number
+    currency: string
+    availableAt: string | null
+    createdAt: string
+    status: string
+}
+
+export interface GetUpcomingSettlementsResponse {
+    isSuccess: boolean
+    message: string
+    data: UpcomingSettlement[]
+    metadata: Metadata
+}
+
+export interface GetMyUpcomingSettlementsResponse {
+    isSuccess: boolean
+    message: string
+    data: MyUpcoming[]
+    metadata: Metadata
+}
+
+export interface UpcomingParams {
+    from: string
+    to: string
+    pageNumber: number
+    pageSize: number
+    isDescending: boolean
+}
+
+export interface MyUpcomingParams {
+    pageNumber: number
+    pageSize: number
+    isDescending: boolean
+}
+
 const convertParamsToQuery = (params: TransactionsParams): RequestParams => {
+    if (!params) {
+        return {};
+    }
+    const query: RequestParams = {}
+    if (params.pageNumber) {
+        query.pageNumber = params.pageNumber;
+    }
+    if (params.pageSize) {
+        query.pageSize = params.pageSize;
+    }
+    if (params.isDescending) {
+        query.isDescending = params.isDescending;
+    }
+    return query;
+}
+
+const convertUpcomingParamsToQuery = (params: UpcomingParams): RequestParams => {
+    if (!params) {
+        return {};
+    }
+    const query: RequestParams = {}
+    if (params.from) {
+        query.from = params.from;
+    }
+    if (params.to) {
+        query.to = params.to;
+    }
+    if (params.pageNumber) {
+        query.pageNumber = params.pageNumber;
+    }
+    if (params.pageSize) {
+        query.pageSize = params.pageSize;
+    }
+    if (params.isDescending) {
+        query.isDescending = params.isDescending;
+    }
+    return query;
+}
+
+const convertMyUpcomingParamsToQuery = (params: MyUpcomingParams): RequestParams => {
     if (!params) {
         return {};
     }
@@ -142,6 +234,24 @@ export const fetchWallet = {
     //Lấy lịch sử giao dịch ví nền tảng (Admin only, phân trang)
     getPlatformTransactions: async (params: TransactionsParams): Promise<TransactionsResponse> => {
         const response = await apiService.get<TransactionsResponse>("api/v1/platform-wallet/transactions", convertParamsToQuery(params));
+        return response.data;
+    },
+
+    //Trigger settlement processing immediately (Admin only). Use for demo/maintenance only.
+    triggerSettlement: async (): Promise<WalletResponse> => {
+        const response = await apiService.post<WalletResponse>("api/v1/settlements/trigger");
+        return response.data;
+    },
+
+    //Get upcoming settlements grouped by order (instructor + platform amounts)
+    getUpcomingSettlements: async (params: UpcomingParams): Promise<GetUpcomingSettlementsResponse> => {
+        const response = await apiService.get<GetUpcomingSettlementsResponse>("api/v1/settlements/upcoming", convertUpcomingParamsToQuery(params));
+        return response.data;
+    },
+
+    //Get upcoming settlements for current instructor (their incoming releases)
+    getMyUpcomingSettlements: async (params: MyUpcomingParams): Promise<GetMyUpcomingSettlementsResponse> => {
+        const response = await apiService.get<GetMyUpcomingSettlementsResponse>("api/v1/settlements/my-upcoming", convertMyUpcomingParamsToQuery(params));
         return response.data;
     },
 }

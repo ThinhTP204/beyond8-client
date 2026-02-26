@@ -10,6 +10,11 @@ import { DepositDialog } from "@/components/widget/wallet/DepositDialog";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UpcomingSettlementsTable } from "./components/UpcomingSettlementsTable";
+import { useGetMyUpcomingSettlements } from "@/hooks/useWallet";
 
 export default function WalletPage() {
   const { wallet, isLoading: isWalletLoading } = useGetMyWallet();
@@ -19,9 +24,20 @@ export default function WalletPage() {
     pageSize: 10,
   });
 
+  const [upcomingPagination, setUpcomingPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
   const { data: transactionsData, isLoading: isTransactionsLoading, refetch: refetchTransactions } = useGetMyTransactions({
     pageNumber: pagination.pageIndex + 1,
     pageSize: pagination.pageSize,
+    isDescending: true,
+  });
+
+  const { data: upcomingData, isLoading: isUpcomingLoading } = useGetMyUpcomingSettlements({
+    pageNumber: upcomingPagination.pageIndex + 1,
+    pageSize: upcomingPagination.pageSize,
     isDescending: true,
   });
 
@@ -55,9 +71,17 @@ export default function WalletPage() {
       {/* Header */}
       <div className="flex sm:flex-row flex-col gap-4 sm:items-center justify-between">
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold">Ví của tôi</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">Ví của tôi</h1>
+            {wallet && (
+              <Badge variant={wallet.isActive ? "default" : "destructive"}>
+                {wallet.isActive ? "Hoạt động" : "Bị khóa"}
+              </Badge>
+            )}
+          </div>
           <p className="text-muted-foreground">
             Quản lý thu nhập và lịch sử giao dịch của bạn
+            {wallet?.createdAt ? ` • Tham gia từ: ${new Date(wallet.createdAt).toLocaleDateString('vi-VN')}` : ''}
           </p>
         </div>
         <DepositDialog />
@@ -67,8 +91,10 @@ export default function WalletPage() {
       <WalletStatsCards
         totalRevenue={wallet?.totalEarnings || 0}
         currentBalance={wallet?.availableBalance || 0}
-        pendingClearance={wallet?.holdBalance || 0}
+        pendingBalance={wallet?.pendingBalance || 0}
+        holdBalance={wallet?.holdBalance || 0}
         totalWithdrawn={wallet?.totalWithdrawn || 0}
+        nextAvailableAt={wallet?.nextAvailableAt || null}
         isLoading={isWalletLoading}
       />
 
@@ -79,19 +105,40 @@ export default function WalletPage() {
           {/* Chart Section */}
           <ChartLineInteractive />
 
-          {/* Transactions Section */}
-          <TransactionHistoryTable
-            transactions={transactionsData?.data || []}
-            isLoading={isTransactionsLoading}
-            pagination={pagination}
-            setPagination={setPagination}
-            pageCount={transactionsData?.totalPages || 0}
-          />
+          {/* Transactions & Upcoming Section */}
+          <Tabs defaultValue="transactions" className="w-full">
+            <div className="flex items-center justify-between mb-4">
+              <TabsList>
+                <TabsTrigger value="transactions">Lịch sử giao dịch</TabsTrigger>
+                <TabsTrigger value="upcoming">Giao dịch đang xử lý</TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="transactions" className="mt-0">
+              <TransactionHistoryTable
+                transactions={transactionsData?.data || []}
+                isLoading={isTransactionsLoading}
+                pagination={pagination}
+                setPagination={setPagination}
+                pageCount={transactionsData?.totalPages || 0}
+              />
+            </TabsContent>
+
+            <TabsContent value="upcoming" className="mt-0">
+              <UpcomingSettlementsTable
+                settlements={upcomingData?.data || []}
+                isLoading={isUpcomingLoading}
+                pagination={upcomingPagination}
+                setPagination={setUpcomingPagination}
+                pageCount={upcomingData?.totalPages || 0}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Right Column - Sidebar */}
         <div className="xl:col-span-1">
-          <WithdrawalSection />
+          <WithdrawalSection lastPayoutAt={wallet?.lastPayoutAt || null} />
         </div>
       </div>
     </div>

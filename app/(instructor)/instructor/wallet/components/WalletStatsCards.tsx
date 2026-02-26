@@ -1,22 +1,26 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Clock, CreditCard, Wallet } from "lucide-react";
+import { DollarSign, Clock, CreditCard, Wallet, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface WalletStatsCardsProps {
   totalRevenue: number;
   currentBalance: number;
-  pendingClearance: number;
+  pendingBalance: number;
+  holdBalance: number;
   totalWithdrawn: number;
+  nextAvailableAt?: string | null;
   isLoading?: boolean;
 }
 
 export function WalletStatsCards({
   totalRevenue,
   currentBalance,
-  pendingClearance,
+  pendingBalance,
+  holdBalance,
   totalWithdrawn,
+  nextAvailableAt,
   isLoading,
 }: WalletStatsCardsProps) {
   const stats = [
@@ -34,15 +38,23 @@ export function WalletStatsCards({
       icon: Wallet,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      description: "Có thể rút ngay"
+      description: "Có thể thao tác ngay"
     },
     {
       title: "Chờ xử lý",
-      value: `${pendingClearance.toLocaleString()} VNĐ`,
+      value: `${pendingBalance.toLocaleString()} VNĐ`,
       icon: Clock,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
-      description: "Sẽ khả dụng sau 7 ngày"
+      description: nextAvailableAt ? `Khả dụng vào: ${new Date(nextAvailableAt).toLocaleDateString('vi-VN')}` : "Chờ xử lý từ giao dịch"
+    },
+    {
+      title: "Tạm giữ",
+      value: `${holdBalance.toLocaleString()} VNĐ`,
+      icon: AlertCircle,
+      color: "text-red-600",
+      bgColor: "bg-red-50",
+      description: "Giữ do mã giảm giá/tranh chấp"
     },
     {
       title: "Đã rút",
@@ -55,7 +67,7 @@ export function WalletStatsCards({
   ];
 
   return (
-    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (
