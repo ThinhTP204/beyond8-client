@@ -105,8 +105,8 @@ export default function CourseHero({ course, instructor, enrollmentId }: CourseH
           fill
           className="object-cover opacity-100 scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-brand-dark via-brand-dark/95 to-brand-dark/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-brand-dark via-brand-dark/95 to-brand-dark/40" />
+        <div className="absolute inset-0 bg-linear-to-t from-brand-dark via-transparent to-transparent" />
       </div>
 
       <div className="container relative z-10 mx-auto px-4 py-12 md:py-16">

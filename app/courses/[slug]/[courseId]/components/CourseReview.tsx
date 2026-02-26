@@ -192,7 +192,7 @@ export default function CourseReview({ courseId, enrollmentId, totalReviews }: C
               <div className="p-6 space-y-4">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="animate-pulse flex items-start gap-4">
-                    <div className="h-10 w-10 bg-gray-200 rounded-full flex-shrink-0" />
+                    <div className="h-10 w-10 bg-gray-200 rounded-full shrink-0" />
                     <div className="flex-1 space-y-3">
                       <div className="h-4 bg-gray-200 rounded w-1/3" />
                       <div className="h-3 bg-gray-200 rounded w-1/4" />
@@ -246,7 +246,7 @@ function ReviewCard({ review }: { review: CourseReviewType }) {
     <div className="p-6 hover:bg-gray-50/50 transition-colors">
       <div className="flex items-start gap-4">
         {/* Avatar */}
-        <Avatar className="h-10 w-10 ring-2 ring-brand-purple/20 flex-shrink-0">
+        <Avatar className="h-10 w-10 ring-2 ring-brand-purple/20 shrink-0">
           <AvatarFallback className="bg-brand-purple/10 text-brand-purple">
             <User className="h-5 w-5" />
           </AvatarFallback>
@@ -285,7 +285,7 @@ function ReviewCard({ review }: { review: CourseReviewType }) {
           {review.review && (
             <div className="mt-3">
               <p 
-                className={`text-foreground/80 leading-relaxed break-words whitespace-pre-wrap ${!showFullReview && isLongReview ? 'line-clamp-3' : ''}`}
+                className={`text-foreground/80 leading-relaxed wrap-break-word whitespace-pre-wrap ${!showFullReview && isLongReview ? 'line-clamp-3' : ''}`}
                 style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
               >
                 {review.review}

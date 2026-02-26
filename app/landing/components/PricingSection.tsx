@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/useMobile";
 import { LoginDialog } from "@/components/widget/auth/LoginDialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
-import { Check, Zap, Shield, Crown, Gem, AlertTriangle } from "lucide-react";
+import { Check, Zap, Shield, Crown, Gem, AlertTriangle, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
 import {
   Carousel,
   CarouselContent,
@@ -32,12 +33,22 @@ import { formatCurrency } from "@/lib/utils/formatCurrency";
 export function PricingSection() {
   const { plans, isLoading, error } = useSubscriptionPlans();
   const { subscription } = useSubscription();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated }= useAuth();
+  const router = useRouter();
   const { buySubscription, isPending } = useBuySubscription({
     onSuccess: (data) => {
-      const paymentUrl = (data as { paymentUrl?: string })?.paymentUrl;
-      if (paymentUrl) {
-        window.location.href = paymentUrl;
+      const paymentData = data as { isPending?: boolean; paymentUrl?: string };
+      
+      // Check if there's a pending payment
+      if (paymentData.isPending) {
+        setPendingPaymentUrl(paymentData.paymentUrl || null);
+        setShowPendingPaymentDialog(true);
+        return;
+      }
+      
+      // Normal flow - redirect to payment
+      if (paymentData.paymentUrl) {
+        window.location.href = paymentData.paymentUrl;
       }
     },
   });
@@ -45,6 +56,8 @@ export function PricingSection() {
   const [api, setApi] = useState<CarouselApi>();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [showPendingPaymentDialog, setShowPendingPaymentDialog] = useState(false);
+  const [pendingPaymentUrl, setPendingPaymentUrl] = useState<string | null>(null);
   const [selectedPlanCode, setSelectedPlanCode] = useState<string | null>(null);
 
   // Check if user has active paid subscription (not free)
@@ -395,6 +408,42 @@ export function PricingSection() {
                   className="w-full sm:w-auto rounded-2xl"
                 >
                   {isPending ? "Đang xử lý..." : "Tiếp tục đăng ký"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Pending Payment Dialog */}
+          <Dialog open={showPendingPaymentDialog} onOpenChange={setShowPendingPaymentDialog}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                  Đơn hàng chưa thanh toán
+                </DialogTitle>
+                <DialogDescription className="text-base">
+                  Bạn đang có đơn hàng chưa thanh toán. Vui lòng thanh toán để tiếp tục mua hàng.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/mybeyond/payment-history")}
+                  className="w-full sm:w-auto rounded-2xl"
+                >
+                  <History className="w-4 h-4 mr-2" />
+                  Xem lịch sử giao dịch
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowPendingPaymentDialog(false);
+                    if (pendingPaymentUrl) {
+                      window.location.href = pendingPaymentUrl;
+                    }
+                  }}
+                  className="w-full sm:w-auto rounded-2xl"
+                >
+                  Thanh toán
                 </Button>
               </DialogFooter>
             </DialogContent>

@@ -97,7 +97,7 @@ export default function CourseCard({ course }: CourseCardProps) {
 
         {/* Content */}
         <div className="flex-1 flex flex-col group-hover:text-primary transition-colors duration-300">
-          <h3 className="font-semibold text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
+          <h3 className="font-semibold text-lg mb-2 line-clamp-2 min-h-14">
             {course.title}
           </h3>
           <div className="text-sm text-muted-foreground mb-3 group-hover:text-primary/80 transition-colors duration-300 flex items-center gap-2">

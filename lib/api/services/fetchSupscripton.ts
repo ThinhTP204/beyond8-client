@@ -3,6 +3,8 @@ import apiService from "../core";
 import { Subscription, SubscriptionPlan } from "./fetchProfile";
 
 export interface PaymentData {
+  isPending: boolean;
+  status: string;
   paymentId: string;
   paymentNumber: string;
   purpose: string;
