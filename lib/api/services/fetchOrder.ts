@@ -238,11 +238,14 @@ export interface PaymentItem {
   provider: string;
   paymentMethod: string | null;
   externalTransactionId: string | null;
+  paymentUrl: string | null;
   paidAt: string | null;
   expiredAt: string | null;
   failureReason: string | null;
   createdAt: string;
   updatedAt: string | null;
+  orderSummary: OrderSummary | null;
+  metadata: string | null;
   pendingPaymentInfo: PendingPaymentInfo | null;
 }
 
@@ -292,6 +295,32 @@ export interface UpdateOrderStatusRequest {
 export interface UpdateSettlementEligibleAtRequest {
   note: string | null
   settlementEligibleAt: string | null
+}
+
+export interface OrderItem {
+  courseId: string;
+  courseTitle: string;
+  courseSlug: string;
+  originalPrice: number;
+  finalPrice: number;
+  instructorName: string;
+}
+
+export interface OrderSummary {
+  id: string;
+  orderNumber: string;
+  status: string;
+  totalAmount: number;
+  currency: string;
+  items: OrderItem[];
+}
+
+export interface PaymentInfo {
+  paymentId: string;
+  paymentNumber: string;
+  purpose: string;
+  paymentUrl: string;
+  expiredAt: string;
 }
 
 const convertParamsToQuery = (params?: PaymentParams): RequestParams => {
@@ -430,4 +459,6 @@ export const fetchOrder = {
     );
     return response.data;
   },
+
+
 };
