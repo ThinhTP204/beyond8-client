@@ -101,7 +101,6 @@ export default function LessonPage() {
   const [isNavigating, setIsNavigating] = useState(false)
 
   // Reset scroll state when lesson changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setHasScrolled(false)
     setVideoProgress(0)

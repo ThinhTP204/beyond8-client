@@ -118,12 +118,12 @@ export default function PaymentCallbackPage() {
             {/* Icon */}
             <div className="flex justify-center">
               {isSuccess ? (
-                <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-400" />
+                <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+                  <CheckCircle2 className="w-12 h-12 text-green-600" />
                 </div>
               ) : (
-                <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                  <XCircle className="w-12 h-12 text-red-600 dark:text-red-400" />
+                <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
+                  <XCircle className="w-12 h-12 text-red-600" />
                 </div>
               )}
             </div>
@@ -143,7 +143,7 @@ export default function PaymentCallbackPage() {
                     {errorMessage || 'Đã xảy ra lỗi trong quá trình thanh toán. Vui lòng thử lại.'}
                   </p>
                   {errorReason && (
-                    <p className="text-sm font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-md">
+                    <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-md">
                       {errorReason}
                     </p>
                   )}
