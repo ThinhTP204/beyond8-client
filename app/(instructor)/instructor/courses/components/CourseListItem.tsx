@@ -193,12 +193,17 @@ export default function CourseListItem({ course, isSelected, onToggleSelect, isS
         </div>
 
         {/* Preview Button - Bottom Left */}
-        <button
-          onClick={handlePreview}
-          className="absolute bottom-2.5 left-2.5 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm transition-all duration-300 hover:scale-110"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
+        <div>
+          <button
+            onClick={handlePreview}
+            className="absolute bottom-2.5 left-2.5 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm transition-all duration-300 hover:scale-110"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+          <Badge variant="secondary" className="absolute bottom-3 left-12 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm transition-all duration-300 hover:scale-110">
+            {getLevelLabel(course.level)}
+          </Badge>
+        </div>
 
         {/* Stats Overlay - Bottom Right */}
         <div className="absolute bottom-2.5 right-2.5 flex items-center gap-2">
