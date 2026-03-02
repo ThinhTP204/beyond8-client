@@ -11,6 +11,7 @@ import { useCheckEnrollment, useGetCurriculumProgress } from '@/hooks/useEnroll'
 import { lessonUrl as buildLessonUrl, asmAttemptUrl } from '@/utils/courseUrls'
 import { Lesson } from '@/lib/api/services/fetchLesson'
 import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import DocumentDownloadButton from './document-download-button'
 import DocumentViewDialog from '../widget/document/DocumentViewDialog'
 
@@ -185,7 +186,7 @@ export default function LessonSidebar({
             exit={isMobile ? { x: '100%' } : { width: 0, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={cn(
-              "fixed inset-y-0 right-0 z-40 bg-white border-l border-gray-200 w-[85vw] sm:w-[500px] shadow-2xl lg:relative lg:block lg:shadow-none flex flex-col h-full",
+              "fixed inset-y-0 right-0 z-40 bg-white border-l border-gray-200 w-[85vw] sm:w-[500px] shadow-2xl lg:relative lg:shadow-none flex flex-col h-full",
               isMobile && "top-[64px]"
             )}
           >
@@ -193,9 +194,7 @@ export default function LessonSidebar({
               <h3 className="font-bold text-xl text-black">Nội dung khóa học</h3>
             </div>
 
-            <div
-              className="flex-1 overflow-y-auto px-4 pb-4"
-            >
+            <ScrollArea className="flex-1 px-4 pb-4">
               <div className="space-y-6">
                 {/* Course Documents */}
                 {course.documents && course.documents.length > 0 && (
@@ -486,7 +485,7 @@ export default function LessonSidebar({
                   ))}
                 </div>
               </div>
-            </div>
+            </ScrollArea>
           </motion.div>
         )}
       </AnimatePresence>

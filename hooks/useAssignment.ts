@@ -96,7 +96,7 @@ export function useGetAllAssignments(params: ParamsAssignment) {
     }
 }
 
-export function useDeleteAssignment(courseId: string) {
+export function useDeleteAssignment(courseId: string, sectionId: string) {
     const queryClient = useQueryClient()
 
     const mutation = useMutation<AssignmentResponse, Error, string>({
@@ -105,6 +105,8 @@ export function useDeleteAssignment(courseId: string) {
             queryClient.invalidateQueries({ queryKey: ["assignments"] })
             //queryClient.invalidateQueries({ queryKey: ["assignments", id] })
             queryClient.invalidateQueries({ queryKey: ["sections", courseId] })
+            queryClient.invalidateQueries({ queryKey: ["lessons", sectionId] })
+
             toast.success("Xóa bài tập thành công!")
         },
         onError: (error: Error) => {
@@ -191,6 +193,7 @@ export function useGetSubmissionByStudent(assignmentId: string) {
         queryKey: ["assignments", assignmentId, "submissions"],
         queryFn: () => assignmentService.getSubmissionAssigment(assignmentId),
         enabled: !!assignmentId,
+        retry: false,
     })
 
     return {
