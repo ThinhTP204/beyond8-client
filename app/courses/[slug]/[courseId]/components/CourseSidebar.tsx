@@ -20,6 +20,7 @@ import { useAddToCart, useGetCart, useBuyNow, useCheckCourse } from '@/hooks/use
 import { startOfToday, differenceInCalendarDays } from 'date-fns'
 import { PendingPaymentDialog } from '@/components/widget/PendingPaymentDialog'
 import { useRouter } from 'next/navigation'
+import { LoginDialog } from '@/components/widget/auth/LoginDialog'
 
 interface CourseSidebarProps {
   course: CourseSummary | CourseDetailType
@@ -74,6 +75,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
   const [pendingPaymentDialogOpen, setPendingPaymentDialogOpen] = useState(false)
   const [pendingPaymentUrl, setPendingPaymentUrl] = useState('')
   const [pendingOrderNumber, setPendingOrderNumber] = useState('')
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false)
 
   const router = useRouter()
   const { enrollCourse, isPending } = useEnrollCourse()
@@ -108,7 +110,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      window.location.href = '/login'
+      setIsLoginDialogOpen(true)
       return
     }
 
@@ -121,7 +123,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
 
   const handleBuyNow = async () => {
     if (!isAuthenticated) {
-      window.location.href = '/login'
+      setIsLoginDialogOpen(true)
       return
     }
 
@@ -156,46 +158,46 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
         {/* Price Section */}
         {!isEnrolled && (
           <div>
-          {hasDiscount && effectiveDiscountPercent > 0 && (
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-brand-magenta font-medium bg-brand-magenta/10 px-2 py-1 rounded-2xl">
-                Ưu đãi ra mắt
-              </span>
-              <span className="text-sm font-bold text-green-600">
-                GIẢM {effectiveDiscountPercent}%
-              </span>
+            {hasDiscount && effectiveDiscountPercent > 0 && (
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-brand-magenta font-medium bg-brand-magenta/10 px-2 py-1 rounded-2xl">
+                  Ưu đãi ra mắt
+                </span>
+                <span className="text-sm font-bold text-green-600">
+                  GIẢM {effectiveDiscountPercent}%
+                </span>
+              </div>
+            )}
+            <div className="flex items-baseline gap-2">
+              {course.finalPrice > 0 && (
+                <span className="text-4xl font-bold text-slate-900">
+                  {formatCurrency(finalPrice)}
+                </span>
+              )}
+              {course.finalPrice === 0 && (
+                <span className="text-4xl font-bold text-slate-900">
+                  Miễn phí
+                </span>
+              )}
+              {hasDiscount && (
+                <span className="text-lg text-muted-foreground line-through decoration-red-500/50">
+                  {formatCurrency(originalPrice)}
+                </span>
+              )}
             </div>
-          )}
-          <div className="flex items-baseline gap-2">
-            { course.finalPrice > 0 && (
-            <span className="text-4xl font-bold text-slate-900">
-              {formatCurrency(finalPrice)}
-            </span>
-            )}
-            { course.finalPrice === 0 && (
-              <span className="text-4xl font-bold text-slate-900">
-                Miễn phí
-              </span>
-            )}
-            {hasDiscount && (
-              <span className="text-lg text-muted-foreground line-through decoration-red-500/50">
-                {formatCurrency(originalPrice)}
-              </span>
+            {hasDiscount && course.discountEndsAt && remainingDiscountDays > 0 && (
+              <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 border border-red-100">
+                <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                <span>
+                  Chỉ còn{' '}
+                  <span className="font-bold">{remainingDiscountDays}</span>{' '}
+                  ngày với giá ưu đãi
+                </span>
+              </div>
             )}
           </div>
-          {hasDiscount && course.discountEndsAt && remainingDiscountDays > 0 && (
-            <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 border border-red-100">
-              <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-              <span>
-                Chỉ còn{' '}
-                <span className="font-bold">{remainingDiscountDays}</span>{' '}
-                ngày với giá ưu đãi
-              </span>
-            </div>
-          )}
-        </div>
         )}
-        
+
 
         {/* Action Buttons */}
         <div className="space-y-3">
@@ -231,7 +233,13 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
           ) : isFreeCourse ? (
             <ConfirmDialog
               open={isConfirmOpen}
-              onOpenChange={setIsConfirmOpen}
+              onOpenChange={(open) => {
+                if (open && !isAuthenticated) {
+                  setIsLoginDialogOpen(true)
+                  return
+                }
+                setIsConfirmOpen(open)
+              }}
               onConfirm={handleFreeEnroll}
               title="Tham gia khóa học miễn phí"
               description="Bạn có chắc chắn muốn tham gia khóa học này không? Sau khi tham gia, bạn có thể truy cập toàn bộ nội dung học."
@@ -329,6 +337,7 @@ export default function CourseSidebar({ course, preview }: CourseSidebarProps) {
           </div>
         </div>
       </CardContent>
+      <LoginDialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen} />
     </Card>
   )
 }

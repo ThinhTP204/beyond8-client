@@ -41,7 +41,7 @@ export function useLogin() {
       reconnectHubConnection().catch(err => {
         console.error('[SignalR] Failed to reconnect after login:', err);
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
       queryClient.invalidateQueries({ queryKey: ['signalr-connection'] });
 
@@ -55,6 +55,59 @@ export function useLogin() {
         window.location.href = '/instructor/dashboard';
       } else if (roles?.includes(Roles.Student)) {
         window.location.href = '/courses';
+      }
+    },
+    onError: (error: LoginResponse) => {
+      toast.error(error.message || 'Đăng nhập thất bại!');
+    },
+  });
+
+  return {
+    mutateLogin,
+    isLoading,
+    error
+  };
+}
+
+export function useQuickLogin() {
+  const queryClient = useQueryClient();
+  const dispatch = useAppDispatch();
+  const [error, setError] = useState<string | null>(null);
+
+  const { mutate: mutateLogin, isPending: isLoading } = useMutation({
+    mutationFn: async (credentials: LoginRequest): Promise<LoginResponse> => {
+      const response = await fetchAuth.login(credentials);
+      if (!response.isSuccess) {
+        throw new Error(response.message);
+      }
+      return response;
+    },
+    onSuccess: (data) => {
+      dispatch(setTokenWithRefresh({
+        accessToken: data.data.accessToken,
+        refreshToken: data.data.refreshToken
+      }));
+      setCookie('authToken', data.data.accessToken, getAuthCookieConfig());
+      // Setup auto-refresh after setting token
+      setupAutoRefresh(data.data.accessToken, dispatch);
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      setError(null);
+
+      reconnectHubConnection().catch(err => {
+        console.error('[SignalR] Failed to reconnect after login:', err);
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['signalr-connection'] });
+
+      toast.success('Đăng nhập thành công!');
+
+      const redirectUrl = sessionStorage.getItem('redirectUrl');
+      if (redirectUrl) {
+        sessionStorage.removeItem('redirectUrl');
+        window.location.href = redirectUrl;
+      } else {
+        window.location.reload();
       }
     },
     onError: (error: LoginResponse) => {
