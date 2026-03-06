@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { ForgotPasswordDialog } from '@/components/widget/auth/ForgotPasswordDialog';
 import { OtpDialog } from '@/components/widget/auth/OtpDialog';
 import { toast } from 'sonner';
+import { ApiError } from '@/types/api';
 
 const loginSchema = Yup.object({
     email: Yup.string()
@@ -44,7 +45,7 @@ export function LoginForm({ isDialog = false }: { isDialog?: boolean }) {
 
     const handleSubmit = (values: LoginValues) => {
         mutateLogin(values, {
-            onError: (error: Error) => {
+            onError: (error: ApiError) => {
                 if (error.message === "Tài khoản của bạn chưa được xác thực, vui lòng kiểm tra email để xác thực.") {
                     setEmailForOtp(values.email);
                     setOtpType('register');

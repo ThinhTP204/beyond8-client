@@ -3,10 +3,10 @@
 import { RadialBar, RadialBarChart } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { InstructorStats } from "@/lib/api/services/fetchDashboard";
+import { InstructorAnalytics } from "@/lib/api/services/fetchAnalystic";
 
 interface ChartRadialSimpleProps {
-  stats: InstructorStats | undefined;
+  stats: InstructorAnalytics | undefined;
 }
 
 export function ChartRadialSimple({ stats }: ChartRadialSimpleProps) {

@@ -332,6 +332,13 @@ const convertParamsToQuery = (params?: PaymentParams): RequestParams => {
   return query;
 };
 
+export interface OrderDetailsResponse {
+  isSuccess: boolean;
+  message: string;
+  data: OrderData;
+  metadata: null;
+}
+
 export const fetchOrder = {
   // Lấy thông tin giỏ hàng của user hiện tại
   getCart: async (): Promise<CartResponse> => {
@@ -461,4 +468,11 @@ export const fetchOrder = {
   },
 
 
+  //Lấy thông tin đơn hàng theo ID (Order Owner or Admin)
+  getOrderById: async (orderId: string): Promise<OrderDetailsResponse> => {
+    const response = await apiService.get<OrderDetailsResponse>(
+      `api/v1/orders/${orderId}`
+    );
+    return response.data;
+  },
 };
