@@ -236,7 +236,7 @@ const PriceFilterMenu = ({
   minPrice: number;
   maxPrice: number;
   onPriceChange: (min: number, max: number) => void;
-  onApply: () => void;
+  onApply: (min: number, max: number) => void;
   onClear: () => void;
   onPriceDisplayChange?: (display: string) => void;
 }) => {
@@ -312,17 +312,7 @@ const PriceFilterMenu = ({
 
   const handleApply = () => {
     onPriceChange(localMinPrice, localMaxPrice);
-    onApply();
-    
-    // Navigate to courses page with current filters
-    const params = new URLSearchParams();
-    if (localMinPrice > 0) {
-      params.set('minPrice', localMinPrice.toString());
-    }
-    if (localMaxPrice < 5000000) {
-      params.set('maxPrice', localMaxPrice.toString());
-    }
-    router.push(`/courses?${params.toString()}`);
+    onApply(localMinPrice, localMaxPrice);
   };
 
   const handleClear = () => {
@@ -415,8 +405,8 @@ const PriceFilterMenu = ({
             <AreaChart data={priceDistributionData}>
               <defs>
                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#9333ea" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
+                  <stop offset="5%" stopColor="#9333ea" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
               <Area
@@ -428,7 +418,7 @@ const PriceFilterMenu = ({
               />
               <XAxis dataKey="price" hide />
               <YAxis hide />
-              <Tooltip 
+              <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     const data = payload[0].payload;
@@ -587,31 +577,31 @@ export function Header() {
 
   const getGradientStyle = (code?: string) => {
     switch (code?.toUpperCase()) {
-      case "ULTRA": 
+      case "ULTRA":
         return "conic-gradient(from 0deg, #ff0000, #ffa500, #ffff00, #008000, #0000ff, #4b0082, #ee82ee, #ff0000)";
-      case "PRO": 
+      case "PRO":
         return "conic-gradient(from 0deg, #EA4335 0% 25%, #4285F4 25% 50%, #34A853 50% 75%, #FBBC05 75% 100%)";
       case "STANDARD":
-      case "PLUS": 
+      case "PLUS":
         return "conic-gradient(from 0deg, #2563eb 0% 50%, #06b6d4 50% 100%)";
-      default: 
+      default:
         return null;
     }
   };
 
   const getPlanIcon = (code?: string) => {
-      switch (code?.toUpperCase()) {
-        case "ULTRA":
-          return <Crown className="w-3 h-3 text-yellow-500 fill-yellow-500" />;
-        case "PRO":
-          return <Gem className="w-3 h-3 text-blue-500 fill-blue-500" />;
-        case "BASIC":
-        case "PLUS":
-          return <Zap className="w-3 h-3 text-purple-500 fill-purple-500" />;
-        default:
-          return null;
-      }
-    };
+    switch (code?.toUpperCase()) {
+      case "ULTRA":
+        return <Crown className="w-3 h-3 text-yellow-500 fill-yellow-500" />;
+      case "PRO":
+        return <Gem className="w-3 h-3 text-blue-500 fill-blue-500" />;
+      case "BASIC":
+      case "PLUS":
+        return <Zap className="w-3 h-3 text-purple-500 fill-purple-500" />;
+      default:
+        return null;
+    }
+  };
 
 
   const handleLogout = () => {
@@ -620,22 +610,42 @@ export function Header() {
 
   const router = useRouter();
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const performSearch = (options?: { category?: string; minPrice?: number; maxPrice?: number }) => {
     const params = new URLSearchParams();
     if (searchQuery.trim()) {
       params.set("search", searchQuery.trim());
     }
+
+    const cat = options?.category !== undefined ? options.category : selectedCategory;
+    if (cat && cat !== "Tất cả") {
+      params.set("category", cat);
+    }
+
+    const min = options?.minPrice !== undefined ? options.minPrice : minPrice;
+    if (min > 0) {
+      params.set("minPrice", min.toString());
+    }
+
+    const max = options?.maxPrice !== undefined ? options.maxPrice : maxPrice;
+    if (max < 5000000) {
+      params.set("maxPrice", max.toString());
+    }
+
     params.set("pageNumber", "1");
     params.set("pageSize", "10");
     params.set("isDescending", "true");
     router.push(`/courses?${params.toString()}`);
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    performSearch();
+  };
+
   const handlePriceChange = (min: number, max: number) => {
     setMinPrice(min);
     setMaxPrice(max);
-    
+
     // Update display text
     if (min === 0 && max === 5000000) {
       setPriceDisplay("Mức giá");
@@ -697,7 +707,7 @@ export function Header() {
           {!isMobile && (
             <Link href="/supscription">
               <div className="relative group cursor-pointer">
-                <Button 
+                <Button
                   className="relative px-6 py-2 bg-white rounded-xl leading-none flex items-center gap-2 border border-purple-500/50 hover:bg-gray-50 text-black"
                   variant="ghost"
                 >
@@ -745,6 +755,7 @@ export function Header() {
                     <CategoryMenu Content={categoryData?.data} onSelect={(name) => {
                       setSelectedCategory(name);
                       setIsOpen(false);
+                      performSearch({ category: name });
                     }} selected={selectedCategory} />
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -771,8 +782,14 @@ export function Header() {
                       minPrice={minPrice}
                       maxPrice={maxPrice}
                       onPriceChange={handlePriceChange}
-                      onApply={() => setIsPriceOpen(false)}
-                      onClear={() => setIsPriceOpen(false)}
+                      onApply={(min, max) => {
+                        setIsPriceOpen(false);
+                        performSearch({ minPrice: min, maxPrice: max });
+                      }}
+                      onClear={() => {
+                        setIsPriceOpen(false);
+                        performSearch({ minPrice: 0, maxPrice: 5000000 });
+                      }}
                       onPriceDisplayChange={setPriceDisplay}
                     />
                   </DropdownMenuContent>
@@ -808,27 +825,27 @@ export function Header() {
             "flex items-center gap-3 flex-shrink-0",
             isScrolled ? "" : "justify-end col-start-3"
           )}>
-          {isAuthenticated ? (
-            <>
-              {!isMobile && (
-                showInstructorDashboard ? (
-                  <Link href="/instructor/dashboard">
-                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground rounded-xl">
-                      <GraduationCap className="h-4 w-4" />
-                      Trang giảng viên
-                    </Button>
-                  </Link>
-                ) : showRegisterInstructor ? (
-                  <Link href="/instructor-registration">
-                    <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground rounded-xl">
-                      <GraduationCap className="h-4 w-4" />
-                      Đăng ký giảng viên
-                    </Button>
-                  </Link>
-                ) : null
-              )}
+            {isAuthenticated ? (
+              <>
+                {!isMobile && (
+                  showInstructorDashboard ? (
+                    <Link href="/instructor/dashboard">
+                      <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground rounded-xl">
+                        <GraduationCap className="h-4 w-4" />
+                        Trang giảng viên
+                      </Button>
+                    </Link>
+                  ) : showRegisterInstructor ? (
+                    <Link href="/instructor-registration">
+                      <Button variant="outline" size="sm" className="cursor-pointer gap-2 hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground rounded-xl">
+                        <GraduationCap className="h-4 w-4" />
+                        Đăng ký giảng viên
+                      </Button>
+                    </Link>
+                  ) : null
+                )}
 
-              {/* {subscription?.subscriptionPlan && !isMobile && (
+                {/* {subscription?.subscriptionPlan && !isMobile && (
                 <div className="flex items-center">
                   <Badge 
                     variant="outline" 
@@ -839,166 +856,166 @@ export function Header() {
                 </div>
               )} */}
 
-              {/* Cart Icon */}
-              {!isCartPage && (
-              <div
-                className="relative"
-                onMouseEnter={() => setIsCartOpen(true)}
-                onMouseLeave={() => setIsCartOpen(false)}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}
-                >
-                  <ShoppingCart className={`${isMobile ? 'h-4 w-4' : 'h-7 w-7'}`} />
-                  {cart && cart.totalItems > 0 && (
-                    <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
-                      <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-brand-magenta to-brand-purple border-[2px] border-white text-[10px] font-bold text-white">
-                        {cart.totalItems > 99 ? '99+' : cart.totalItems}
-                      </span>
-                    </span>
-                  )}
-                </Button>
-                <CartPopover 
-                  isOpen={isCartOpen} 
-                  onClose={() => setIsCartOpen(false)}
-                  onMouseEnter={() => setIsCartOpen(true)}
-                  onMouseLeave={() => setIsCartOpen(false)}
-                />
-              </div>
-              )}
-
-              {isLoading ? (
-                <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
-              ) : (
-                <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
-                  <div 
-                    className={`relative p-[2px] rounded-full ${isMobile ? "w-9 h-9" : "w-11 h-11"} flex items-center justify-center transition-all duration-300 hover:scale-105`}
-                    style={{ 
-                      background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to gray-200 equivalent
-                    }}
+                {/* Cart Icon */}
+                {!isCartPage && (
+                  <div
+                    className="relative"
+                    onMouseEnter={() => setIsCartOpen(true)}
+                    onMouseLeave={() => setIsCartOpen(false)}
                   >
-                    <Avatar className={`${isMobile ? 'h-full w-full' : 'h-full w-full'}`}>
-                      <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} className="object-cover" />
-                      <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
-                        {getAvatarFallback()}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    {/* Plan Icon */}
-                    {getPlanIcon(subscription?.subscriptionPlan?.code) && (
-                      <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm z-30 flex items-center justify-center border border-gray-100">
-                        {getPlanIcon(subscription?.subscriptionPlan?.code)}
-                      </div>
-                    )}
-                    {userProfile?.isActive && (
-                    <span className="absolute bottom-0 right-0 w-3 h-3 flex z-10">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
-                    </span>
-                    )}
-                  </div>
-                </Link>
-              )}
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}>
-                    <Menu className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                    {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 flex z-10">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white"></span>
-                      </span>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  {userProfile && (
-                    <>
-                      <div className="px-2 py-1.5 text-sm">
-                        <p className="font-medium">{userProfile.fullName}</p>
-                        <p className="text-xs text-muted-foreground truncate">{userProfile.email}</p>
-                      </div>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/mybeyond?tab=myprofile" className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      Hồ sơ
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground"
-                    onSelect={() => setIsNotificationOpen(true)}
-                  >
-                    <div className="flex flex-row justify-between items-center gap-2 ">
-                      <div className="flex flex-row items-center gap-2">
-                        <div className="flex">
-                          <Bell className="h-4 w-4" />
-                        </div>
-                        Thông báo
-                        </div> 
-                        <div>
-                        {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
-                          <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
-                            <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white text-[10px] font-bold text-white">
-                              {notificationStatus.unreadCount > 99 ? '99+' : notificationStatus.unreadCount}
-                            </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}
+                    >
+                      <ShoppingCart className={`${isMobile ? 'h-4 w-4' : 'h-7 w-7'}`} />
+                      {cart && cart.totalItems > 0 && (
+                        <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
+                          <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-brand-magenta to-brand-purple border-[2px] border-white text-[10px] font-bold text-white">
+                            {cart.totalItems > 99 ? '99+' : cart.totalItems}
                           </span>
-                        )}
-                        </div>                   
+                        </span>
+                      )}
+                    </Button>
+                    <CartPopover
+                      isOpen={isCartOpen}
+                      onClose={() => setIsCartOpen(false)}
+                      onMouseEnter={() => setIsCartOpen(true)}
+                      onMouseLeave={() => setIsCartOpen(false)}
+                    />
+                  </div>
+                )}
+
+                {isLoading ? (
+                  <Skeleton className={`${isMobile ? 'h-9 w-9' : 'h-11 w-11'} rounded-full`} />
+                ) : (
+                  <Link href="/mybeyond?tab=myprofile" className="cursor-pointer">
+                    <div
+                      className={`relative p-[2px] rounded-full ${isMobile ? "w-9 h-9" : "w-11 h-11"} flex items-center justify-center transition-all duration-300 hover:scale-105`}
+                      style={{
+                        background: getGradientStyle(subscription?.subscriptionPlan?.code) || '#c084fc' // Default to gray-200 equivalent
+                      }}
+                    >
+                      <Avatar className={`${isMobile ? 'h-full w-full' : 'h-full w-full'}`}>
+                        <AvatarImage src={formatImageUrl(userProfile?.avatarUrl) || undefined} alt={userProfile?.fullName} className="object-cover" />
+                        <AvatarFallback className={`bg-purple-100 text-purple-700 font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
+                          {getAvatarFallback()}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      {/* Plan Icon */}
+                      {getPlanIcon(subscription?.subscriptionPlan?.code) && (
+                        <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm z-30 flex items-center justify-center border border-gray-100">
+                          {getPlanIcon(subscription?.subscriptionPlan?.code)}
+                        </div>
+                      )}
+                      {userProfile?.isActive && (
+                        <span className="absolute bottom-0 right-0 w-3 h-3 flex z-10">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-green-400 to-green-400 border-[2px] border-white"></span>
+                        </span>
+                      )}
                     </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                    <Link href="/mybeyond?tab=mycourse" className="flex items-center gap-2">
-                      <BookOpen className="h-4 w-4" />
-                      Khóa học của tôi
-                    </Link>
-                  </DropdownMenuItem>
-                  {isMobile && (showInstructorDashboard || showRegisterInstructor) && (
-                    <>
-                      <DropdownMenuSeparator />
-                      {showInstructorDashboard ? (
-                        <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                          <Link href="/instructor/dashboard" className="flex items-center gap-2">
-                            <GraduationCap className="h-4 w-4" />
-                            Trang giảng viên
-                          </Link>
-                        </DropdownMenuItem>
-                      ) : showRegisterInstructor ? (
-                        <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
-                          <Link href="/instructor-registration" className="flex items-center gap-2">
-                            <GraduationCap className="h-4 w-4" />
-                            Đăng ký giảng viên
-                          </Link>
-                        </DropdownMenuItem>
-                      ) : null}
-                    </>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="cursor-pointer text-red-600 focus:text-red-600 hover:bg-red-100 focus:bg-red-50"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Đăng xuất
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <>
-              <Link href="/login">
-                <Button className="cursor-pointer rounded-xl hover:bg-gray-100 hover:text-black" variant="outline" size={isMobile ? "sm" : "sm"}>Đăng nhập</Button>
-              </Link>
-              <Link href="/register">
-                <Button className="cursor-pointer rounded-xl" size={isMobile ? "sm" : "sm"}>Đăng ký</Button>
-              </Link>
-            </>
-          )}
+                  </Link>
+                )}
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className={`relative cursor-pointer bg-black/[0.03] hover:bg-black/[0.06] focus:bg-black/[0.06] text-foreground hover:text-foreground focus:text-foreground ${isMobile ? 'h-9 w-9' : ''}`}>
+                      <Menu className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                      {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-3 h-3 flex z-10">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white"></span>
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {userProfile && (
+                      <>
+                        <div className="px-2 py-1.5 text-sm">
+                          <p className="font-medium">{userProfile.fullName}</p>
+                          <p className="text-xs text-muted-foreground truncate">{userProfile.email}</p>
+                        </div>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                      <Link href="/mybeyond?tab=myprofile" className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Hồ sơ
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground"
+                      onSelect={() => setIsNotificationOpen(true)}
+                    >
+                      <div className="flex flex-row justify-between items-center gap-2 ">
+                        <div className="flex flex-row items-center gap-2">
+                          <div className="flex">
+                            <Bell className="h-4 w-4" />
+                          </div>
+                          Thông báo
+                        </div>
+                        <div>
+                          {notificationStatus && !notificationStatus.isRead && notificationStatus.unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 flex min-w-[18px] h-[18px] items-center justify-center px-1 z-10">
+                              <span className="relative inline-flex rounded-full min-w-[18px] h-[18px] items-center justify-center px-1 bg-gradient-to-r from-purple-600 to-indigo-600 border-[2px] border-white text-[10px] font-bold text-white">
+                                {notificationStatus.unreadCount > 99 ? '99+' : notificationStatus.unreadCount}
+                              </span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                      <Link href="/mybeyond?tab=mycourse" className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        Khóa học của tôi
+                      </Link>
+                    </DropdownMenuItem>
+                    {isMobile && (showInstructorDashboard || showRegisterInstructor) && (
+                      <>
+                        <DropdownMenuSeparator />
+                        {showInstructorDashboard ? (
+                          <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                            <Link href="/instructor/dashboard" className="flex items-center gap-2">
+                              <GraduationCap className="h-4 w-4" />
+                              Trang giảng viên
+                            </Link>
+                          </DropdownMenuItem>
+                        ) : showRegisterInstructor ? (
+                          <DropdownMenuItem asChild className="cursor-pointer hover:bg-black/[0.05] focus:bg-black/[0.05] hover:text-foreground focus:text-foreground">
+                            <Link href="/instructor-registration" className="flex items-center gap-2">
+                              <GraduationCap className="h-4 w-4" />
+                              Đăng ký giảng viên
+                            </Link>
+                          </DropdownMenuItem>
+                        ) : null}
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="cursor-pointer text-red-600 focus:text-red-600 hover:bg-red-100 focus:bg-red-50"
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Đăng xuất
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button className="cursor-pointer rounded-xl hover:bg-gray-100 hover:text-black" variant="outline" size={isMobile ? "sm" : "sm"}>Đăng nhập</Button>
+                </Link>
+                <Link href="/register">
+                  <Button className="cursor-pointer rounded-xl" size={isMobile ? "sm" : "sm"}>Đăng ký</Button>
+                </Link>
+              </>
+            )}
           </nav>
         )}
       </motion.div>

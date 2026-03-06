@@ -134,7 +134,7 @@ export function PlatformUpcomingSettlementsTable({
                       <span
                         className={`font-medium [font-variant-numeric:tabular-nums] ${item.platformStatus === "Completed" ? "text-green-600" : "text-orange-600"}`}
                       >
-                        +{item.platformAmount.toLocaleString()} VNĐ
+                        +{item.instructorAmount.toLocaleString()} VNĐ
                       </span>
                       <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
                         Doanh thu giảng viên

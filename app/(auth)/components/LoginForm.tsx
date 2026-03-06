@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { FormikForm, FormikField, Yup } from '@/components/ui/formik-form';
-import { useLogin, useForgotPassword, useVerifyOtpForgotPassword, useResendOtp, useVerifyOtpRegister } from '@/hooks/useAuth';
+import { useLogin, useQuickLogin, useForgotPassword, useVerifyOtpForgotPassword, useResendOtp, useVerifyOtpRegister } from '@/hooks/useAuth';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ForgotPasswordDialog } from '@/components/widget/auth/ForgotPasswordDialog';
@@ -26,8 +26,11 @@ interface LoginValues {
     [key: string]: unknown;
 }
 
-export function LoginForm() {
-    const { mutateLogin, isLoading: isLoginLoading } = useLogin();
+export function LoginForm({ isDialog = false }: { isDialog?: boolean }) {
+    const { mutateLogin: mutateNormal, isLoading: isNormalLoading } = useLogin();
+    const { mutateLogin: mutateQuick, isLoading: isQuickLoading } = useQuickLogin();
+    const mutateLogin = isDialog ? mutateQuick : mutateNormal;
+    const isLoginLoading = isDialog ? isQuickLoading : isNormalLoading;
     const { mutateForgotPassword, isLoading: isForgotLoading } = useForgotPassword();
     const { mutateResendOtp } = useResendOtp();
     const { mutateVerifyOtpForgotPassword, isLoading: isVerifyForgotLoading } = useVerifyOtpForgotPassword();
@@ -41,7 +44,7 @@ export function LoginForm() {
 
     const handleSubmit = (values: LoginValues) => {
         mutateLogin(values, {
-            onError: (error: any) => {
+            onError: (error: Error) => {
                 if (error.message === "Tài khoản của bạn chưa được xác thực, vui lòng kiểm tra email để xác thực.") {
                     setEmailForOtp(values.email);
                     setOtpType('register');
