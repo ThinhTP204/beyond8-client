@@ -130,10 +130,10 @@ export const userService = {
   },
 
   // Upload avatar
-  uploadAvatar: async (file: File): Promise<ApiResponse<{ avatarUrl: string }>> => {
+  uploadAvatar: async (file: File): Promise<ApiResponse<string>> => {
     const formData = new FormData();
     formData.append("avatar", file);
-    const response = await apiService.upload<ApiResponse<{ avatarUrl: string }>>(
+    const response = await apiService.upload<ApiResponse<string>>(
       "api/v1/users/me/avatar",
       formData
     );
@@ -150,9 +150,7 @@ export const userService = {
 
   // Get user profile by id
   getUserById: async (id: string): Promise<ApiResponse<UserProfile>> => {
-    const response = await apiService.get<ApiResponse<UserProfile>>(
-      `api/v1/users/${id}`
-    );
+    const response = await apiService.get<ApiResponse<UserProfile>>(`api/v1/users/${id}`);
     return response.data;
   },
 
