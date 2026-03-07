@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Camera, EyeOff, Crown, Gem, Zap } from "lucide-react";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useUploadImage } from "@/hooks/useUploadImage";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { formatImageUrl } from "@/lib/utils/formatImageUrl";
 import SafeImage from "@/components/ui/SafeImage";
 import { useHiddenProfile } from "@/hooks/useInstructorRegistration";
@@ -38,9 +39,15 @@ interface ProfileHeaderProps {
 }
 
 export default function ProfileHeader({
-  userProfile,
+  userProfile: initialProfile,
 }: ProfileHeaderProps) {
-  const isMobile = useIsMobile();  
+  const isMobile = useIsMobile();
+  const { userProfile: liveProfile } = useUserProfile();
+  const userProfile = {
+    ...initialProfile,
+    avatarUrl: liveProfile?.avatarUrl ?? initialProfile.avatarUrl,
+    coverUrl: liveProfile?.coverUrl ?? initialProfile.coverUrl,
+  };
   const { uploadAvatar, isUploadingAvatar, uploadCover, isUploadingCover } = useUploadImage();
   const { unhideProfile, isUnhiding } = useHiddenProfile();
   const [showHideDialog, setShowHideDialog] = useState(false);

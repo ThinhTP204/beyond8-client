@@ -119,7 +119,9 @@ export interface UpdateUserProfileRequest {
 export const userService = {
   // Get current user profile
   getMe: async (): Promise<ApiResponse<UserProfile>> => {
-    const response = await apiService.get<ApiResponse<UserProfile>>("api/v1/users/me");
+    const response = await apiService.get<ApiResponse<UserProfile>>("api/v1/users/me", {
+      _t: Date.now(),
+    });
     return response.data;
   },
 
