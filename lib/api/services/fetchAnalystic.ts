@@ -26,10 +26,36 @@ export interface GetAIUsageChartParams {
   EndDate?: string;
 }
 
+export interface InstructorAnalytics {
+  instructorId: string;
+  instructorName: string;
+  totalCourses: number;
+  draftCourses: number;
+  pendingApprovalCourses: number;
+  approvedCourses: number;
+  publishedCourses: number;
+  rejectedCourses: number;
+  archivedCourses: number;
+  suspendedCourses: number;
+  totalStudents: number;
+  totalInstructorEarnings: number;
+  availableBalance: number;
+  avgCourseRating: number;
+  totalReviews: number;
+  snapshotDate: string;
+  updatedAt: string | null;
+}
+
 export const fetchAnalystic = {
   // AI Usage Chart
   getAIUsageChart: async (params: GetAIUsageChartParams): Promise<ApiResponse<AIUsageChartData[]>> => {
     const response = await apiService.get<ApiResponse<AIUsageChartData[]>>("api/v1/analytics/ai-usage/chart", params);
+    return response.data;
+  },
+
+  // Instructor Analytics
+  getInstructorAnalytics: async (): Promise<ApiResponse<InstructorAnalytics>> => {
+    const response = await apiService.get<ApiResponse<InstructorAnalytics>>("/api/v1/analytics/instructors/me");
     return response.data;
   },
 };

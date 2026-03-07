@@ -22,6 +22,8 @@ import { Input } from "@/components/ui/input";
 import { CalendarClock, Clock } from "lucide-react";
 import { useUpdateSettlementEligibleAt } from "@/hooks/useOrder";
 import { useState } from "react";
+import { Eye } from "lucide-react";
+import { OrderDetailsDialog } from "./OrderDetailsDialog";
 
 interface PlatformUpcomingSettlementsTableProps {
   settlements: UpcomingSettlement[];
@@ -57,8 +59,15 @@ export function PlatformUpcomingSettlementsTable({
     setOpenPopoverId(null);
   };
 
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
   return (
     <div className="space-y-4">
+      <OrderDetailsDialog
+        orderId={selectedOrderId}
+        open={!!selectedOrderId}
+        onOpenChange={(open) => !open && setSelectedOrderId(null)}
+      />
       <div className="rounded-md border bg-white">
         <Table>
           <TableHeader>
@@ -69,6 +78,7 @@ export function PlatformUpcomingSettlementsTable({
               <TableHead className="text-right">Số tiền giảng viên</TableHead>
               <TableHead className="text-right">Số tiền nền tảng</TableHead>
               <TableHead className="text-center">Cập nhật ngày xử lý</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -92,6 +102,9 @@ export function PlatformUpcomingSettlementsTable({
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-8 w-8 rounded-md mx-auto" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-8 w-8 rounded-md ml-auto" />
                   </TableCell>
                 </TableRow>
               ))
@@ -224,6 +237,16 @@ export function PlatformUpcomingSettlementsTable({
                         </div>
                       </PopoverContent>
                     </Popover>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSelectedOrderId(item.orderId)}
+                      title="Xem chi tiết đơn hàng"
+                    >
+                      <Eye className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

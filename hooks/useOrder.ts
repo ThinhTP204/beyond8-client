@@ -22,6 +22,7 @@ import {
   OrderStatus,
   OrderData,
   UpdateSettlementEligibleAtRequest,
+  OrderDetailsResponse,
 } from "@/lib/api/services/fetchOrder";
 import { toast } from "sonner";
 
@@ -419,5 +420,25 @@ export function useUpdateSettlementEligibleAt() {
   return {
     updateSettlementEligibleAt: mutateAsync,
     isPending,
+  };
+}
+// Hook lấy chi tiết đơn hàng
+export function useGetOrderDetails(orderId: string, options?: { enabled?: boolean }) {
+  const { data, isLoading, isError, refetch } = useQuery<
+    OrderDetailsResponse,
+    Error,
+    OrderData
+  >({
+    queryKey: ["order-details", orderId],
+    queryFn: () => fetchOrder.getOrderById(orderId),
+    enabled: options?.enabled ?? true,
+    select: (res) => res.data,
+  });
+
+  return {
+    order: data,
+    isLoading,
+    isError,
+    refetch,
   };
 }

@@ -170,4 +170,10 @@ export const fetchCoupon = {
 		const response = await apiService.patch<CouponResponse>(`api/v1/coupons/admin/${couponId}/toggle-status`);
 		return response.data;
 	},
+
+	//Bật/tắt trạng thái coupon (Instructor only)
+	toggleActiveForInstructor: async (couponId: string): Promise<CouponResponse> => {
+		const response = await apiService.patch<CouponResponse>(`api/v1/coupons/instructor/${couponId}/toggle-status`);
+		return response.data;
+	},
 };

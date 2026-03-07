@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { toast } from "sonner"
 import { ChevronRight, Home, FolderOpen, Plus, Ticket, Wallet, ArrowLeft } from "lucide-react"
-import { useGetCouponForInstructor, useToggleCoupon } from "@/hooks/useCoupon"
+import { useGetCouponForInstructor, useToggleCouponForInstructor } from "@/hooks/useCoupon"
 import { useGetCourseByInstructor } from "@/hooks/useCourse"
 import { useGetMyWallet } from "@/hooks/useWallet"
 import { formatCurrency } from "@/lib/utils/formatCurrency"
@@ -41,7 +41,7 @@ export function CouponExplorer() {
         isDescending: true,
         level: CourseLevel.All
     })
-    const { toggleCoupon } = useToggleCoupon()
+    const { toggleCoupon } = useToggleCouponForInstructor()
 
     const processedRef = useRef(false)
 

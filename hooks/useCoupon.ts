@@ -132,6 +132,30 @@ export function useToggleCoupon() {
 	};
 }
 
+export function useToggleCouponForInstructor() {
+	const queryClient = useQueryClient();
+	const { mutateAsync, isPending } = useMutation({
+		mutationFn: (id: string) => fetchCoupon.toggleActiveForInstructor(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["coupons", "active"],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["coupons", "instructor"],
+			});
+			toast.success("Bật/tắt mã khuyến mãi thành công!");
+		},
+		onError: (error: ApiError) => {
+			toast.error(error?.message || "Bật/tắt mã khuyến mãi thất bại!");
+		},
+	});
+
+	return {
+		toggleCoupon: mutateAsync,
+		isPending,
+	};
+}
+
 export function useGetCouponByCode(code: string) {
 	const { data, isLoading, error, isError, refetch } = useQuery({
 		queryKey: ["coupons", "code", code],

@@ -15,6 +15,9 @@ import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { WalletTransaction, TransactionType } from "@/lib/api/services/fetchWallet";
+import { useState } from "react";
+import { Eye } from "lucide-react";
+import { OrderDetailsDialog } from "./OrderDetailsDialog";
 
 const TransactionTypeLabels: Record<string, string> = {
     [TransactionType.Sale]: "Bán khóa học",
@@ -45,8 +48,15 @@ export function PlatformTransactionTable({
     setPagination,
     pageCount
 }: PlatformTransactionTableProps) {
+    const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
     return (
         <div className="space-y-4">
+            <OrderDetailsDialog
+                orderId={selectedOrderId}
+                open={!!selectedOrderId}
+                onOpenChange={(open) => !open && setSelectedOrderId(null)}
+            />
             {/* <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Lịch sử giao dịch nền tảng</h2>
             </div> */}
@@ -60,6 +70,7 @@ export function PlatformTransactionTable({
                             <TableHead>Loại</TableHead>
                             <TableHead>Trạng thái</TableHead>
                             <TableHead className="text-right">Số tiền</TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -71,11 +82,12 @@ export function PlatformTransactionTable({
                                     <TableCell><Skeleton className="h-5 w-[80px]" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-[100px]" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-[120px] ml-auto" /></TableCell>
+                                    <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                                 </TableRow>
                             ))
                         ) : transactions.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center">
+                                <TableCell colSpan={6} className="h-24 text-center">
                                     Không có giao dịch nào.
                                 </TableCell>
                             </TableRow>
@@ -135,6 +147,18 @@ export function PlatformTransactionTable({
                                                     {(transaction.type as string) === "CouponCost" && "Trừ chi phí"}
                                                 </span>
                                             </div>
+                                        </TableCell>
+                                        <TableCell className="text-center align-middle">
+                                            {transaction.referenceType === "Order" && transaction.referenceId && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => setSelectedOrderId(transaction.referenceId)}
+                                                    title="Xem chi tiết đơn hàng"
+                                                >
+                                                    <Eye className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                                </Button>
+                                            )}
                                         </TableCell>
                                     </TableRow>
                                 );
