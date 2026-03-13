@@ -1,7 +1,7 @@
 # Beyond8 — AI-Powered Learning Management System
 
 <p align="center">
-  <img src="/icon-logo.png" alt="Beyond8 Logo" width="200" />
+  <img src="icon-logo.png" alt="Beyond8 Logo" width="200" />
 </p>
 
 Beyond8 là nền tảng học trực tuyến (LMS) tích hợp AI, hỗ trợ đa vai trò: **Học viên**, **Giảng viên** và **Quản trị viên**. Nền tảng cho phép học viên mua và học các khóa học video, giảng viên tạo và quản lý nội dung, đồng thời cung cấp bộ công cụ quản trị toàn diện cho admin.
